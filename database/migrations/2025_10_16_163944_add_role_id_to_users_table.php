@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Tambah kolom role_id dan buat foreign key ke tabel roles
             $table->foreignId('role_id')
                   ->constrained('roles')
                   ->cascadeOnDelete();
