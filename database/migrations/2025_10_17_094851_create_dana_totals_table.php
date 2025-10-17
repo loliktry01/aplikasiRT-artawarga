@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('dana_totals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pemasukan_id')->nullable()->constrained('pemasukan', 'pemasukan_id')->cascadeOnUpdate()->nullOnDelete();
-            $table->foreignId('pengeluaran_id')->nullable()->constrained('pengeluaran', 'pengeluaran_id')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('pemasukan_id')->nullable()->constrained('pemasukans', 'id')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('pengeluaran_id')->nullable()->constrained('pengeluarans', 'id')->cascadeOnUpdate()->nullOnDelete();
             $table->decimal('total', 15, 2);
             $table->timestamps();
         });

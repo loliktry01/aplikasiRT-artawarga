@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('sub_kategori_kegiatans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kategori_kegiatan_id')->constrained('kategori_kegiatan', 'kategori_kegiatan_id')->cascadeOnUpdate()->restrictOnDelete();
-            $table->foreignId('kegiatan_id')->nullable()->constrained('kegiatan', 'kegiatan_id')->  cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('kategori_kegiatan_id')->constrained('kategori_kegiatans', 'id')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('kegiatan_id')->nullable()->constrained('kegiatans', 'id')->  cascadeOnUpdate()->nullOnDelete();
             $table->string('nama_sub_kategori');
             $table->text('keterangan')->nullable();
             $table->timestamps();

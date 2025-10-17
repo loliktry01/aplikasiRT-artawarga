@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('pengeluarans', function (Blueprint $table) {
             $table->id();
             $table->id('pengeluaran_id');
-            $table->foreignId('kegiatan_id')->constrained('kegiatan', 'kegiatan_id')->cascadeOnUpdate()->restrictOnDelete();
-            $table->foreignId('jenis_sumber_dana_id')->constrained('jenis_sumber_dana', 'jenis_sumber_dana_id')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('kegiatan_id')->constrained('kegiatans', 'id')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('jenis_sumber_dana_id')->constrained('jenis_sumber_danas', 'id')->cascadeOnUpdate()->nullOnDelete();
             $table->date('tanggal');
             $table->decimal('jumlah', 15, 2);
             $table->text('keterangan')->nullable();
