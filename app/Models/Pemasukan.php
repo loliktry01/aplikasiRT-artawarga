@@ -15,7 +15,7 @@ class Pemasukan extends Model
 
     public function jenisSumberDana()
     {
-        return $this->belongsTo(JenisSumberDana::class, 'jenis_sumber_dana_id');
+        //return $this->belongsTo(JenisSumberDana::class, 'jenis_sumber_dana_id');
     }
 
     public function danaTotal()
