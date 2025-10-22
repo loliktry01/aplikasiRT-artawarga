@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jenis_sumber_danas', function (Blueprint $table) {
+        Schema::create('masuk_bop', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_sumber_dana');
-            $table->text('keterangan')->nullable();
+            $table->foreignId('sumber_id')->constrained('sumber')->cascadeOnDelete();
+            $table->date('tgl');
+            $table->decimal('nominal', 15,2);
+            $table->text('ket');
+            $table->string('bkt_nota');
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jenis_sumber_danas');
+        Schema::dropIfExists('pemasukan_b_o_p_s');
     }
 };
