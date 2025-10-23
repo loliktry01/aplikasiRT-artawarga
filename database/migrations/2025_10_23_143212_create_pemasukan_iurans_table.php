@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('kat_iuran_id')->constrained('kat_iuran')->cascadeOnDelete();
             $table->date('tgl');
-            $table->decimal('nominal', 15,2);
+            $table->decimal('nominal', 12,2);
             $table->text('ket');
             $table->timestamps();
         });
