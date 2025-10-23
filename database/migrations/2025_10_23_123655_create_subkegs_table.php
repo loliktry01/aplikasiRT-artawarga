@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('subkeg', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('keg_id')->constrained('keg', 'id')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('keg_id')->constrained('keg')->cascadeOnDelete();
             $table->string('nm_subkeg');
             $table->text('keg')->nullable();
             $table->timestamps();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subkegs');
+        Schema::dropIfExists('subkeg');
     }
 };

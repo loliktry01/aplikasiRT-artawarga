@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('subkat_keg', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kat_keg_id')->constrained('kat_keg', 'id')->cascadeOnUpdate()->restrictOnDelete();
-            $table->foreignId('keg_id')->nullable()->constrained('keg', 'id')->  cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('kat_keg_id')->constrained('kat_keg')->cascadeOnDelete();
+            $table->foreignId('keg_id')->nullable()->constrained('keg')->cascadeOnDelete();
             $table->string('nm_subkat');
             $table->text('ket')->nullable();
             $table->timestamps();
