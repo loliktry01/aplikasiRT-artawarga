@@ -8,4 +8,14 @@ class Role extends Model
 {
     protected $table = 'role';
     protected $fillable = ['nm_role', 'ket'];
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'role_id', 'id');
+    }
+
+    public function resources()
+    {
+        return $this->hasMany(RoleResource::class, 'role_id', 'id');
+    }
 }
