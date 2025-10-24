@@ -14,4 +14,9 @@ class PemasukanBOP extends Model
         'ket',
         'bkt_nota'
     ];
+
+    public function total()
+    {
+        return $this->hasMany(Total::class);
+    }
 }

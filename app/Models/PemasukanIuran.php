@@ -13,4 +13,14 @@ class PemasukanIuran extends Model
         return $this->hasMany(UserIuran::class);
     }
     
+    public function kategori_iuran()
+    {
+        return $this->belongsTo(KategoriIuran::class);
+    }
+
+    public function total()
+    {
+        return $this->hasMany(Total::class);
+    }
+    
 }
