@@ -18,4 +18,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function user_iuran()
+    {
+        return $this->hasMany(UserIuran::class);
+    }
 }
