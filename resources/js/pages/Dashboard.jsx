@@ -31,7 +31,7 @@ export default function Dashboard() {
             <Sidebar>
                 <SidebarContent>
                     <SidebarGroup>
-                        <SidebarGroupLabel classname="font-bold text">
+                        <SidebarGroupLabel classname="font-bold text-red-50">
                             ArthaWarga
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
