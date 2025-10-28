@@ -17,3 +17,7 @@ Route::get('/ringkasan/pemasukan-bop', function () {
     return Inertia::render(component: 'Ringkasan/Pemasukan_BOP');
 });
 Route::post('/bop/create', [DashboardController::class, 'bop_create'])->name('bop.create');
+
+Route::get('/superadmin', function () {
+    return Inertia::render(component: 'Superadmin');
+});
