@@ -56,21 +56,27 @@ export default function AppLayoutSuperadmin({ children }) {
                                                     <SidebarMenuButton asChild>
                                                         <a
                                                             href={item.url}
-                                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
-                                                                isActive
-                                                                    ? "bg-[#EEF2FF] text-[#4F46E5] font-medium"
-                                                                    : "text-gray-700 hover:bg-[#EEF2FF]/70"
+                                                            className={`relative flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 ${
+                                                            isActive
+                                                                ? "text-[#4F46E5] font-medium"
+                                                                : "text-gray-700 hover:text-[#4F46E5]"
                                                             }`}
                                                         >
+                                                            {/* Highlight custom */}
+                                                            {isActive && (
+                                                            <span
+                                                                className="absolute top-0 bottom-0 -left-2 right-1 bg-[#EEF2FF] rounded-full shadow-md scale-x-90 transition-all duration-300"
+                                                            ></span>
+                                                            )}
+
+                                                            {/* Konten teks + ikon di atas highlight */}
+                                                            <span className="relative z-10 flex items-center gap-2">
                                                             <item.icon
                                                                 className={`w-4 h-4 ${
-                                                                    isActive
-                                                                        ? "text-[#4F46E5]"
-                                                                        : "text-gray-600"
+                                                                isActive ? "text-[#4F46E5]" : "text-gray-600"
                                                                 }`}
                                                             />
-                                                            <span>
-                                                                {item.title}
+                                                            <span>{item.title}</span>
                                                             </span>
                                                         </a>
                                                     </SidebarMenuButton>
