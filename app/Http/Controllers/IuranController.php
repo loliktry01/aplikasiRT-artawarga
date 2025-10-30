@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class IuranController extends Controller
 {
-    public function kategori_iuran_create()
+    public function kat_iuran_create()
     {
         $validated = request()->validate([
             'nm_kat' => 'required|string',
@@ -19,6 +19,18 @@ class IuranController extends Controller
         $kat_iuran =  KategoriIuran::create($validated);
 
         return back()->with('success', 'Data kategori iuran berhasil disimpan.');
+    }
+
+    public function kat_iuran_delete($id)
+    {
+        $kategori = KategoriIuran::find($id);
+
+        if ($kategori) {
+            $kategori->delete();
+            return back()->with('success', 'Data kategori iuran berhasil dihapus.');
+        } else {
+            return back()->with('error', 'Data kategori iuran tidak ditemukan.');
+        }
     }
 
     public function iuran_create(Request $request)
