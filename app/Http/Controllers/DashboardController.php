@@ -15,19 +15,10 @@ class DashboardController extends Controller
     }
 
    public function pemasukan()
-{
-    $kategori_iuran = KategoriIuran::all();
-
-    return Inertia::render('Ringkasan/Pemasukan', [
-        'kategori_iuran' => $kategori_iuran
-    ]);
-}
-
-    public function iuran()
     {
         $kategori_iuran = KategoriIuran::all();
 
-        return Inertia::render('Ringkasan/FormIuran',[
+        return Inertia::render('Ringkasan/Pemasukan', [
             'kategori_iuran' => $kategori_iuran
         ]);
     }

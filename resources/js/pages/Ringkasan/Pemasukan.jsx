@@ -13,7 +13,7 @@ import AppLayout from "@/layouts/AppLayout";
 import FormBOP from "./FormBOP";
 import FormIuran from "./FormIuran";
 
-export default function Pemasukan_BOP() {
+export default function Pemasukan() {
     const [jenis, setJenis] = useState("");
     const [tanggal, setTanggal] = useState("");
 
@@ -64,4 +64,4 @@ export default function Pemasukan_BOP() {
     );
 }
 
-Pemasukan_BOP.layout = (page) => <AppLayout>{page}</AppLayout>;
+Pemasukan.layout = (page) => <AppLayout>{page}</AppLayout>;
