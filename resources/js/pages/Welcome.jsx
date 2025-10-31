@@ -13,6 +13,7 @@ import iconCetak from "../assets/iconCetak.png";
 import iconLaporan from "../assets/iconLaporan.png";
 import iconAkses from "../assets/iconAkses.png";
 import iconNotifikasi from "../assets/iconNotifikasi.png";
+import Footer from "@/components/ui/Footer"; // ✅ Tambahkan ini
 
 // --- Komponen Role Card ---
 const RoleCard = ({ title, color, desc, image }) => (
@@ -121,12 +122,11 @@ export default function Welcome() {
       icon: iconAkses,
     },
     {
-      title: "Notifikasi Iuran Otomatis", 
+      title: "Notifikasi Iuran Otomatis",
       description:
-        "Mengirimkan pengingat (notifikasi) iuran rutin/wajib kepada warga secara otomatis. ",
+        "Mengirimkan pengingat (notifikasi) iuran rutin/wajib kepada warga secara otomatis.",
       icon: iconNotifikasi,
-    }
-    
+    },
   ];
 
   return (
@@ -205,7 +205,6 @@ export default function Welcome() {
         </div>
       </section>
 
-
       {/* FITUR */}
       <section id="fitur" className="relative pt-52 pb-32 overflow-hidden">
         <div className="absolute top-50 left-0 w-auto z-0">
@@ -217,20 +216,21 @@ export default function Welcome() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-white">
-          <h2 className="text-black text-5xl font-extrabold text-center mb-50 -mt-24">Fitur</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      {featuresData.map((feature, index) => (
-        <div
-          key={index}
-          className={`flex justify-center            
-          }`}
-        >
-          <FeatureCard {...feature} />
+          <h2 className="text-black text-5xl font-extrabold text-center mb-50 -mt-24">
+            Fitur
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {featuresData.map((feature, index) => (
+              <div key={index} className="flex justify-center">
+                <FeatureCard {...feature} />
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
+      </section>
+
+      {/* FOOTER */}
+      <Footer />
     </div>
   );
 }
