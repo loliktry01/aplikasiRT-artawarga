@@ -9,14 +9,17 @@ class PemasukanIuran extends Model
     protected $table = 'masuk_iuran';
 
     protected $fillable = [
+        'usr_id',
+        'pengumuman_id',
         'kat_iuran_id',
         'tgl',
         'nominal',
         'ket',
-        'jml_kk',
-        'total',
         'bkt_byr',
         'bkt_nota',
+        'tgl_byr',
+        'tgl_approved',
+        'status',
     ];
 
     public function pengumuman()
@@ -33,5 +36,10 @@ class PemasukanIuran extends Model
     public function total()
     {
         return $this->hasMany(Total::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
