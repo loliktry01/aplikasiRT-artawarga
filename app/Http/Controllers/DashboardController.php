@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KategoriIuran;
+use App\Models\PemasukanBOP;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
@@ -42,4 +44,14 @@ class DashboardController extends Controller
             'transaksiTerakhir' => $transaksiTerakhir,
         ]);
     }
+
+   public function pemasukan()
+    {
+        $kategori_iuran = KategoriIuran::all();
+
+        return Inertia::render('Ringkasan/Pemasukan', [
+            'kategori_iuran' => $kategori_iuran
+        ]);
+    }
+
 }
