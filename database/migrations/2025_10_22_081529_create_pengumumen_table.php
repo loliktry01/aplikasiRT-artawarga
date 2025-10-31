@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('usr_iuran', function (Blueprint $table) {
+        Schema::create('pengumuman', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('usr_id')->constrained('usr')->cascadeOnDelete();
+            $table->string('judul');
+            $table->string('ket');
             $table->foreignId('kat_iuran_id')->constrained('kat_iuran')->cascadeOnDelete();
-            $table->date('tgl');
-            $table->string('bkt_byr');
-            $table->boolean('is_paid')->default(false);
-            $table->boolean('is_approved')->default(false);
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('usr_iuran');
+        Schema::dropIfExists('pengumuman');
     }
 };
