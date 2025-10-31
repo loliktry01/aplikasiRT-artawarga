@@ -15,7 +15,7 @@ class SuperAdminController extends Controller
         $users = User::with('role')->paginate(10);
         $roles = Role::all();
 
-        return Inertia::render('SuperAdmin/Users/Index', [
+        return Inertia::render('Superadmin', [
             'users' => $users,
             'roles' => $roles,
             'flash' => [
@@ -28,7 +28,7 @@ class SuperAdminController extends Controller
     {
         $roles = Role::all();
 
-        return Inertia::render('SuperAdmin/Users/Create', [
+        return Inertia::render('Superadmin', [
             'roles' => $roles
         ]);
     }
@@ -37,27 +37,35 @@ class SuperAdminController extends Controller
     {
         $request->validate([
             'nm_lengkap' => 'required|string',
-            'email' => 'required|email|unique:usr',
-            'no_kk' => 'required|digits:16|unique:usr',
+            'no_kk' => 'required|digits:16|unique:usr,no_kk',
+            'email' => 'required|email|unique:usr,email',
             'password' => 'required|min:6',
             'no_hp' => 'nullable',
             'role_id' => 'required',
             'status' => 'required',
-            'rt' => 'nullable',
-            'rw' => 'nullable',
-            'kode_pos' => 'nullable'
+            'kode_prov' => 'required',
+            'kode_kota_kab' => 'required',
+            'kode_kec' => 'required',
+            'kode_desa' => 'required',
+            'rt' => 'required',
+            'rw' => 'required',
+            'kode_pos' => 'required'
         ]);
 
         User::create([
             'nm_lengkap' => $request->nm_lengkap,
             'email' => $request->email,
             'no_kk' => $request->no_kk,
-            'password' => Hash::make($request->password),
+            'pw' => Hash::make($request->password),
             'no_hp' => $request->no_hp,
             'role_id' => $request->role_id,
             'status' => $request->status,
+            'kode_prov' => $request->kode_prov,
+            'kode_kota_kab' => $request->kode_kota_kab,
+            'kode_kec' => $request->kode_kec,
+            'kode_desa' => $request->kode_desa,
             'rt_rw' => $request->rt . '/' . $request->rw,
-            'kode_pos' => $request->kode_pos,
+            'kode_pos' => $request->kode_pos
         ]);
 
         return redirect()->route('superadmin.users')->with('success', 'User berhasil ditambahkan');
@@ -68,7 +76,7 @@ class SuperAdminController extends Controller
         $user = User::findOrFail($id);
         $roles = Role::all();
 
-        return Inertia::render('SuperAdmin/Users/Edit', [
+        return Inertia::render('Superadmin', [
             'user' => $user,
             'roles' => $roles
         ]);
@@ -80,14 +88,18 @@ class SuperAdminController extends Controller
 
         $request->validate([
             'nm_lengkap' => 'required|string',
-            'email' => 'required|email|unique:usr,email,'.$id,
-            'no_kk' => 'required|digits:16|unique:usr,no_kk,'.$id,
-            'no_hp' => 'nullable',
+            'email' => 'required|email|unique:usr,email,' . $id . ',usr_id',
+            'no_kk' => 'required|digits:16|unique:usr,no_kk,' . $id . ',usr_id',
+            'no_hp' => 'required',
             'role_id' => 'required',
             'status' => 'required',
-            'rt' => 'nullable',
-            'rw' => 'nullable',
-            'kode_pos' => 'nullable'
+            'kode_prov' => 'required',
+            'kode_kota_kab' => 'required',
+            'kode_kec' => 'required',
+            'kode_desa' => 'required',
+            'rt' => 'required',
+            'rw' => 'required',
+            'kode_pos' => 'required'
         ]);
 
         $data = [
@@ -97,12 +109,16 @@ class SuperAdminController extends Controller
             'no_hp' => $request->no_hp,
             'role_id' => $request->role_id,
             'status' => $request->status,
+            'kode_prov' => $request->kode_prov,
+            'kode_kota_kab' => $request->kode_kota_kab,
+            'kode_kec' => $request->kode_kec,
+            'kode_desa' => $request->kode_desa,
             'rt_rw' => $request->rt . '/' . $request->rw,
-            'kode_pos' => $request->kode_pos,
+            'kode_pos' => $request->kode_pos
         ];
 
         if ($request->password) {
-            $data['password'] = Hash::make($request->password);
+            $data['pw'] = Hash::make($request->password);
         }
 
         $user->update($data);
