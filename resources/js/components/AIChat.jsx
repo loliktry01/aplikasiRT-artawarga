@@ -23,12 +23,12 @@ export default function AIChat() {
         setMessages((m) => [...m, userMsg]);
 
         const [bopRes, iuranRes] = await Promise.all([
-            fetch("/api/masuk-bop").then((r) => r.json()),
-            fetch("/api/masuk-iuran").then((r) => r.json()),
+            fetch("/bop").then((r) => r.json()),
+            fetch("/iuran").then((r) => r.json()),
         ]);
 
         const prompt = `
-      Kamu adalah asisten analisis keuangan RT.
+      Kamu adalah asisten analisis keuangan RT yag bernama Artho.
       Berikut data pemasukan BOP: ${JSON.stringify(bopRes.data)}
       Berikut data pemasukan IURAN: ${JSON.stringify(iuranRes.data)}
       Jawablah pertanyaan ini secara singkat dan jelas:
