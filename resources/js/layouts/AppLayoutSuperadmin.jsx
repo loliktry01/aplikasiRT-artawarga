@@ -1,5 +1,5 @@
 import React from "react";
-import { Inbox, Menu, Grid2x2Plus, ChevronRight } from "lucide-react";
+import { Inbox, Menu, Grid2x2Plus } from "lucide-react";
 import {
     Sidebar,
     SidebarProvider,
@@ -12,7 +12,9 @@ import {
     SidebarMenuItem,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { usePage } from "@inertiajs/react";
+import { usePage, Link } from "@inertiajs/react";
+import { Toaster } from "sonner";
+import AIChat from "@/components/AIChat";
 
 const items = [
     {
@@ -20,65 +22,66 @@ const items = [
         url: "/superadmin",
         icon: Grid2x2Plus,
     },
-    { title: "Manajemen Data", url: "/approval", icon: Inbox },
+    {
+        title: "Manajemen Data",
+        url: "/manajemen_data",
+        icon: Inbox,
+    },
 ];
 
 export default function AppLayoutSuperadmin({ children }) {
     const { url } = usePage();
+    const isProfilActive = url.startsWith("/superadmin/profil");
 
     return (
         <SidebarProvider>
-            <div className="flex min-h-screen w-full overflow-hidden">
+            <div className="flex min-h-screen w-full bg-white">
+                {/* Tombol Sidebar (Mobile) */}
                 <div className="fixed top-4 left-4 z-50 md:hidden">
                     <SidebarTrigger className="bg-white rounded-md shadow p-2">
                         <Menu className="w-5 h-5 text-gray-700" />
                     </SidebarTrigger>
                 </div>
 
-                <div className="hidden md:flex flex-col justify-between w-[240px] flex-shrink-0 bg-[#A1FFC2] border-r border-black/10">
-
-                    <Sidebar>
-                        <SidebarContent>
+                {/* Sidebar */}
+                <Sidebar className="hidden md:flex flex-col w-[220px] bg-[#A1FFC2] border-r border-black/10 rounded-tr-[48px] justify-between h-full">
+                    <SidebarContent className="flex flex-col justify-between h-full">
+                        <div>
+                            {/* Header Sidebar */}
                             <SidebarGroup>
-                                <SidebarGroupLabel className="text-2xl font-bold px-4 pt-30 text-black pb-10">
-                                    Selamat Datang, Admin!
+                                <SidebarGroupLabel className="font-bold text-lg px-4 pt-4 text-black">
+                                    ArthaWarga
                                 </SidebarGroupLabel>
+
+                                {/* Menu Navigasi */}
                                 <SidebarGroupContent>
-                                    <SidebarMenu>
+                                    <SidebarMenu className="mt-6 flex flex-col gap-3 px-4">
                                         {items.map((item) => {
-                                            const isActive = url.startsWith(
-                                                item.url
-                                            );
+                                            const isActive =
+                                                item.url === "/superadmin"
+                                                    ? url === "/superadmin"
+                                                    : url.startsWith(item.url);
+
                                             return (
-                                                <SidebarMenuItem
-                                                    key={item.title}
-                                                >
+                                                <SidebarMenuItem key={item.title}>
                                                     <SidebarMenuButton asChild>
-                                                        <a
+                                                        <Link
                                                             href={item.url}
-                                                            className={`relative flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 ${
-                                                            isActive
-                                                                ? "text-[#4F46E5] font-medium"
-                                                                : "text-gray-700 hover:text-[#4F46E5]"
+                                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
+                                                                isActive
+                                                                    ? "bg-[#EEF2FF] text-[#4F46E5] font-medium"
+                                                                    : "text-gray-700 hover:bg-[#EEF2FF]/70"
                                                             }`}
                                                         >
-                                                            {/* Highlight custom */}
-                                                            {isActive && (
-                                                            <span
-                                                                className="absolute top-0 bottom-0 -left-2 right-1 bg-[#EEF2FF] rounded-full shadow-md scale-x-90 transition-all duration-300"
-                                                            ></span>
-                                                            )}
-
-                                                            {/* Konten teks + ikon di atas highlight */}
-                                                            <span className="relative z-10 flex items-center gap-2">
                                                             <item.icon
                                                                 className={`w-4 h-4 ${
-                                                                isActive ? "text-[#4F46E5]" : "text-gray-600"
+                                                                    isActive
+                                                                        ? "text-[#4F46E5]"
+                                                                        : "text-gray-600"
                                                                 }`}
                                                             />
-                                                            <span>{item.title}</span>
-                                                            </span>
-                                                        </a>
+                                                            <span className="text-sm">{item.title}</span>
+                                                        </Link>
                                                     </SidebarMenuButton>
                                                 </SidebarMenuItem>
                                             );
@@ -86,36 +89,41 @@ export default function AppLayoutSuperadmin({ children }) {
                                     </SidebarMenu>
                                 </SidebarGroupContent>
                             </SidebarGroup>
-                        </SidebarContent>
-                    </Sidebar>
+                        </div>
 
-                    {/* ✅ Bagian Profil */}
-                    <div className="border-t border-black/100 p-3">
-                        <a
-                            href="/profil"
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#EEF2FF]/70 transition"
+                        {/* Profil */}
+                        <Link
+                            href="/superadmin/profil"
+                            className={`border-t border-black/80 p-3 flex items-center gap-2 transition-colors ${
+                                isProfilActive
+                                    ? "bg-[#8FFFB0]/90 font-semibold text-gray-800"
+                                    : "text-gray-700 hover:bg-[#8FFFB0]/70"
+                            }`}
                         >
                             <img
-                                src="https://i.pravatar.cc/40"
-                                alt="Profile"
-                                className="w-10 h-10 rounded-full border"
+                                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Johnathan"
+                                alt="avatar"
+                                className="w-8 h-8 rounded-full"
                             />
-                            <div className="flex flex-col text-sm">
-                                <span className="text-gray-600">Welcome back 👋</span>
-                                <span className="font-semibold text-black">Johnathan</span>
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-600">Welcome back 👋</p>
+                                <p className="font-medium text-sm">Johnathan</p>
                             </div>
-                            <ChevronRight className="ml-auto w-4 h-4 text-gray-500" />
-                        </a>
-                    </div>
-                </div>
+                            <span className="text-lg text-gray-600">›</span>
+                        </Link>
+                    </SidebarContent>
+                </Sidebar>
 
-                {/* Area Konten */}
-                <main className="flex-1 h-screen bg-white overflow-y-auto overflow-x-hidden">
-                    <div className="w-full h-full px-6 py-10 md:px-10 md:py-12">
+                {/* Konten Utama */}
+                <main className="flex-1 h-full overflow-y-auto overflow-x-hidden">
+                    <div className="w-full h-full px-8 py-10 md:px-12 md:py-12 bg-white">
                         {children}
                     </div>
                 </main>
             </div>
+
+            <Toaster position="top-right" richColors closeButton />
+            <AIChat />
         </SidebarProvider>
     );
 }
