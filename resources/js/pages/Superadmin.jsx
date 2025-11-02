@@ -3,12 +3,12 @@ import React from "react";
 import { Database, Banknote, Clock, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar"
-import "react-datepicker/dist/react-datepicker.css";
+import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
 export default function Superadmin() {
-    const [date, setDate] = React.useState(null);
+    const [date, setDate] = React.useState(new Date());
+    const [open, setOpen] = React.useState(false); // kontrol popover
 
     return (
         <AppLayoutSuperadmin>
@@ -31,8 +31,8 @@ export default function Superadmin() {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                             <h2 className="font-semibold text-lg">Terakhir Diedit</h2>
 
-                            {/* ✅ Kalender Popover dengan react-datepicker */}
-                            <Popover>
+                            {/* ✅ Kalender Popover */}
+                            <Popover open={open} onOpenChange={setOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -42,13 +42,17 @@ export default function Superadmin() {
                                         {date ? format(date, "dd/MM/yyyy") : "DD/MM/YYYY"}
                                     </Button>
                                 </PopoverTrigger>
+
                                 <PopoverContent className="w-auto p-2" align="end">
                                     <Calendar
                                         mode="single"
                                         selected={date}
-                                        onSelect={setDate}
+                                        onSelect={(selectedDate) => {
+                                            setDate(selectedDate);
+                                            setOpen(false); // otomatis tutup popover
+                                        }}
                                         className="rounded-lg border shadow-sm"
-                                        captionLayout="dropdown"
+                                        captionLayout="dropdown" // dropdown bulan & tahun
                                     />
                                 </PopoverContent>
                             </Popover>
