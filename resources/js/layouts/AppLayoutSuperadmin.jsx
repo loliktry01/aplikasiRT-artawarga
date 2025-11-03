@@ -44,7 +44,7 @@ export default function AppLayoutSuperadmin({ children }) {
                 </div>
 
                 {/* Sidebar */}
-                <Sidebar className="hidden md:flex flex-col w-[220px] bg-[#A1FFC2] border-r border-black/10 rounded-tr-[48px] justify-between h-full">
+                <Sidebar className="hidden md:flex flex-col w-[220px] bg-[#4C9EFF] border-r border-black/10 rounded-tr-[48px] justify-between h-full">
                     <SidebarContent className="flex flex-col justify-between h-full">
                         <div>
                             {/* Header Sidebar */}
@@ -67,7 +67,7 @@ export default function AppLayoutSuperadmin({ children }) {
                                                     <SidebarMenuButton asChild>
                                                         <Link
                                                             href={item.url}
-                                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
+                                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors  ${
                                                                 isActive
                                                                     ? "bg-[#EEF2FF] text-[#4F46E5] font-medium"
                                                                     : "text-gray-700 hover:bg-[#EEF2FF]/70"
@@ -96,8 +96,8 @@ export default function AppLayoutSuperadmin({ children }) {
                             href="/superadmin/profil"
                             className={`border-t border-black/80 p-3 flex items-center gap-2 transition-colors ${
                                 isProfilActive
-                                    ? "bg-[#8FFFB0]/90 font-semibold text-gray-800"
-                                    : "text-gray-700 hover:bg-[#8FFFB0]/70"
+                                    ? "bg-[#4C9EFF]/90 font-semibold text-gray-800"
+                                    : "text-gray-700 hover:bg-[#4C9EFF]/70"
                             }`}
                         >
                             <img
