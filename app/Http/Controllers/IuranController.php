@@ -64,7 +64,13 @@ class IuranController extends Controller
             'ket' => 'nullable|string',
         ]);
 
-        $iuran = PemasukanIuran::create($validated);
+        $iuran = PemasukanIuran::create([
+            'kat_iuran_id' => $validated['kat_iuran_id'],
+            'tgl' => $validated['tgl'],
+            'nominal' => $validated['nominal'],
+            'ket' => $validated['ket'],
+            'status' => 'approved',
+        ]);
        
         return back()->with('success', 'Data iuran berhasil disimpan.');
     }
@@ -85,6 +91,7 @@ class IuranController extends Controller
             'kat_iuran_id' => $validated['kat_iuran_id'],
         ]);
 
+        // $users = User::whereNotIn('role_id', [1, 2, 3, 4])->get();
         $users = User::all();
 
         foreach ($users as $user) {
