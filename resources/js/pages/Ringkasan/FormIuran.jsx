@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Minus } from "lucide-react";
 import { useNotify } from "@/components/ToastNotification";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function FormIuran({ tanggal, kategori_iuran = [] }) {
     const { notifySuccess, notifyError } = useNotify();
@@ -287,7 +288,7 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
                         disabled={form.processing}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white"
                     >
-                        {form.processing ? "Menyimpan..." : "Simpan"}
+                        {form.processing ? "Menyimpan..." : "Tambah Pemasukan"}
                     </Button>
                 </div>
             </form>
