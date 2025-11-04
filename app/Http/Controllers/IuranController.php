@@ -83,19 +83,17 @@ class IuranController extends Controller
         'ket' => 'nullable|string',
     ]);
 
-    try {
-        $iuran = PemasukanIuran::create($validated);
-        return response()->json([
-            'success' => true,
-            'message' => 'Data iuran berhasil disimpan.'
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal menyimpan ke database: ' . $e->getMessage(),
-        ], 500);
+        $iuran = PemasukanIuran::create([
+            'kat_iuran_id' => $validated['kat_iuran_id'],
+            'tgl' => $validated['tgl'],
+            'nominal' => $validated['nominal'],
+            'ket' => $validated['ket'],
+            'status' => 'approved',
+        ]);
+       
+        return back()->with('success', 'Data iuran berhasil disimpan.');
     }
-}
+
 
 
     /**
@@ -115,6 +113,7 @@ class IuranController extends Controller
             'kat_iuran_id' => $validated['kat_iuran_id'],
         ]);
 
+        // $users = User::whereNotIn('role_id', [1, 2, 3, 4])->get();
         $users = User::all();
 
         foreach ($users as $user) {
