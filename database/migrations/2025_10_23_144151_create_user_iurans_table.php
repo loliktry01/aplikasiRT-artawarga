@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('usr_id')->constrained('usr')->cascadeOnDelete();
             $table->foreignId('masuk_iuran_id')->constrained('masuk_iuran')->cascadeOnDelete();
-            $table->date('tgl');
+            $table->date('tgl')->nullable();
             $table->string('bkt_byr')->nullable();
             $table->boolean('is_paid')->default(false);
             $table->boolean('is_approved')->default(false);

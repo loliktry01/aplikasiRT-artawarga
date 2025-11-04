@@ -65,7 +65,6 @@ class IuranController extends Controller
             UserIuran::create([
                 'usr_id' => $user->id,
                 'masuk_iuran_id' => $iuran->id,
-                'tgl' => now(),
                 'is_paid' => false,
                 'is_approved' => false
             ]);

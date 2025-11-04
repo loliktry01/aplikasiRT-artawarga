@@ -10,8 +10,6 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BopController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IuranController;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\SuperAdminController;
 
 /*
@@ -48,8 +46,6 @@ Route::get('/api/masuk-iuran', [IuranApiController::class, 'index']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------

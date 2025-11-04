@@ -43,7 +43,8 @@ class SuperAdminController extends Controller
             'no_hp' => 'nullable',
             'role_id' => 'required',
             'status' => 'required',
-            'rt' => 'nullable',
+
+            'rt' => 'required',
             'rw' => 'nullable',
             'kode_pos' => 'nullable'
         ]);
