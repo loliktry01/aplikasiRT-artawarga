@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useForm } from "@inertiajs/react";
 import { route } from "ziggy-js";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,17 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
         tgl: tanggal || "",
         nominal: "",
         ket: "",
+    });
+
+    // 🧾 Form tambah kategori (dipisah dari form utama)
+    const {
+        data: dataKategori,
+        setData: setDataKategori,
+        post: postKategori,
+        processing: processingKategori,
+        reset: resetKategori,
+    } = useForm({
+        nm_kat: "",
     });
 
     // Kategori iuran (state tambahan)
@@ -91,32 +103,36 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
         });
     };
 
-    // ✅ Tambah kategori iuran
-    const handleAddKategori = () => {
+    // ✅ Tambah kategori iuran (pakai form kategori di atas)
+    const handleAddKategori = async () => {
         if (!namaKat.trim()) {
             notifyError("Input Kosong", "Nama kategori tidak boleh kosong");
             return;
         }
 
-        const kategoriForm = useForm({ nm_kat: namaKat });
-        kategoriForm.post(route("kat_iuran.create"), {
-            preserveScroll: true,
-            onSuccess: (page) => {
-                const dataRes = page.props.flash?.data;
-                if (dataRes) {
-                    setKategori((prev) => [...prev, dataRes]);
-                }
+        try {
+            const res = await axios.post(route("kat_iuran.create"), {
+                nm_kat: namaKat,
+            });
+
+            if (res.data.success) {
+                setKategori((prev) => [...prev, res.data.data]);
                 notifySuccess(
                     "Kategori Ditambahkan",
-                    "Jenis iuran baru berhasil disimpan"
+                    "Jenis iuran baru berhasil disimpan."
                 );
                 setNamaKat("");
                 setOpenAdd(false);
-            },
-            onError: () => {
-                notifyError("Gagal Menambah", "Terjadi kesalahan.");
-            },
-        });
+            } else {
+                notifyError(
+                    "Gagal Menambah",
+                    res.data.message || "Terjadi kesalahan."
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            notifyError("Gagal Menambah", "Terjadi kesalahan pada server.");
+        }
     };
 
     // ✅ Hapus kategori iuran
@@ -190,8 +206,11 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
                                         type="button"
                                         className="bg-emerald-500 hover:bg-emerald-600 text-white"
                                         onClick={handleAddKategori}
+                                        disabled={processingKategori}
                                     >
-                                        Simpan
+                                        {processingKategori
+                                            ? "Menyimpan..."
+                                            : "Simpan"}
                                     </Button>
                                 </DialogFooter>
                             </DialogContent>
