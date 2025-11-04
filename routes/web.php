@@ -30,38 +30,37 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // 📌 Dashboard & Ringkasan
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/ringkasan/pemasukan', [DashboardController::class, 'pemasukan'])->name('pemasukan');
+Route::prefix('superadmin')->group(function () {
+    Route::get('/', function () {
+        return Inertia::render('Superadmin'); // Dashboard superadmin
+    })->name('superadmin.dashboard');
+
+    Route::get('/profil', function () {
+        return Inertia::render('Profil'); // Profil superadmin
+    })->name('superadmin.profil');
+});
+
+Route::get('/manajemen_data', function () {
+    return Inertia::render('ManajemenData');
+});
+
 
 // 📌 Aksi CRUD
+Route::get('/bop', [BopController::class, 'index']);
+Route::get('/iuran', [IuranController::class, 'index']);
 Route::post('/bop/create', [BopController::class, 'bop_create'])->name('bop.create');
 Route::post('/iuran/create', [IuranController::class, 'iuran_create'])->name('iuran.create');
+
 Route::post('/kategori-iuran/create', [IuranController::class, 'kat_iuran_create'])->name('kat_iuran.create');
 Route::delete('/kategori-iuran/delete/{id}', [IuranController::class, 'kat_iuran_delete'])->name('kat_iuran.delete');
-Route::get('/api/masuk-bop', [BopApiController::class, 'index']);
-Route::get('/api/masuk-iuran', [IuranApiController::class, 'index']);
-/*
-|--------------------------------------------------------------------------
-| Protected Routes (User Logged In)
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth', 'verified'])->group(function () {
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Super Admin Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+        
+Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
+Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');
+Route::post('/users/store', [SuperAdminController::class, 'storeUser'])->name('users.store');
+Route::get('/users/edit/{id}', [SuperAdminController::class, 'editUser'])->name('users.edit');
+Route::post('/users/update/{id}', [SuperAdminController::class, 'updateUser'])->name('users.update');
+Route::delete('/users/delete/{id}', [SuperAdminController::class, 'deleteUser'])->name('users.delete');
 
-        // User Management
-        Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
-        Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');
-        Route::post('/users/store', [SuperAdminController::class, 'storeUser'])->name('users.store');
-        Route::get('/users/edit/{id}', [SuperAdminController::class, 'editUser'])->name('users.edit');
-        Route::post('/users/update/{id}', [SuperAdminController::class, 'updateUser'])->name('users.update');
-        Route::delete('/users/delete/{id}', [SuperAdminController::class, 'deleteUser'])->name('users.delete');
 
-    });
-
-});
