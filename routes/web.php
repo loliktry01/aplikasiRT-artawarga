@@ -7,6 +7,7 @@ use App\Http\Controllers\IuranController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\MasukIuranController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -38,5 +39,11 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/ringkasan/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran');
     Route::post('/pengeluaran', [PengeluaranController::class, 'pengeluaran'])->name('pengeluaran.store');
     Route::get('/rincian/{id}', [DashboardController::class, 'rincian'])->name('rincian.show');
+
+    // Masuk Iuran (untuk warga)
+    Route::get('/masuk-iuran', [MasukIuranController::class, 'index'])->name('masuk-iuran.index');
+    Route::get('/masuk-iuran/{id}', [MasukIuranController::class, 'show'])->name('masuk-iuran.show');
+    Route::post('/masuk-iuran/upload', [MasukIuranController::class, 'store'])->name('masuk-iuran.store');
+
 });
 
