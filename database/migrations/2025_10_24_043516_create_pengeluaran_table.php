@@ -16,7 +16,7 @@ return new class extends Migration
             $table->enum('tipe', ['bop', 'iuran']);
             $table->foreignId('keg_id')->constrained('keg')->cascadeOnDelete();
             $table->date('tgl');
-            $table->decimal('nominal', 12, 2);
+            $table->integer('nominal');
             $table->string('ket');
             $table->string('bkt_nota')->nullable();
             $table->timestamps();

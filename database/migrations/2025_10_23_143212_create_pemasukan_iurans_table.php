@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('pengumuman_id')->nullable()->constrained('pengumuman')->cascadeOnDelete();
             $table->foreignId('kat_iuran_id')->nullable()->constrained('kat_iuran')->cascadeOnDelete();
             $table->date('tgl');
-            $table->decimal('nominal', 12,2)->nullable();
+            $table->integer('nominal')->nullable();
             $table->string('ket')->nullable();
             $table->string('bkt_byr')->nullable();  
             $table->string('bkt_nota')->nullable();
