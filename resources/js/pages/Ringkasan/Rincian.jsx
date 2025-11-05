@@ -11,6 +11,7 @@ import {
     PiggyBank,
     ArrowDownCircle,
 } from "lucide-react";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Rincian() {
     const { rincian = {} } = usePage().props;
@@ -70,22 +71,17 @@ export default function Rincian() {
 
     return (
         <AppLayout>
-            <div className="px-8 py-10 space-y-10">
+            <div className="pl-0 pr-8 pb-10 md:pr-12 md:pb-12  space-y-10">
                 {/* Header */}
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.visit("/dashboard")}
-                        className="flex items-center gap-2"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Kembali
-                    </Button>
-                    <h1 className="text-xl font-semibold text-gray-800">
-                        Rincian Transaksi
-                    </h1>
-                </div>
+                <h1 className="text-3xl font-bold mb-8">RINCIAN</h1>
+
+                {/* Pilihan jenis dan tanggal */}
+                <Breadcrumbs
+                    items={[
+                        { label: "Dashboard", href: route("dashboard") },
+                        { label: "Tambah Rincian" },
+                    ]}
+                />
 
                 {/* Cards Summary */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

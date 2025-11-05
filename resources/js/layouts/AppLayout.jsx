@@ -23,23 +23,36 @@ const items = [
 ];
 
 export default function AppLayout({ children }) {
-    const { url } = usePage();
-    const { post } = useForm(); // ✅ untuk handle logout
+    const { url, props } = usePage(); // 🔹 ambil props dari inertia
+    const { auth } = props; // 🔹 ambil auth di sini
+    const { post } = useForm();
 
     const handleLogout = (e) => {
         e.preventDefault();
-        post(route("logout")); // kirim POST ke /logout
+        post(route("logout"));
     };
+
+    // 🔹 ambil dua kata pertama dari nm_lengkap
+    const displayName = auth?.user?.nm_lengkap
+        ? auth.user.nm_lengkap.split(" ").slice(0, 2).join(" ")
+        : "Guest";
+
+    // 🔹 avatar unik dari nama
+    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+        displayName
+    )}`;
 
     return (
         <SidebarProvider>
             <div className="flex min-h-screen w-full bg-white">
+                {/* Sidebar Trigger Mobile */}
                 <div className="fixed top-4 left-4 z-50 md:hidden">
                     <SidebarTrigger className="bg-white rounded-md shadow p-2">
                         <Menu className="w-5 h-5 text-gray-700" />
                     </SidebarTrigger>
                 </div>
 
+                {/* Sidebar */}
                 <Sidebar className="hidden md:flex flex-col bg-[#59B5F7] border-r border-black/10 rounded-tr-[48px] justify-between h-full">
                     <SidebarContent className="flex flex-col justify-between h-full">
                         <div>
@@ -86,11 +99,11 @@ export default function AppLayout({ children }) {
                             </SidebarGroup>
                         </div>
 
-                        {/* ✅ Bagian bawah sidebar: Profil + Logout */}
+                        {/* 🔹 Profil + Logout */}
                         <div className="border-t border-black/10 p-3 flex items-center gap-2 justify-between">
                             <div className="flex items-center gap-2">
                                 <img
-                                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Johnathan"
+                                    src={avatarUrl}
                                     alt="avatar"
                                     className="w-8 h-8 rounded-full"
                                 />
@@ -99,7 +112,7 @@ export default function AppLayout({ children }) {
                                         Welcome back 👋
                                     </p>
                                     <p className="font-medium text-sm">
-                                        Johnathan
+                                        {displayName}
                                     </p>
                                 </div>
                             </div>
@@ -117,6 +130,7 @@ export default function AppLayout({ children }) {
                     </SidebarContent>
                 </Sidebar>
 
+                {/* Main Content */}
                 <main className="flex-1 h-full overflow-y-auto overflow-x-hidden">
                     <div className="w-full h-full px-8 py-10 md:px-12 md:py-12 bg-white">
                         {children}
