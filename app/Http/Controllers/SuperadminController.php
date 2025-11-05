@@ -39,10 +39,11 @@ class SuperAdminController extends Controller
             'nm_lengkap' => 'required|string',
             'no_kk' => 'required|digits:16|unique:usr,no_kk',
             'email' => 'required|email|unique:usr,email',
-            'password' => 'required|min:6',
+            'pw' => 'required|min:6',
             'no_hp' => 'nullable',
             'role_id' => 'required',
             'status' => 'required',
+            'alamat' => 'required|string',
             'rt' => 'required',
             'rw' => 'nullable',
             'kode_pos' => 'nullable'
@@ -52,15 +53,13 @@ class SuperAdminController extends Controller
             'nm_lengkap' => $request->nm_lengkap,
             'email' => $request->email,
             'no_kk' => $request->no_kk,
-            'pw' => Hash::make($request->password),
+            'pw' => Hash::make($request->pw),
             'no_hp' => $request->no_hp,
             'role_id' => $request->role_id,
             'status' => $request->status,
-            'kode_prov' => $request->kode_prov,
-            'kode_kota_kab' => $request->kode_kota_kab,
-            'kode_kec' => $request->kode_kec,
-            'kode_desa' => $request->kode_desa,
-            'rt_rw' => $request->rt . '/' . $request->rw,
+            'alamat' => $request->alamat,
+            'rt' => $request->rt,
+            'rw' => $request->rw,
             'kode_pos' => $request->kode_pos
         ]);
 
@@ -89,10 +88,7 @@ class SuperAdminController extends Controller
             'no_hp' => 'required',
             'role_id' => 'required',
             'status' => 'required',
-            'kode_prov' => 'required',
-            'kode_kota_kab' => 'required',
-            'kode_kec' => 'required',
-            'kode_desa' => 'required',
+            'alamat' => 'required|string',
             'rt' => 'required',
             'rw' => 'required',
             'kode_pos' => 'required'
@@ -105,16 +101,14 @@ class SuperAdminController extends Controller
             'no_hp' => $request->no_hp,
             'role_id' => $request->role_id,
             'status' => $request->status,
-            'kode_prov' => $request->kode_prov,
-            'kode_kota_kab' => $request->kode_kota_kab,
-            'kode_kec' => $request->kode_kec,
-            'kode_desa' => $request->kode_desa,
-            'rt_rw' => $request->rt . '/' . $request->rw,
+            'alamat' => $request->alamat,
+            'rt' => $request->rt,
+            'rw' => $request->rw,
             'kode_pos' => $request->kode_pos
         ];
 
-        if ($request->password) {
-            $data['pw'] = Hash::make($request->password);
+        if ($request->filled('pw')) {
+            $data['pw'] = Hash::make($request->pw);
         }
 
         $user->update($data);
