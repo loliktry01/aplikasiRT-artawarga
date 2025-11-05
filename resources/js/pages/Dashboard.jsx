@@ -65,39 +65,44 @@ export default function Dashboard() {
                 </h1>
 
                 {/* Tombol Aksi */}
-                <div className="flex gap-2 mt-4 md:mt-0">
-                    {/* Role 2 dan 4 bisa tambah kegiatan */}
-                    {(userRole === 2 || userRole === 4) && (
-                        <Button
-                            className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                            onClick={() => router.visit("/kegiatan/tambah")}
-                        >
-                            Tambah Kegiatan
-                        </Button>
-                    )}
+                {/* Tombol Aksi */}
+                {userRole !== 5 && (
+                    <div className="flex gap-2 mt-4 md:mt-0">
+                        {/* Role 2 dan 4 bisa tambah kegiatan */}
+                        {(userRole === 2 || userRole === 4) && (
+                            <Button
+                                className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
+                                onClick={() =>
+                                    router.visit("/ringkasan/kegiatan")
+                                }
+                            >
+                                Tambah Kegiatan
+                            </Button>
+                        )}
 
-                    {/* Role 2 dan 3 bisa tambah pemasukan & pengeluaran */}
-                    {(userRole === 2 || userRole === 3) && (
-                        <>
-                            <Button
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                                onClick={() =>
-                                    router.visit("/ringkasan/pemasukan")
-                                }
-                            >
-                                Tambah Pemasukan
-                            </Button>
-                            <Button
-                                className="bg-red-500 hover:bg-red-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                                onClick={() =>
-                                    router.visit("/ringkasan/pengeluaran")
-                                }
-                            >
-                                Tambah Pengeluaran
-                            </Button>
-                        </>
-                    )}
-                </div>
+                        {/* Role 2 dan 3 bisa tambah pemasukan & pengeluaran */}
+                        {(userRole === 2 || userRole === 3) && (
+                            <>
+                                <Button
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
+                                    onClick={() =>
+                                        router.visit("/ringkasan/pemasukan")
+                                    }
+                                >
+                                    Tambah Pemasukan
+                                </Button>
+                                <Button
+                                    className="bg-red-500 hover:bg-red-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
+                                    onClick={() =>
+                                        router.visit("/ringkasan/pengeluaran")
+                                    }
+                                >
+                                    Tambah Pengeluaran
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* TABEL TRANSAKSI */}
