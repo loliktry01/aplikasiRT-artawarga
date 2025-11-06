@@ -138,7 +138,7 @@ export default function Pengeluaran() {
                                 value={data.tipe}
                                 onValueChange={(val) => setData("tipe", val)}
                             >
-                                <SelectTrigger className="w-full border border-gray-300 hover:border-rose-400 transition-colors">
+                                <SelectTrigger className="w-full border border-gray-300  transition-colors">
                                     <SelectValue placeholder="Pilih jenis" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -156,7 +156,7 @@ export default function Pengeluaran() {
                                 type="date"
                                 value={data.tgl}
                                 onChange={(e) => setData("tgl", e.target.value)}
-                                className="w-full hover:border-rose-400 transition-colors"
+                                className="w-full  transition-colors"
                             />
                         </div>
                     </div>
@@ -170,7 +170,7 @@ export default function Pengeluaran() {
                             value={data.keg_id}
                             onValueChange={(val) => setData("keg_id", val)}
                         >
-                            <SelectTrigger className="w-full border border-gray-300 hover:border-rose-400 transition-colors">
+                            <SelectTrigger className="w-full border border-gray-300  transition-colors">
                                 <SelectValue placeholder="Pilih kegiatan" />
                             </SelectTrigger>
                             <SelectContent>
@@ -202,7 +202,7 @@ export default function Pengeluaran() {
                             placeholder="Rp 0"
                             value={data.nominal}
                             onChange={handleNominalChange}
-                            className="hover:border-rose-400 transition-colors"
+                            className=" transition-colors"
                         />
                     </div>
 
@@ -215,7 +215,7 @@ export default function Pengeluaran() {
                             placeholder="Tuliskan keterangan pengeluaran..."
                             value={data.ket}
                             onChange={(e) => setData("ket", e.target.value)}
-                            className="hover:border-rose-400 transition-colors"
+                            className=" transition-colors"
                         />
                     </div>
 
