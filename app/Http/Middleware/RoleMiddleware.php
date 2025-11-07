@@ -27,7 +27,7 @@ class RoleMiddleware
             2 => ['*'], // ketua rt
             3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show'],
             4 => ['dashboard', 'kegiatan.create', 'rincian.show'],  
-            5 => ['dashboard'], 
+            5 => ['dashboard','rincian.show'], 
         ];
 
         $routeName = $request->route()->getName();
