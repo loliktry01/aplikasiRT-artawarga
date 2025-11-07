@@ -52,7 +52,7 @@ class UserSeeder extends Seeder
                 'pw'         => Hash::make('password123'),
                 'no_hp'      => '08' . $faker->numerify('##########'),
                 'role_id'    => $roleId,
-                'status'     => $faker->randomElement(['aktif', 'nonaktif']),
+                'status'     => $faker->randomElement(['tetap', 'kontrak']),
                 'alamat'     => $faker->address(),
                 'rt'         => str_pad($faker->numberBetween(1, 9), 2, '0', STR_PAD_LEFT),
                 'rw'         => str_pad($faker->numberBetween(1, 5), 2, '0', STR_PAD_LEFT),
