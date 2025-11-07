@@ -189,6 +189,8 @@ $final = [];
         $userTotal = User::count();
 
         return Inertia::render('Dashboard', [
+            'totalBop' => $totalBop,
+            'totalIuran' => $totalIuran,
             'transaksi' => $final,
             'saldoAwal' => $saldoAwal,
             'sisaSaldo' => $sisaSaldo,
