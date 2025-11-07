@@ -32,6 +32,9 @@ Route::get('/manajemen_data', function () {
     return Inertia::render('ManajemenData');
 });
 
+Route::get('/tambah_data', function () {
+    return Inertia::render('TambahData');
+});
 
 // 📌 Aksi CRUD
 Route::get('/bop', [BopController::class, 'index']);
