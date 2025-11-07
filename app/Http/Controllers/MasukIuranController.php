@@ -18,6 +18,7 @@ class MasukIuranController extends Controller
     public function index(Request $request)
     {
         $userId = Auth::id();
+        $pengumuman = Pengumuman::all();
 
         $iurans = PemasukanIuran::with(['pengumuman.kat_iuran'])
             ->where('usr_id', $userId)
@@ -25,8 +26,22 @@ class MasukIuranController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $totalIuran = PemasukanIuran::where('usr_id', $userId)->count();
+
+        $unpaidIuran = PemasukanIuran::where('usr_id', $userId)
+            ->where('status', 'tagihan')
+            ->count();
+
+        $paidIuran = PemasukanIuran::where('usr_id', $userId)
+            ->where('status', 'approved')
+            ->count();
+
         return Inertia::render('Warga/MasukIuranIndex', [
             'iurans' => $iurans,
+            'pengumuman' => $pengumuman,
+            'totalIuran' => $totalIuran,
+            'pendingIuran' => $unpaidIuran,
+            'paidIuran' => $paidIuran
         ]);
     }
 
@@ -56,9 +71,7 @@ class MasukIuranController extends Controller
         $validated = $request->validate([
             'bkt_byr'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'bkt_nota' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'nominal'  => 'required|numeric|min:1000',
-            'ket'      => 'nullable|string|max:255',
-            'id'       => 'required|integer|exists:masuk_iuran,id',
+            'nominal'  => 'required|numeric|min:1000'
         ]);
 
         $iuran = PemasukanIuran::findOrFail($validated['id']);
