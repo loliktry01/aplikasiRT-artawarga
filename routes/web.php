@@ -40,3 +40,10 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/rincian/{id}', [DashboardController::class, 'rincian'])->name('rincian.show');
 });
 
+Route::get('/tambah_data', fn() => Inertia::render('TambahData'))->name('tambahdata');
+Route::get('/manajemen_data', fn() => Inertia::render('ManajemenData'))->name('manajemendata');
+Route::get('/superadmin', fn() => Inertia::render('Superadmin'))->name('superadmin');
+
+Route::get('/manajemen-data/{id}/edit', [UserController::class, 'edit'])->name('manajemen-data.edit');
+Route::put('/manajemen-data/{id}', [UserController::class, 'update'])->name('manajemen-data.update');
+
