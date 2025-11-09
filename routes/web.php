@@ -42,23 +42,26 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/rincian/{id}', [DashboardController::class, 'rincian'])->name('rincian.show');
 });
 
-Route::get('/tambah_data', fn() => Inertia::render('TambahData'))->name('tambahdata');
-Route::get('/manajemen_data', fn() => Inertia::render('ManajemenData'))->name('manajemendata');
+
+Route::get('/tambah_data', [SuperAdminController::class, 'createUser'])->name('superadmin.createUser');
+Route::get('/manajemen_data', [SuperAdminController::class, 'users'])->name('superadmin.users');
 Route::get('/superadmin', fn() => Inertia::render('Superadmin'))->name('superadmin');
 
-Route::get('/manajemen-data/{id}/edit', [UserController::class, 'edit'])->name('manajemen-data.edit');
-Route::put('/manajemen-data/{id}', [UserController::class, 'update'])->name('manajemen-data.update');
-
-Route::get('/tambah_data', fn() => Inertia::render('TambahData'))->name('tambahdata');
-Route::get('/manajemen_data', fn() => Inertia::render('ManajemenData'))->name('manajemendata');
-Route::get('/superadmin', fn() => Inertia::render('Superadmin'))->name('superadmin');
-
-Route::get('/manajemen-data/{id}/edit', [UserController::class, 'edit'])->name('manajemen-data.edit');
-Route::put('/manajemen-data/{id}', [UserController::class, 'update'])->name('manajemen-data.update');
+Route::get('/manajemen_data/{id}/edit', [SuperAdminController::class, 'editUser'])->name('manajemen-data.edit');
+Route::put('/manajemen-data/{id}', [SuperAdminController::class, 'update'])->name('manajemen-data.update');
 
 Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
 Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');
 Route::post('/users/store', [SuperAdminController::class, 'storeUser'])->name('users.store');
 Route::get('/users/edit/{id}', [SuperAdminController::class, 'editUser'])->name('users.edit');
 Route::post('/users/update/{id}', [SuperAdminController::class, 'updateUser'])->name('users.update');
-Route::delete('/users/delete/{id}', [SuperAdminController::class, 'deleteUser'])->name('users.delete');
+Route::delete('/superadmin/users/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
+
+
+Route::get('/manajemen_data', [SuperAdminController::class, 'users'])->name('superadmin.users');
+Route::post('/manajemen-data', [SuperAdminController::class, 'store'])->name('manajemen-data.store');
+Route::post('/superadmin/users', [SuperAdminController::class, 'storeUser'])->name('superadmin.storeUser');
+
+Route::get('/superadmin/users', [SuperAdminController::class, 'users'])->name('superadmin.users');
+Route::get('/superadmin/users/create', [SuperAdminController::class, 'createUser'])->name('superadmin.createUser');
+Route::post('/superadmin/users', [SuperAdminController::class, 'storeUser'])->name('superadmin.storeUser');

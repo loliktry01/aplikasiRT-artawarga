@@ -28,10 +28,11 @@ class SuperadminController extends Controller
     {
         $roles = Role::all();
 
-        return Inertia::render('ManajemenData', [
+        return Inertia::render('TambahData', [
             'roles' => $roles
         ]);
     }
+
 
     public function storeUser(Request $request)
     {
@@ -68,23 +69,23 @@ class SuperadminController extends Controller
 
     public function editUser($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('role')->findOrFail($id);
         $roles = Role::all();
 
-        return Inertia::render('ManajemenData', [
+        return Inertia::render('EditData', [
             'user' => $user,
-            'roles' => $roles
+            'roles' => $roles,
         ]);
     }
 
-    public function updateUser(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $request->validate([
             'nm_lengkap' => 'required|string',
-            'email' => 'required|email|unique:usr,email,' . $id . ',usr_id',
-            'no_kk' => 'required|digits:16|unique:usr,no_kk,' . $id . ',usr_id',
+            'email' => 'required|email|unique:usr,email,' . $id . ',id',
+            'no_kk' => 'required|digits:16|unique:usr,no_kk,' . $id . ',id',
             'no_hp' => 'required',
             'role_id' => 'required',
             'status' => 'required',
@@ -116,11 +117,18 @@ class SuperadminController extends Controller
         return redirect()->route('superadmin.users')->with('success', 'Data user berhasil diperbarui');
     }
 
+
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
+
+        if ($user->role_id == 1) {
+            return back()->with('error', 'Akun Superadmin tidak bisa dihapus');
+        }
+
         $user->delete();
 
         return back()->with('success', 'User berhasil dihapus');
     }
+
 }
