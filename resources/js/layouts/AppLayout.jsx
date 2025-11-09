@@ -48,6 +48,7 @@ export default function AppLayout({ children }) {
             url: "/dashboard",
             icon: LayoutTemplate,
         },
+        { title: "Kegiatan", url: "/kegiatan", icon: SquareCheckBig },
         { title: "Approval", url: "/approval", icon: SquareCheckBig },
     ];
 

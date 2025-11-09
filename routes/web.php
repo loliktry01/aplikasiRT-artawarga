@@ -38,4 +38,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::post('/pengeluaran', [PengeluaranController::class, 'pengeluaran'])->name('pengeluaran.store');
     Route::get('/rincian/{id}', [DashboardController::class, 'rincian'])->name('rincian.show');
 });
+Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
+
+
 

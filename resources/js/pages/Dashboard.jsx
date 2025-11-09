@@ -330,12 +330,13 @@ export default function Dashboard() {
                             (_, i) => i + 1
                         ).map((num) => (
                             <Button
-                                className="bg-blue-500 hover:bg-blue-300"
                                 key={num}
-                                variant={
-                                    num === currentPage ? "default" : "outline"
-                                }
                                 onClick={() => setCurrentPage(num)}
+                                className={`${
+                                    num === currentPage
+                                        ? "bg-blue-500 text-white"
+                                        : "bg-white border text-blue-500"
+                                } hover:bg-blue-300`}
                             >
                                 {num}
                             </Button>
