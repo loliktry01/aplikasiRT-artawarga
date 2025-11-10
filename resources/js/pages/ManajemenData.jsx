@@ -90,7 +90,7 @@ export default function ManajemenData() {
                                         <td className="py-2 px-3">{item.no_kk}</td>
                                         <td className="py-2 px-3">{item.nm_lengkap}</td>
                                         <td className="py-2 px-3">{item.email}</td>
-                                        <td className="py-2 px-3">{item.role?.nama_role}</td>
+                                        <td className="py-2 px-3">{item.role?.nm_role}</td>
                                         <td className="py-2 px-3 flex items-center gap-2">
                                             <Link href={`/manajemen_data/${item.id}/edit`}>
                                                 <Button
