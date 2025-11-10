@@ -48,16 +48,13 @@ export default function AppLayout({ children }) {
             url: "/dashboard",
             icon: LayoutTemplate,
         },
+        { title: "Kegiatan", url: "/kegiatan", icon: SquareCheckBig },
         { title: "Approval", url: "/approval", icon: SquareCheckBig },
     ];
 
     // 🔹 menu khusus admin
     const adminItems = [
-        {
-            title: "Dashboard",
-            url: "/dashboard",
-            icon: LayoutTemplate,
-        },
+        { title: "Dashboard", url: "/dashboard", icon: LayoutTemplate },
         { title: "Manajemen Data", url: "/manajemen-data", icon: Database },
     ];
 
