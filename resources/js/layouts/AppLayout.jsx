@@ -7,6 +7,13 @@ import {
     Database,
 } from "lucide-react";
 import {
+    SquareCheckBig,
+    LayoutTemplate,
+    Menu,
+    LogOut,
+    Database,
+} from "lucide-react";
+import {
     Sidebar,
     SidebarProvider,
     SidebarContent,
@@ -24,6 +31,8 @@ import { Toaster } from "sonner";
 import AIChat from "@/components/AIChat";
 
 export default function AppLayout({ children }) {
+    const { url, props } = usePage();
+    const { auth } = props;
     const { url, props } = usePage();
     const { auth } = props;
     const { post } = useForm();
@@ -48,13 +57,16 @@ export default function AppLayout({ children }) {
             url: "/dashboard",
             icon: LayoutTemplate,
         },
-        { title: "Kegiatan", url: "/kegiatan", icon: SquareCheckBig },
         { title: "Approval", url: "/approval", icon: SquareCheckBig },
     ];
 
     // 🔹 menu khusus admin
     const adminItems = [
-        { title: "Dashboard", url: "/dashboard", icon: LayoutTemplate },
+        {
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: LayoutTemplate,
+        },
         { title: "Manajemen Data", url: "/manajemen-data", icon: Database },
     ];
 
@@ -80,7 +92,11 @@ export default function AppLayout({ children }) {
                                     {auth?.user?.role_id === 1
                                         ? "Selamat Datang Admin"
                                         : "ArthaWarga"}
+                                    {auth?.user?.role_id === 1
+                                        ? "Selamat Datang Admin"
+                                        : "ArthaWarga"}
                                 </SidebarGroupLabel>
+
 
                                 <SidebarGroupContent>
                                     <SidebarMenu className="mt-6 flex flex-col gap-3 px-4">
@@ -121,6 +137,7 @@ export default function AppLayout({ children }) {
                             </SidebarGroup>
                         </div>
 
+                        {/* Profil + Logout */}
                         {/* Profil + Logout */}
                         <div className="border-t border-black/10 p-3 flex items-center gap-2 justify-between">
                             <div className="flex items-center gap-2">
