@@ -16,6 +16,7 @@ class MasukIuranController extends Controller
         $userId = Auth::id();
         $pengumuman = Pengumuman::all();
 
+
         $iurans = PemasukanIuran::with(['pengumuman.kat_iuran'])
             ->where('usr_id', $userId)
             ->orderByDesc('tgl')
@@ -44,6 +45,7 @@ class MasukIuranController extends Controller
     public function show($id)
     {
         $iuran = PemasukanIuran::with(['pengumuman.kat_iuran'])->findOrFail($id);
+
 
         if ($iuran->usr_id !== Auth::id()) {
             abort(403, 'Akses ditolak.');
