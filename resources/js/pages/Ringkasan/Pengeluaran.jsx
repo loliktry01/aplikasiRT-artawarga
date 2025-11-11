@@ -33,9 +33,10 @@ export default function Pengeluaran() {
 
     const [preview, setPreview] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorNominal, setErrorNominal] = useState("");
     const fileInputRef = useRef(null);
 
-    // Format nominal ke rupiah
+    // format angka ke rupiah
     const formatRupiah = (value) => {
         if (!value) return "";
         const numberString = value.replace(/[^,\d]/g, "");
@@ -52,10 +53,29 @@ export default function Pengeluaran() {
         return "Rp " + rupiah;
     };
 
+    // validasi nominal tidak boleh melebihi dana yang tersedia
     const handleNominalChange = (e) => {
         const raw = e.target.value;
-        const formatted = formatRupiah(raw);
-        setData("nominal", formatted);
+        const cleanValue = raw.replace(/[^0-9]/g, "");
+        const numericValue = parseInt(cleanValue || "0", 10);
+
+        // batas dana tergantung jenis pengeluaran
+        const limit =
+            data.tipe === "bop"
+                ? parseInt(sisaBop || "0", 10)
+                : parseInt(sisaIuran || "0", 10);
+
+        if (numericValue > limit) {
+            setErrorNominal(
+                `Nominal melebihi Dana ${
+                    data.tipe === "bop" ? "BOP" : "Iuran"
+                } Sekarang`
+            );
+            return; // stop pengetikan
+        } else {
+            setErrorNominal("");
+            setData("nominal", formatRupiah(raw));
+        }
     };
 
     const handleFileChange = (e) => {
@@ -103,9 +123,7 @@ export default function Pengeluaran() {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             notifySuccess("Berhasil", "Pengeluaran berhasil disimpan!");
-
             router.visit("/dashboard");
-
             reset();
             setPreview(null);
             if (fileInputRef.current) fileInputRef.current.value = null;
@@ -128,7 +146,8 @@ export default function Pengeluaran() {
                         { label: "Tambah Pengeluaran" },
                     ]}
                 />
-                {/* Ringkasan Dana Sekarang */}
+
+                {/* Ringkasan Dana */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 mt-4">
                     <div className="flex items-center gap-4 border rounded-xl p-4 shadow-sm bg-white">
                         <div className="bg-gray-100 p-3 rounded-lg">
@@ -139,9 +158,7 @@ export default function Pengeluaran() {
                                 Dana BOP Sekarang
                             </p>
                             <p className="text-xl font-semibold">
-                                {formatRupiah(
-                                    String(usePage().props.sisaBop || "0")
-                                )}
+                                {formatRupiah(String(sisaBop || "0"))}
                             </p>
                         </div>
                     </div>
@@ -155,9 +172,7 @@ export default function Pengeluaran() {
                                 Dana Iuran Sekarang
                             </p>
                             <p className="text-xl font-semibold">
-                                {formatRupiah(
-                                    String(usePage().props.sisaIuran || "0")
-                                )}
+                                {formatRupiah(String(sisaIuran || "0"))}
                             </p>
                         </div>
                     </div>
@@ -173,9 +188,13 @@ export default function Pengeluaran() {
                             </Label>
                             <Select
                                 value={data.tipe}
-                                onValueChange={(val) => setData("tipe", val)}
+                                onValueChange={(val) => {
+                                    setData("tipe", val);
+                                    setErrorNominal("");
+                                    setData("nominal", "");
+                                }}
                             >
-                                <SelectTrigger className="w-full border border-gray-300  transition-colors">
+                                <SelectTrigger className="w-full border border-gray-300 transition-colors">
                                     <SelectValue placeholder="Pilih jenis" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -193,7 +212,7 @@ export default function Pengeluaran() {
                                 type="date"
                                 value={data.tgl}
                                 onChange={(e) => setData("tgl", e.target.value)}
-                                className="w-full  transition-colors"
+                                className="w-full transition-colors"
                             />
                         </div>
                     </div>
@@ -207,7 +226,7 @@ export default function Pengeluaran() {
                             value={data.keg_id}
                             onValueChange={(val) => setData("keg_id", val)}
                         >
-                            <SelectTrigger className="w-full border border-gray-300  transition-colors">
+                            <SelectTrigger className="w-full border border-gray-300 transition-colors">
                                 <SelectValue placeholder="Pilih kegiatan" />
                             </SelectTrigger>
                             <SelectContent>
@@ -239,8 +258,15 @@ export default function Pengeluaran() {
                             placeholder="Rp 0"
                             value={data.nominal}
                             onChange={handleNominalChange}
-                            className=" transition-colors"
+                            className={`transition-colors ${
+                                errorNominal ? "border-red-500" : ""
+                            }`}
                         />
+                        {errorNominal && (
+                            <p className="text-sm text-red-600">
+                                {errorNominal}
+                            </p>
+                        )}
                     </div>
 
                     {/* Keterangan */}
@@ -252,11 +278,11 @@ export default function Pengeluaran() {
                             placeholder="Tuliskan keterangan pengeluaran..."
                             value={data.ket}
                             onChange={(e) => setData("ket", e.target.value)}
-                            className=" transition-colors"
+                            className="transition-colors"
                         />
                     </div>
 
-                    {/* Bukti nota */}
+                    {/* Upload nota */}
                     <div className="space-y-2">
                         <Label>
                             Bukti Nota / Kwitansi{" "}
@@ -300,6 +326,7 @@ export default function Pengeluaran() {
                                 setPreview(null);
                                 if (fileInputRef.current)
                                     fileInputRef.current.value = null;
+                                setErrorNominal("");
                             }}
                             className="bg-gray-500 hover:bg-gray-600 text-white"
                         >
