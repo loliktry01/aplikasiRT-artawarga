@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import AppLayout from "@/layouts/AppLayout/AppLayoutMasukIuran";
+import AppLayout from "@/layouts/AppLayout";
+
 
 export default function MasukIuranIndex({ iurans, totalIuran, pendingIuran, paidIuran }) {
   return (    
@@ -109,6 +110,7 @@ export default function MasukIuranIndex({ iurans, totalIuran, pendingIuran, paid
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Judul</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -118,6 +120,11 @@ export default function MasukIuranIndex({ iurans, totalIuran, pendingIuran, paid
                 {iurans.data.map((iuran) => (
                   <tr key={iuran.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{iuran.tgl}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{
+                        1: "Air",
+                        2: "Kebersihan"
+                      }[iuran.pengumuman?.kat_iuran_id] || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{iuran.pengumuman?.judul || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

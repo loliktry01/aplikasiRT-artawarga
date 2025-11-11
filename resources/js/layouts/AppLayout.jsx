@@ -5,6 +5,7 @@ import {
     Menu,
     LogOut,
     Database,
+    WalletIcon,
 } from "lucide-react";
 import {
     Sidebar,
@@ -41,13 +42,15 @@ export default function AppLayout({ children }) {
         displayName
     )}`;
 
+    // 🔹 menu untuk user role 5 (misal: warga)
+    const wargaItems = [
+        { title: "Ringkasan Keuangan", url: "/dashboard", icon: LayoutTemplate },
+        { title: "Iuran Warga", url: "/masuk-iuran", icon: WalletIcon },
+    ];
+
     // 🔹 menu normal untuk non-admin
     const defaultItems = [
-        {
-            title: "Ringkasan Keuangan",
-            url: "/dashboard",
-            icon: LayoutTemplate,
-        },
+        { title: "Ringkasan Keuangan", url: "/dashboard", icon: LayoutTemplate },
         { title: "Kegiatan", url: "/kegiatan", icon: SquareCheckBig },
         { title: "Approval", url: "/approval", icon: SquareCheckBig },
     ];
@@ -59,7 +62,14 @@ export default function AppLayout({ children }) {
     ];
 
     // 🔹 pilih menu berdasarkan role
-    const items = auth?.user?.role_id === 1 ? adminItems : defaultItems;
+    let items;
+    if (auth?.user?.role_id === 1) {
+        items = adminItems;
+    } else if (auth?.user?.role_id === 5) {
+        items = wargaItems;
+    } else {
+        items = defaultItems;
+    }
 
     return (
         <SidebarProvider>
@@ -85,13 +95,9 @@ export default function AppLayout({ children }) {
                                 <SidebarGroupContent>
                                     <SidebarMenu className="mt-6 flex flex-col gap-3 px-4">
                                         {items.map((item) => {
-                                            const isActive = url.startsWith(
-                                                item.url
-                                            );
+                                            const isActive = url.startsWith(item.url);
                                             return (
-                                                <SidebarMenuItem
-                                                    key={item.title}
-                                                >
+                                                <SidebarMenuItem key={item.title}>
                                                     <SidebarMenuButton asChild>
                                                         <a
                                                             href={item.url}
@@ -133,9 +139,7 @@ export default function AppLayout({ children }) {
                                     <p className="text-xs text-gray-600">
                                         Welcome back 👋
                                     </p>
-                                    <p className="font-medium text-sm">
-                                        {displayName}
-                                    </p>
+                                    <p className="font-medium text-sm">{displayName}</p>
                                 </div>
                             </div>
 
