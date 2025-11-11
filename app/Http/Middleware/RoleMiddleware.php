@@ -25,7 +25,7 @@ class RoleMiddleware
         $access = [
             1 => ['dashboard'], // superadmin
             2 => ['*'], // ketua rt
-            3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show', "pengumuman"],
+            3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show', "pengumuman", 'bop.create', 'iuran.create', 'kat_iuran.create', 'kat_iuran.delete', 'pengumuman.create', 'pengeluaran.store'], // bendahara
             4 => ['dashboard', 'kegiatan.create', 'rincian.show', "pengumuman"],  
             5 => ['dashboard','rincian.show'], 
         ];
