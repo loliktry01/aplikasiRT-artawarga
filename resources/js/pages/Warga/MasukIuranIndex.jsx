@@ -6,7 +6,7 @@ export default function MasukIuranIndex({ iurans, totalIuran, pendingIuran, paid
   return (
     <AppLayout title="Daftar Tagihan Iuran">
       <div className="p-8">
-        <h1 className="text-center text-4xl font-bold mb-6 ">Daftar Tagihan Iuran</h1>
+        <h1 className=" text-4xl font-bold mb-6 ">Daftar Tagihan Iuran</h1>
 
         {/* Cards Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
