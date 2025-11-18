@@ -41,17 +41,16 @@ export default function AppLayout({ children }) {
         displayName
     )}`;
 
-    // 🔹 menu normal untuk non-admin
     const defaultItems = [
         {
             title: "Ringkasan Keuangan",
             url: "/dashboard",
             icon: LayoutTemplate,
         },
+        { title: "Kegiatan", url: "/kegiatan", icon: Database },
         { title: "Approval", url: "/approval", icon: SquareCheckBig },
     ];
 
-    // 🔹 menu khusus admin
     const adminItems = [
         {
             title: "Dashboard",
@@ -84,12 +83,7 @@ export default function AppLayout({ children }) {
                         <div>
                             <SidebarGroup>
                                 <SidebarGroupLabel className="font-bold text-lg px-4 pt-4 text-black">
-                                    {auth?.user?.role_id === 1
-                                        ? "Selamat Datang Admin"
-                                        : "ArthaWarga"}
-                                    {auth?.user?.role_id === 1
-                                        ? "Selamat Datang Admin"
-                                        : "ArthaWarga"}
+                                    ArthaWarga
                                 </SidebarGroupLabel>
 
                                 <SidebarGroupContent>

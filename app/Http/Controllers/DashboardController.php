@@ -187,12 +187,6 @@ $final = [];
         $saldoAwal = $totalBop + $totalIuran;
         $sisaSaldo = $saldoAwal - $totalPengeluaran;
         $userTotal = User::count();
-        $totalPengeluaranBop = Pengeluaran::where('tipe', 'bop')->sum('nominal');
-        $totalPengeluaranIuran = Pengeluaran::where('tipe', 'iuran')->sum('nominal');
-
-        // 🔹 Hitung saldo masing-masing
-        $sisaBop = $totalBop - $totalPengeluaranBop;
-        $sisaIuran = $totalIuran - $totalPengeluaranIuran;
 
         return Inertia::render('Dashboard', [
             'transaksi' => $final,
@@ -200,9 +194,7 @@ $final = [];
             'sisaSaldo' => $sisaSaldo,
             'totalPengeluaran' => $totalPengeluaran,
             'userTotal' => $userTotal,
-            'selectedDate' => $selectedDate,
-            'sisaBop' => $sisaBop,
-            'sisaIuran' => $sisaIuran
+            'selectedDate' => $selectedDate, // biar tanggal tetap muncul di input
         ]);
     }
 
@@ -354,8 +346,13 @@ $final = [];
             ? \Carbon\Carbon::parse($rincian['created_at'])->format('Y-m-d H:i:s')
             : null;
 
+        $jumlahPemasukanBOP = PemasukanBOP::sum('nominal');
+        $jumlahPemasukanIuran = PemasukanIuran::where('status', 'approved')->sum('nominal');
+
         return Inertia::render('Ringkasan/Rincian', [
             'rincian' => $rincian,
+            'jumlahPemasukanBOP' => $jumlahPemasukanBOP,
+            'jumlahPemasukanIuran' => $jumlahPemasukanIuran,
         ]);
     }
 }

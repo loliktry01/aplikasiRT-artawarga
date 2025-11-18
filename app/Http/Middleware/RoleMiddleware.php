@@ -23,11 +23,11 @@ class RoleMiddleware
         $role = $user->role_id; // pastikan kolom ini ada di tabel users
 
         $access = [
-            1 => ['dashboard', 'profil.index', 'profile.update'], // superadmin
+            1 => ['dashboard'], // superadmin
             2 => ['*'], // ketua rt
-            3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show', "pengumuman",'profil.index', 'profile.update'],
-            4 => ['dashboard', 'kegiatan.create', 'rincian.show', "pengumuman",'profil.index', 'profile.update'],  
-            5 => ['dashboard','rincian.show', 'profil.index', 'profile.update'], 
+            3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show', "pengumuman", 'bop.create', 'iuran.create', 'kat_iuran.create', 'kat_iuran.delete', 'pengumuman.create', 'pengeluaran.store'], // bendahara
+            4 => ['dashboard', 'kegiatan.create','kegiatan.store', 'rincian.show', "pengumuman"],   //sekretaris
+            5 => ['dashboard','rincian.show'], // warga
         ];
 
         $routeName = $request->route()->getName();
