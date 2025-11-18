@@ -76,30 +76,30 @@ class ProfileWargaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-public function update(Request $request, $id)
-{
-    $user = Auth::user();
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
 
-    $validated = $request->validate([
-        'nm_lengkap' => 'required|string|max:255',
-        'password' => 'nullable|string|confirmed',
-        'email' => 'required|email',
-        'no_hp' => 'nullable|string',
-        'no_kk' => 'nullable|string',
-        'rt' => 'nullable|string',
-        'rw' => 'nullable|string',
-        'kode_pos' => 'nullable|string',
-        'alamat' => 'nullable|string',
-    ]);
+        $validated = $request->validate([
+            'nm_lengkap' => 'required|string|max:255',
+            'password' => 'nullable|string|min:6',
+            'email' => 'required|email',
+            'no_hp' => 'nullable|string',
+            'no_kk' => 'nullable|string',
+            'rt' => 'nullable|string',
+            'rw' => 'nullable|string',
+            'kode_pos' => 'nullable|string',
+            'alamat' => 'nullable|string',
+        ]);
 
-    if (empty($validated['password'])) {
-        unset($validated['password']);
+        if (empty($validated['password'])) {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
     }
-
-    $user->update($validated);
-
-    return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
-}
 
 
     /**
