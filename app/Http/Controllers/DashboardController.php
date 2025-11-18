@@ -346,8 +346,13 @@ $final = [];
             ? \Carbon\Carbon::parse($rincian['created_at'])->format('Y-m-d H:i:s')
             : null;
 
+        $jumlahPemasukanBOP = PemasukanBOP::sum('nominal');
+        $jumlahPemasukanIuran = PemasukanIuran::where('status', 'approved')->sum('nominal');
+
         return Inertia::render('Ringkasan/Rincian', [
             'rincian' => $rincian,
+            'jumlahPemasukanBOP' => $jumlahPemasukanBOP,
+            'jumlahPemasukanIuran' => $jumlahPemasukanIuran,
         ]);
     }
 }

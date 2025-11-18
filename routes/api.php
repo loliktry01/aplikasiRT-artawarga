@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\BopApiController;
 use App\Http\Controllers\Api\IuranApiController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/hello', function () {
