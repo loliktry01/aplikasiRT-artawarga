@@ -175,7 +175,7 @@ export default function AppLayout({ children }) {
             </div>
 
             <Toaster position="top-right" richColors closeButton />
-            <AIChat />
+            {/* <AIChat /> */}
         </SidebarProvider>
     );
 }

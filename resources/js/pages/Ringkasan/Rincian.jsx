@@ -1,42 +1,34 @@
 // resources/js/Pages/Ringkasan/Rincian.jsx
 import React from "react";
-import { usePage, router } from "@inertiajs/react";
+import { usePage } from "@inertiajs/react";
 import AppLayout from "@/layouts/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    ArrowLeft,
-    Wallet,
-    Coins,
-    PiggyBank,
-    ArrowDownCircle,
-} from "lucide-react";
+import { Wallet, Coins, PiggyBank, ArrowDownCircle } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Rincian() {
-    const {
-        rincian = {},
-        jumlahPemasukanBOP,
-        jumlahPemasukanIuran,
-    } = usePage().props;
+    const { rincian = {}, pemasukanBOP, pemasukanIuran } = usePage().props;
 
     const formatRupiah = (val) =>
         "Rp " + parseInt(val || 0).toLocaleString("id-ID");
 
     const isIncome = rincian.status === "Pemasukan";
 
-    // === menentukan nominal pemasukan berdasarkan kategori ===
+    // ================================
+    // FIX — Ambil nominal pemasukan
+    // ================================
     const nominalPemasukan = (() => {
         if (!isIncome) return rincian.jumlah_digunakan;
 
         if (rincian.kategori === "BOP") {
-            return jumlahPemasukanBOP;
+            return pemasukanBOP || rincian.jumlah_digunakan;
         }
 
         if (rincian.kategori === "Iuran") {
-            return jumlahPemasukanIuran;
+            return pemasukanIuran || rincian.jumlah_digunakan;
         }
 
-        return 0;
+        return rincian.jumlah_digunakan;
     })();
 
     const cards = [

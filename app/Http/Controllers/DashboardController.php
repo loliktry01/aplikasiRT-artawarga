@@ -187,6 +187,12 @@ $final = [];
         $saldoAwal = $totalBop + $totalIuran;
         $sisaSaldo = $saldoAwal - $totalPengeluaran;
         $userTotal = User::count();
+        $totalPengeluaranBop = Pengeluaran::where('tipe', 'bop')->sum('nominal');
+        $totalPengeluaranIuran = Pengeluaran::where('tipe', 'iuran')->sum('nominal');
+
+        // 🔹 Hitung saldo masing-masing
+        $sisaBop = $totalBop - $totalPengeluaranBop;
+        $sisaIuran = $totalIuran - $totalPengeluaranIuran;
 
         return Inertia::render('Dashboard', [
             'transaksi' => $final,
@@ -194,15 +200,21 @@ $final = [];
             'sisaSaldo' => $sisaSaldo,
             'totalPengeluaran' => $totalPengeluaran,
             'userTotal' => $userTotal,
-            'selectedDate' => $selectedDate, // biar tanggal tetap muncul di input
+            'selectedDate' => $selectedDate,
+            'sisaBop' => $sisaBop,
+            'sisaIuran' => $sisaIuran
         ]);
     }
 
     // 🟣 fungsi rincian tetap sama
     public function rincian($id)
     {
-        [$tipe, $arah, $realId] = explode('-', $id);
-
+        // -----------------------------------------------------------
+        // 1. BAGIAN PENGAMBILAN DATA UNTUK TIMELINE (SAMA SEPERTI SEBELUMNYA)
+        // -----------------------------------------------------------
+        
+        // Kita tetap perlu mengambil semua data untuk menghitung saldo berjalan (running balance)
+        
         $bopMasuk = PemasukanBOP::select('id', 'tgl', 'nominal', 'ket', 'bkt_nota', 'created_at')
             ->get()
             ->map(fn($row) => [
@@ -300,9 +312,7 @@ $final = [];
                     'jumlah_sisa' => $jumlah_sisa,
                     'status' => $status,
                     'ket' => $row['ket'],
-                    'bkt_nota' => $row['bkt_nota']
-                        ? url('storage/' . ltrim($row['bkt_nota'], '/'))
-                        : null,
+                    'bkt_nota' => $row['bkt_nota'] ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
                 ];
             } else {
                 $jumlah_awal = $saldoIuran;
@@ -329,13 +339,12 @@ $final = [];
                     'jumlah_sisa' => $jumlah_sisa,
                     'status' => $status,
                     'ket' => $row['ket'],
-                    'bkt_nota' => !empty($row['bkt_nota'])
-                        ? url('storage/' . ltrim($row['bkt_nota'], '/'))
-                        : null,
+                    'bkt_nota' => !empty($row['bkt_nota']) ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
                 ];
             }
         }
 
+        // Ambil detail spesifik dari hasil looping
         $rincian = collect($final)->firstWhere('id', $id);
 
         if (!$rincian) {
@@ -346,13 +355,34 @@ $final = [];
             ? \Carbon\Carbon::parse($rincian['created_at'])->format('Y-m-d H:i:s')
             : null;
 
-        $jumlahPemasukanBOP = PemasukanBOP::sum('nominal');
-        $jumlahPemasukanIuran = PemasukanIuran::where('status', 'approved')->sum('nominal');
+        // -----------------------------------------------------------
+        // 🟢 PERBAIKAN LOGIKA PENGAMBILAN DATA SPESIFIK DI SINI
+        // -----------------------------------------------------------
+        
+        $pemasukanBop = 0;
+        $pemasukanIuran = 0;
+
+        // Cek prefix ID untuk menentukan query mana yang dijalankan
+        if (str_contains($id, 'bop-in-')) {
+            // Jika ini transaksi BOP Masuk
+            $realId = str_replace('bop-in-', '', $id);
+            $pemasukanBop = PemasukanBOP::where('id', $realId)->value('nominal');
+            
+        } elseif (str_contains($id, 'iuran-in-')) {
+            // Jika ini transaksi Iuran Masuk
+            $realId = str_replace('iuran-in-', '', $id);
+            $pemasukanIuran = PemasukanIuran::where('id', $realId)
+                ->where('status', 'approved')
+                ->value('nominal');
+        }
+
+        // dd($pemasukanBop); 
+        // dd($pemasukanIuran);
 
         return Inertia::render('Ringkasan/Rincian', [
             'rincian' => $rincian,
-            'jumlahPemasukanBOP' => $jumlahPemasukanBOP,
-            'jumlahPemasukanIuran' => $jumlahPemasukanIuran,
+            'pemasukanBOP' => $pemasukanBop,
+            'pemasukanIuran' => $pemasukanIuran,
         ]);
     }
 }
