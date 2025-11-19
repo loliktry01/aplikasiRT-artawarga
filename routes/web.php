@@ -28,8 +28,8 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/dashboard/kegiatan', [KegiatanController::class, 'create'])->name('kegiatan.create');
     Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store');
 
-    Route::get('/bop', [BopController::class, 'index']);
-    Route::get('/iuran', [IuranController::class, 'index']);
+    // Route::get('/bop', [BopController::class, 'index']);
+    // Route::get('/iuran', [IuranController::class, 'index']);
     Route::post('/bop/create', [BopController::class, 'bop_create'])->name('bop.create');
     Route::post('/iuran/create', [IuranController::class, 'iuran_create'])->name('iuran.create');
 
