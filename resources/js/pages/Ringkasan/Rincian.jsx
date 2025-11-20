@@ -15,7 +15,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 export default function Rincian() {
     const {
         rincian = {},
-        jumlahPemasukanBOP,
+        pemasukanBop,
         jumlahPemasukanIuran,
     } = usePage().props;
 
@@ -24,16 +24,15 @@ export default function Rincian() {
 
     const isIncome = rincian.status === "Pemasukan";
 
-    // === menentukan nominal pemasukan berdasarkan kategori ===
     const nominalPemasukan = (() => {
         if (!isIncome) return rincian.jumlah_digunakan;
 
         if (rincian.kategori === "BOP") {
-            return jumlahPemasukanBOP;
+            return pemasukanBop ?? 0;
         }
 
         if (rincian.kategori === "Iuran") {
-            return jumlahPemasukanIuran;
+            return jumlahPemasukanIuran ?? 0;
         }
 
         return 0;
@@ -48,7 +47,13 @@ export default function Rincian() {
             text: "text-orange-700",
         },
         {
-            title: isIncome ? "Jumlah Pemasukan" : "Jumlah digunakan",
+            title: isIncome
+                ? rincian.kategori === "BOP"
+                    ? `Pemasukan BOP: ${formatRupiah(pemasukanBop)}`
+                    : rincian.kategori === "Iuran"
+                    ? `Pemasukan Iuran: ${formatRupiah(jumlahPemasukanIuran)}`
+                    : "Jumlah Pemasukan"
+                : "Jumlah digunakan",
             icon: (
                 <ArrowDownCircle
                     className={`h-5 w-5 ${
