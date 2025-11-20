@@ -307,6 +307,7 @@ class DashboardController extends Controller
                     'status' => $status,
                     'ket' => $row['ket'],
                     'bkt_nota' => $row['bkt_nota'] ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
+                    'bkt_nota' => $row['bkt_nota'] ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
                 ];
             } else {
                 $jumlah_awal = $saldoIuran;
@@ -334,10 +335,12 @@ class DashboardController extends Controller
                     'status' => $status,
                     'ket' => $row['ket'],
                     'bkt_nota' => !empty($row['bkt_nota']) ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
+                    'bkt_nota' => !empty($row['bkt_nota']) ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
                 ];
             }
         }
 
+        // Ambil detail spesifik dari hasil looping
         // Ambil detail spesifik dari hasil looping
         $rincian = collect($final)->firstWhere('id', $id);
 
@@ -371,6 +374,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Ringkasan/Rincian', [
             'rincian' => $rincian,
+            'pemasukanBOP' => $pemasukanBop,
+            'pemasukanIuran' => $pemasukanIuran,
             'pemasukanBOP' => $pemasukanBop,
             'pemasukanIuran' => $pemasukanIuran,
         ]);

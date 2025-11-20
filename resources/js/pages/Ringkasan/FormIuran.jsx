@@ -200,14 +200,14 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
                     </Label>
                     <Dialog open={openAdd} onOpenChange={setOpenAdd}>
                         <DialogTrigger asChild>
-                            <Button
+                            {/* <Button
                                 type="button"
                                 size="sm"
                                 className="bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-1"
                             >
                                 <Plus className="w-4 h-4" />
                                 Tambah
-                            </Button>
+                            </Button> */}
                         </DialogTrigger>
                         <DialogContent className="space-y-4">
                             <DialogHeader>

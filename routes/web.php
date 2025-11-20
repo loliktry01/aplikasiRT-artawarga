@@ -5,6 +5,7 @@ use App\Http\Controllers\BopController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IuranController;
 use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\MasukIuranController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ProfileWargaController;
@@ -27,8 +28,8 @@ Route::middleware(['role.access'])->group(function () {
     Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store');
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
 
-    Route::get('/bop', [BopController::class, 'index']);
-    Route::get('/iuran', [IuranController::class, 'index']);
+    // Route::get('/bop', [BopController::class, 'index']);
+    // Route::get('/iuran', [IuranController::class, 'index']);
     Route::post('/bop/create', [BopController::class, 'bop_create'])->name('bop.create');
     Route::post('/iuran/create', [IuranController::class, 'iuran_create'])->name('iuran.create');
 
@@ -42,6 +43,10 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/profil', [ProfileWargaController::class, 'index'])->name('profil.index');
     Route::put('/profil/update/{id}', [ProfileWargaController::class, 'update'])->name('profil.update');
 
+    Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
+       Route::get('/masuk-iuran', [MasukIuranController::class, 'index'])->name('masuk-iuran.index');
+    Route::get('/masuk-iuran/{id}', [MasukIuranController::class, 'show'])->name('masuk-iuran.show');
+    Route::post('/masuk-iuran/upload', [MasukIuranController::class, 'store'])->name('masuk-iuran.store');
 });
 
 
