@@ -12,7 +12,7 @@ class BopApiController extends Controller
 
     public function index()
     {
-        $data = PemasukanBOP::select('tgl', 'nominal', 'ket', 'bkt_nota')
+        $data = PemasukanBOP::select('id', 'tgl', 'nominal', 'ket', 'bkt_nota')
             ->latest()
             ->get();
 

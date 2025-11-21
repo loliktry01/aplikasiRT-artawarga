@@ -44,9 +44,3 @@ Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.in
 
 
 
-Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
-Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');
-Route::post('/users/store', [SuperAdminController::class, 'storeUser'])->name('users.store');
-Route::get('/users/edit/{id}', [SuperAdminController::class, 'editUser'])->name('users.edit');
-Route::post('/users/update/{id}', [SuperAdminController::class, 'updateUser'])->name('users.update');
-Route::delete('/users/delete/{id}', [SuperAdminController::class, 'deleteUser'])->name('users.delete');
