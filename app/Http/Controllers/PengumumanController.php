@@ -55,7 +55,7 @@ class PengumumanController extends Controller
     public function approval()
     {
         $iurans = PemasukanIuran::with(['pengumuman.kat_iuran'])
-            ->where('status', 'pending')
+            ->where('status', ['pending', 'approved'])
             ->orderByDesc('tgl')
             ->paginate(10)
             ->withQueryString();
