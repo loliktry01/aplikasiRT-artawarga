@@ -65,7 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pengumuman', [PengumumanApiController::class, 'store']);
     Route::get('/pengumuman/{id}', [PengumumanApiController::class, 'show']);
     Route::patch('/pengumuman/update/{id}', [PengumumanApiController::class, 'update']);
-    Route::delete('/pengumuman/{id}',    [PengumumanApiController::class, 'destroy']);
+    Route::delete('/pengumuman/{id}', [PengumumanApiController::class, 'destroy']);
 
     // 8. Superadmin (User Management)
     Route::prefix('admin')->group(function () {
