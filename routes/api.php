@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\BopApiController;
 use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\IuranApiController;
+use App\Http\Controllers\Api\KategoriIuranApiController;
 use App\Http\Controllers\Api\KegiatanApiController;
 use App\Http\Controllers\Api\PengeluaranApiController;
 use App\Http\Controllers\Api\PengumumanApiController;
@@ -42,9 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/iuran/{id}', [IuranApiController::class, 'iuran_delete']);
 
     // 4. Kategori Iuran
-    Route::get('/iuran/kategori', [IuranApiController::class, 'kategori']);
-    Route::post('/iuran/kategori', [IuranApiController::class, 'kat_iuran_create']);
-    Route::delete('/iuran/kategori/{id}', [IuranApiController::class, 'kat_iuran_delete']);
+    Route::get('/iuran/kategori', [KategoriIuranApiController::class, 'kategori']);
+    Route::post('/iuran/kategori', [KategoriIuranApiController::class, 'kat_iuran_create']);
+    Route::delete('/iuran/kategori/{id}', [KategoriIuranApiController::class, 'kat_iuran_delete']);
 
     // 5. Kegiatan
     Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
