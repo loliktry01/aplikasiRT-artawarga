@@ -11,6 +11,7 @@ class Pengumuman extends Model
     protected $fillable = [
         'judul',
         'ket',
+        'jumlah',
         'kat_iuran_id',
     ];
 
@@ -19,13 +20,8 @@ class Pengumuman extends Model
         return $this->hasMany(PemasukanIuran::class);
     }
 
-    // --- BAGIAN INI DIUBAH ---
-    // Ganti nama fungsi dari 'kat_iuran' menjadi 'kategori'
-    public function kategori()
+    public function kat_iuran()
     {
-        // Karena nama fungsinya 'kategori' tapi kolom di database 'kat_iuran_id',
-        // kita WAJIB menuliskan 'kat_iuran_id' sebagai parameter kedua.
         return $this->belongsTo(KategoriIuran::class, 'kat_iuran_id');
     }
-    // -------------------------
 }

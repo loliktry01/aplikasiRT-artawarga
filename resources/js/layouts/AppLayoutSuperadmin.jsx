@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Inbox, Menu, Grid2x2Plus } from "lucide-react";
 import {
     Sidebar,
@@ -15,7 +15,6 @@ import {
 import { WelcomeCard } from "@/components/ui/welcome-card";
 import { usePage, Link } from "@inertiajs/react";
 import { Toaster } from "sonner";
-import { useNotify } from "@/components/ToastNotification";
 import AIChat from "@/components/AIChat";
 
 const items = [
@@ -32,19 +31,8 @@ const items = [
 ];
 
 export default function AppLayoutSuperadmin({ children }) {
-    const { url, props } = usePage();
-    const { flash } = props; // ambil flash message dari Laravel
-    const { notifySuccess, notifyError } = useNotify();
-
+    const { url } = usePage();
     const isProfilActive = url.startsWith("/superadmin/profil");
-
-    useEffect(() => {
-        if (flash?.success) {
-            notifySuccess("Berhasil 🎉", flash.success);
-        } else if (flash?.error) {
-            notifyError("Gagal ⚠️", flash.error);
-        }
-    }, [flash]);
 
     return (
         <SidebarProvider>
@@ -57,7 +45,7 @@ export default function AppLayoutSuperadmin({ children }) {
                 </div>
 
                 {/* Sidebar */}
-                <Sidebar className="hidden md:flex flex-col bg-[#59B5F7] border-r border-black/10 rounded-tr-[48px] justify-between h-full">
+                <Sidebar className="hidden md:flex flex-col  bg-[#59B5F7] border-r border-black/10 rounded-tr-[48px] justify-between h-full">
                     <SidebarContent className="flex flex-col justify-between h-full">
                         <div>
                             {/* Header Sidebar */}
@@ -66,8 +54,11 @@ export default function AppLayoutSuperadmin({ children }) {
                                     ArthaWarga
                                 </SidebarGroupLabel>
 
-                                {/* Welcome Card */}
-                                <WelcomeCard name="Superadmin" lastUpdate="11/12/2025" />
+                                {/* Say Welcome */}
+                                <WelcomeCard
+                                    name="Superadmin"
+                                    lastUpdate="11/12/2025"
+                                />
 
                                 {/* Menu Navigasi */}
                                 <SidebarGroupContent>
@@ -79,11 +70,13 @@ export default function AppLayoutSuperadmin({ children }) {
                                                     : url.startsWith(item.url);
 
                                             return (
-                                                <SidebarMenuItem key={item.title}>
+                                                <SidebarMenuItem
+                                                    key={item.title}
+                                                >
                                                     <SidebarMenuButton asChild>
                                                         <Link
                                                             href={item.url}
-                                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
+                                                            className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors  ${
                                                                 isActive
                                                                     ? "bg-[#EEF2FF] text-[#4F46E5] font-medium"
                                                                     : "text-gray-700 hover:bg-[#EEF2FF]/70"
@@ -96,7 +89,9 @@ export default function AppLayoutSuperadmin({ children }) {
                                                                         : "text-gray-600"
                                                                 }`}
                                                             />
-                                                            <span className="text-sm">{item.title}</span>
+                                                            <span className="text-sm">
+                                                                {item.title}
+                                                            </span>
                                                         </Link>
                                                     </SidebarMenuButton>
                                                 </SidebarMenuItem>
@@ -122,7 +117,9 @@ export default function AppLayoutSuperadmin({ children }) {
                                 className="w-8 h-8 rounded-full"
                             />
                             <div className="flex-1">
-                                <p className="text-xs text-gray-600">Welcome back 👋</p>
+                                <p className="text-xs text-gray-600">
+                                    Welcome back 👋
+                                </p>
                                 <p className="font-medium text-sm">Johnathan</p>
                             </div>
                             <span className="text-lg text-gray-600">›</span>
@@ -136,7 +133,6 @@ export default function AppLayoutSuperadmin({ children }) {
                 </main>
             </div>
 
-            {/* Toaster */}
             <Toaster position="top-right" richColors closeButton />
             <AIChat />
         </SidebarProvider>
