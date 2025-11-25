@@ -1,5 +1,12 @@
-import React from "react";
-import { SquareCheckBig, LayoutTemplate, Menu, LogOut } from "lucide-react";
+import {
+    SquareCheckBig,
+    LayoutTemplate,
+    Menu,
+    LogOut,
+    Database,
+    Inbox,
+    Grid2x2Plus,
+} from "lucide-react";
 import {
     Sidebar,
     SidebarProvider,
@@ -13,38 +20,54 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { usePage, useForm } from "@inertiajs/react";
+import { usePage, useForm, Link } from "@inertiajs/react";
 import { Toaster } from "sonner";
 import AIChat from "@/components/AIChat";
 
-const items = [
-    { title: "Ringkasan Keuangan", url: "/dashboard", icon: LayoutTemplate },
-    { title: "Approval", url: "/approval", icon: SquareCheckBig },
-];
-
 export default function AppLayout({ children }) {
-    const { url, props } = usePage(); // 🔹 ambil props dari inertia
-    const { auth } = props; // 🔹 ambil auth di sini
+    const { url, props } = usePage();
+    const { auth } = props;
     const { post } = useForm();
+    const isProfilPage = url.startsWith("/profil");
 
     const handleLogout = (e) => {
         e.preventDefault();
         post(route("logout"));
     };
 
-    // 🔹 ambil dua kata pertama dari nm_lengkap
     const displayName = auth?.user?.nm_lengkap
         ? auth.user.nm_lengkap.split(" ").slice(0, 2).join(" ")
         : "Guest";
 
-    // 🔹 avatar unik dari nama
     const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
         displayName
     )}`;
 
+    const defaultItems = [
+        {
+            title: "Ringkasan Keuangan",
+            url: "/dashboard",
+            icon: LayoutTemplate,
+        },
+        { title: "Kegiatan", url: "/kegiatan", icon: Database },
+        { title: "Approval", url: "/approval", icon: SquareCheckBig },
+    ];
+
+    const adminItems = [
+        { title: "Dashboard", url: "/dashboard", icon: Grid2x2Plus },
+        { title: "Manajemen Data", url: "/manajemen-data", icon: Inbox },
+    ];
+
+    // 🔹 pilih menu berdasarkan role
+    const items = auth?.user?.role_id === 1 ? adminItems : defaultItems;
+
     return (
         <SidebarProvider>
-            <div className="flex min-h-screen w-full bg-white">
+            <div
+                className={`flex min-h-screen w-full ${
+                    isProfilPage ? "bg-blue-100" : "bg-white"
+                }`}
+            >
                 {/* Sidebar Trigger Mobile */}
                 <div className="fixed top-4 left-4 z-50 md:hidden">
                     <SidebarTrigger className="bg-white rounded-md shadow p-2">
@@ -60,6 +83,7 @@ export default function AppLayout({ children }) {
                                 <SidebarGroupLabel className="font-bold text-lg px-4 pt-4 text-black">
                                     ArthaWarga
                                 </SidebarGroupLabel>
+
                                 <SidebarGroupContent>
                                     <SidebarMenu className="mt-6 flex flex-col gap-3 px-4">
                                         {items.map((item) => {
@@ -99,9 +123,14 @@ export default function AppLayout({ children }) {
                             </SidebarGroup>
                         </div>
 
-                        {/* 🔹 Profil + Logout */}
+                        {/* Profil + Logout */}
+                        {/* Profil + Logout */}
                         <div className="border-t border-black/10 p-3 flex items-center gap-2 justify-between">
-                            <div className="flex items-center gap-2">
+                            {/* 🔗 Klik avatar atau nama = ke halaman profil */}
+                            <Link
+                                href="/profil"
+                                className="flex items-center gap-2 hover:bg-gray-100 rounded-lg p-1 transition"
+                            >
                                 <img
                                     src={avatarUrl}
                                     alt="avatar"
@@ -111,12 +140,13 @@ export default function AppLayout({ children }) {
                                     <p className="text-xs text-gray-600">
                                         Welcome back 👋
                                     </p>
-                                    <p className="font-medium text-sm">
+                                    <p className="font-medium text-sm text-gray-900">
                                         {displayName}
                                     </p>
                                 </div>
-                            </div>
+                            </Link>
 
+                            {/* Tombol Logout */}
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -132,14 +162,18 @@ export default function AppLayout({ children }) {
 
                 {/* Main Content */}
                 <main className="flex-1 h-full overflow-y-auto overflow-x-hidden">
-                    <div className="w-full h-full px-8 py-10 md:px-12 md:py-12 bg-white">
+                    <div
+                        className={`w-full h-full bg-white ${
+                            isProfilPage ? "" : "px-8 py-10 md:px-12 md:py-12"
+                        }`}
+                    >
                         {children}
                     </div>
                 </main>
             </div>
 
             <Toaster position="top-right" richColors closeButton />
-            <AIChat />
+            {/* <AIChat /> */}
         </SidebarProvider>
     );
 }

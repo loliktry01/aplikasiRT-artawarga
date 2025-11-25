@@ -11,6 +11,7 @@ class Pengumuman extends Model
     protected $fillable = [
         'judul',
         'ket',
+        'jumlah',
         'kat_iuran_id',
     ];
 
@@ -21,7 +22,6 @@ class Pengumuman extends Model
 
     public function kat_iuran()
     {
-        return $this->belongsTo(KategoriIuran::class);
+        return $this->belongsTo(KategoriIuran::class, 'kat_iuran_id');
     }
-
 }
