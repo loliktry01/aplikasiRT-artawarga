@@ -1,5 +1,5 @@
 import React from "react";
-import AppLayoutSuperadmin from "@/layouts/AppLayoutSuperadmin";
+import AppLayout from "@/layouts/AppLayout";
 import { Link, useForm } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,12 +45,12 @@ export default function TambahData({ roles }) {
   };
 
   return (
-    <AppLayoutSuperadmin>
+    <AppLayout>
       <div className="px-6 py-6">
         {/* Breadcrumb */}
         <div className="flex items-center text-gray-400 text-2xl md:text-3xl font-semibold border-b-2 border-gray-200 py-3 md:py-5">
           <Link
-            href="/manajemen_data"
+            href="/manajemen-data"
             className="hover:text-blue-600 transition-colors duration-200"
           >
             Manajemen Data
@@ -245,7 +245,7 @@ export default function TambahData({ roles }) {
 
           {/* Tombol Aksi */}
           <div className="flex justify-end gap-3 pt-4">
-            <Link href="/manajemen_data">
+            <Link href="/manajemen-data">
               <Button className="bg-red-500 hover:bg-red-600 text-white">
                 Batal
               </Button>
@@ -260,6 +260,6 @@ export default function TambahData({ roles }) {
           </div>
         </form>
       </div>
-    </AppLayoutSuperadmin>
+    </AppLayout>
   );
 }

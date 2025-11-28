@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
-import AppLayoutSuperadmin from "@/layouts/AppLayoutSuperadmin";
+import AppLayout from "@/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, usePage } from "@inertiajs/react"; 
@@ -25,18 +25,17 @@ export default function ManajemenData() {
         (item) =>
             (item.nm_lengkap.toLowerCase().includes(search.toLowerCase()) ||
                 item.no_kk.includes(search)) &&
-            (roleFilter === "all" || item.role?.nama_role === roleFilter)
+            (roleFilter === "all" || item.role?.nm_role === roleFilter)
     );
 
     return (
-        <AppLayoutSuperadmin>
+        <AppLayout>
             <div className="flex flex-col min-h-screen bg-white">
                 <main className="flex-1 p-6 md:p-8 w-full">
                     <h1 className="text-2xl md:text-3xl font-bold border-b-2 border-gray-200 py-3 md:py-5">
                         Manajemen Data
                     </h1>
 
-                    {/* 🔍 Search + Filter + Add Button */}
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 pt-4">
                         <div className="flex items-center w-full sm:w-1/2 relative">
                             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -64,7 +63,7 @@ export default function ManajemenData() {
                                 </SelectContent>
                             </Select>
 
-                            <Link href="/tambah_data">
+                            <Link href="/tambah-data">
                                 <Button className="bg-[#4C6FFF] hover:bg-[#3b5ae0] text-white flex items-center gap-2">
                                     <Plus size={16} /> Tambah Data
                                 </Button>
@@ -72,7 +71,6 @@ export default function ManajemenData() {
                         </div>
                     </div>
 
-                    {/* 🧾 Table */}
                     <div className="overflow-x-auto border rounded-xl shadow-sm">
                         <table className="min-w-full text-sm text-gray-700">
                             <thead className="bg-gray-100 text-gray-700">
@@ -92,7 +90,7 @@ export default function ManajemenData() {
                                         <td className="py-2 px-3">{item.email}</td>
                                         <td className="py-2 px-3">{item.role?.nm_role}</td>
                                         <td className="py-2 px-3 flex items-center gap-2">
-                                            <Link href={`/manajemen_data/${item.id}/edit`}>
+                                            <Link href={`/manajemen-data/${item.id}/edit`}>
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
@@ -102,16 +100,16 @@ export default function ManajemenData() {
                                                 </Button>
                                             </Link>
                                             <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="bg-red-500 hover:bg-red-600"
-                                            onClick={() => {
-                                                if (confirm(`Yakin mau hapus data ${item.nm_lengkap}?`)) {
-                                                router.delete(route('superadmin.deleteUser', item.id));
-                                                }
-                                            }}
+                                                variant="outline"
+                                                size="icon"
+                                                className="bg-red-500 hover:bg-red-600"
+                                                onClick={() => {
+                                                    if (confirm(`Yakin mau hapus data ${item.nm_lengkap}?`)) {
+                                                        router.delete(route('superadmin.deleteUser', item.id));
+                                                    }
+                                                }}
                                             >
-                                            <Trash2 className="w-4 h-4 text-white" />
+                                                <Trash2 className="w-4 h-4 text-white" />
                                             </Button>
                                         </td>
                                     </tr>
@@ -121,6 +119,6 @@ export default function ManajemenData() {
                     </div>
                 </main>
             </div>
-        </AppLayoutSuperadmin>
+        </AppLayout>
     );
 }

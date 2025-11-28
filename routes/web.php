@@ -66,11 +66,11 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/approval', [PengumumanController::class, 'approval'])->name('approval');
     Route::patch('/approval/{id}', [PengumumanController::class, 'approval_patch'])->name('approval.patch');
 
-    Route::get('/manajemen_data', [SuperadminController::class, 'users'])->name('superadmin.users');
-    Route::get('/tambah_data', [SuperadminController::class, 'createUser'])->name('superadmin.createUser');
-    Route::post('/manajemen_data', [SuperadminController::class, 'storeUser'])->name('superadmin.storeUser');
-    Route::get('/manajemen_data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
-    Route::put('/manajemen_data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
-    Route::delete('/manajemen_data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
-});
 
+    Route::get('/manajemen-data', [SuperadminController::class, 'users'])->name('superadmin.users');
+    Route::get('/tambah-data', [SuperadminController::class, 'createUser'])->name('superadmin.createUser');
+    Route::post('/manajemen-data', [SuperadminController::class, 'storeUser'])->name('superadmin.storeUser');
+    Route::get('/manajemen-data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
+    Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
+    Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
+});

@@ -1,8 +1,10 @@
 import React from "react";
-import AppLayoutSuperadmin from "@/layouts/AppLayoutSuperadmin";
+import AppLayout from "@/layouts/AppLayout";
 import { Link, useForm } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNotify } from "@/Components/toastNotification"; 
+import { router } from "@inertiajs/react";
 import {
   Select,
   SelectContent,
@@ -12,7 +14,9 @@ import {
 } from "@/components/ui/select";
 
 export default function EditData({ user, roles }) {
-  const { data, setData, put, processing, errors, notifySuccess, notifyError } = useForm({
+  const { notifySuccess, notifyError } = useNotify();
+
+  const { data, setData, put, processing, errors } = useForm({
     nm_lengkap: user.nm_lengkap || "",
     no_kk: user.no_kk || "",
     email: user.email || "",
@@ -28,25 +32,29 @@ export default function EditData({ user, roles }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(route("manajemen-data.update", user.id), {
+    put(route("superadmin.updateUser", user.id), {
       preserveScroll: true,
       onSuccess: () => {
-        notifySuccess("Berhasil", "Data berhasil diperbarui!");
-              resizeTo();
+          notifySuccess("Berhasil", "Data berhasil diperbarui!");
+
+          setTimeout(() => {
+              router.visit("/manajemen-data"); 
+          }, 500);
       },
+
       onError: () => {
-        notifyError("Terjadi kesalahan, silakan cek kembali form.");
+        notifyError("Gagal", "Terjadi kesalahan, silakan cek kembali form.");
       }
     });
   };
 
   return (
-    <AppLayoutSuperadmin>
+    <AppLayout>
       <div className="px-6 py-6">
         {/* Breadcrumb */}
         <div className="flex items-center text-gray-400 text-2xl md:text-3xl font-semibold border-b-2 border-gray-200 py-3 md:py-5">
           <Link
-            href="/manajemen_data"
+            href="/manajemen-data"
             className="hover:text-blue-600 transition-colors duration-200"
           >
             Manajemen Data
@@ -232,7 +240,7 @@ export default function EditData({ user, roles }) {
 
           {/* Tombol Aksi */}
           <div className="flex justify-end gap-3 pt-4">
-            <Link href="/manajemen_data">
+            <Link href="/manajemen-data">
               <Button className="bg-red-500 hover:bg-red-600 text-white">
                 Batal
               </Button>
@@ -247,6 +255,6 @@ export default function EditData({ user, roles }) {
           </div>
         </form>
       </div>
-    </AppLayoutSuperadmin>
+    </AppLayout>
   );
 }

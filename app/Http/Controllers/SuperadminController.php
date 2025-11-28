@@ -115,7 +115,7 @@ class SuperadminController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('superadmin.users')->with('success', 'Data user berhasil diperbarui');
+       return back()->with('success', 'Data user berhasil diperbarui');
     }
 
 
