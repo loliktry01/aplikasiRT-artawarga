@@ -16,6 +16,11 @@ class DashboardController extends Controller
         // 🟢 Tambahan filter tanggal
         $selectedDate = $request->input('date');
 
+        // acuan bulan berjalan (sekarang)
+        $now = now();
+        $curYear = $now->year;
+        $curMonth = $now->month;
+
         // 🔹 ambil data BOP masuk
         $bopMasuk = PemasukanBOP::select('id', 'tgl', 'nominal', 'ket', 'bkt_nota', 'created_at')
             ->when($selectedDate, function ($query, $selectedDate) {
@@ -56,12 +61,21 @@ class DashboardController extends Controller
                 ];
             });
 
-        // 🔹 ambil data IURAN masuk
-        $iuranMasuk = PemasukanIuran::where('status', 'approved')
+        // 🔹 ambil data IURAN masuk (approved)
+        // IMPORTANT: hanya ambil pemasukan iuran yang pengumuman.created_at < bulan berjalan
+        $iuranMasuk = PemasukanIuran::where('masuk_iuran.status', 'approved')
+            ->join('pengumuman', 'masuk_iuran.pengumuman_id', '=', 'pengumuman.id')
             ->when($selectedDate, function ($query, $selectedDate) {
-                return $query->whereDate('tgl', $selectedDate);
+                return $query->whereDate('masuk_iuran.tgl', $selectedDate);
             })
-            ->select('id', 'tgl', 'nominal', 'ket', 'created_at')
+            ->where(function ($q) use ($curYear, $curMonth) {
+                $q->whereYear('pengumuman.created_at', '<', $curYear)
+                  ->orWhere(function ($q2) use ($curYear, $curMonth) {
+                      $q2->whereYear('pengumuman.created_at', $curYear)
+                         ->whereMonth('pengumuman.created_at', '<', $curMonth);
+                  });
+            })
+            ->select('masuk_iuran.id', 'masuk_iuran.tgl', 'masuk_iuran.nominal', 'masuk_iuran.ket', 'masuk_iuran.created_at')
             ->get()
             ->map(function ($row) {
                 return [
@@ -120,90 +134,101 @@ class DashboardController extends Controller
 
         $final = [];
 
+        foreach ($timeline as $row) {
+            if ($row['tipe_dana'] === 'bop') {
+                $jumlah_awal = $saldoBop;
 
-            foreach ($timeline as $row) {
-                if ($row['tipe_dana'] === 'bop') {
-                    $jumlah_awal = $saldoBop;
-
-                    if ($row['arah'] === 'masuk') {
-                        $jumlah_digunakan = 0;
-                        $jumlah_sisa = $jumlah_awal + $row['nominal'];
-                        $saldoBop = $jumlah_sisa;
-                        $status = 'Pemasukan';
-                    } else {
-                        $jumlah_digunakan = $row['nominal'];
-                        $jumlah_sisa = $jumlah_awal - $row['nominal'];
-                        $saldoBop = $jumlah_sisa;
-                        $status = 'Pengeluaran';
-                    }
-
-                    $final[] = [
-                        'id' => $row['id'],
-                        'real_id' => $row['real_id'],
-                        'tgl' => $row['tgl'],
-                        'kategori' => 'BOP',
-                        'jumlah_awal' => $jumlah_awal,
-                        'jumlah_digunakan' => $jumlah_digunakan,
-                        'jumlah_sisa' => $jumlah_sisa,
-                        'status' => $status,
-                        'ket' => $row['ket'],
-                    ];
+                if ($row['arah'] === 'masuk') {
+                    $jumlah_digunakan = 0;
+                    $jumlah_sisa = $jumlah_awal + $row['nominal'];
+                    $saldoBop = $jumlah_sisa;
+                    $status = 'Pemasukan';
                 } else {
-                    $jumlah_awal = $saldoIuran;
-
-                    if ($row['arah'] === 'masuk') {
-                        $jumlah_digunakan = 0;
-                        $jumlah_sisa = $jumlah_awal + $row['nominal'];
-                        $saldoIuran = $jumlah_sisa;
-                        $status = 'Pemasukan';
-                    } else {
-                        $jumlah_digunakan = $row['nominal'];
-                        $jumlah_sisa = $jumlah_awal - $row['nominal'];
-                        $saldoIuran = $jumlah_sisa;
-                        $status = 'Pengeluaran';
-                    }
-
-                    $final[] = [
-                        'id' => $row['id'],
-                        'real_id' => $row['real_id'],
-                        'tgl' => $row['tgl'],
-                        'kategori' => 'Iuran',
-                        'jumlah_awal' => $jumlah_awal,
-                        'jumlah_digunakan' => $jumlah_digunakan,
-                        'jumlah_sisa' => $jumlah_sisa,
-                        'status' => $status,
-                        'ket' => $row['ket'],
-                    ];
+                    $jumlah_digunakan = $row['nominal'];
+                    $jumlah_sisa = $jumlah_awal - $row['nominal'];
+                    $saldoBop = $jumlah_sisa;
+                    $status = 'Pengeluaran';
                 }
+
+                $final[] = [
+                    'id' => $row['id'],
+                    'real_id' => $row['real_id'],
+                    'tgl' => $row['tgl'],
+                    'kategori' => 'BOP',
+                    'jumlah_awal' => $jumlah_awal,
+                    'jumlah_digunakan' => $jumlah_digunakan,
+                    'jumlah_sisa' => $jumlah_sisa,
+                    'status' => $status,
+                    'ket' => $row['ket'],
+                ];
+            } else {
+                $jumlah_awal = $saldoIuran;
+
+                if ($row['arah'] === 'masuk') {
+                    $jumlah_digunakan = 0;
+                    $jumlah_sisa = $jumlah_awal + $row['nominal'];
+                    $saldoIuran = $jumlah_sisa;
+                    $status = 'Pemasukan';
+                } else {
+                    $jumlah_digunakan = $row['nominal'];
+                    $jumlah_sisa = $jumlah_awal - $row['nominal'];
+                    $saldoIuran = $jumlah_sisa;
+                    $status = 'Pengeluaran';
+                }
+
+                $final[] = [
+                    'id' => $row['id'],
+                    'real_id' => $row['real_id'],
+                    'tgl' => $row['tgl'],
+                    'kategori' => 'Iuran',
+                    'jumlah_awal' => $jumlah_awal,
+                    'jumlah_digunakan' => $jumlah_digunakan,
+                    'jumlah_sisa' => $jumlah_sisa,
+                    'status' => $status,
+                    'ket' => $row['ket'],
+                ];
             }
+        }
 
-            $final = collect($final)->sortByDesc('tgl')->values();
+        $final = collect($final)->sortByDesc('tgl')->values();
 
-            // 🔹 ringkasan saldo
-            $totalBop = PemasukanBOP::sum('nominal');
-            $totalIuran = PemasukanIuran::where('status', 'approved')->sum('nominal');
-            $totalPengeluaran = Pengeluaran::sum('nominal');
+        // 🔹 ringkasan saldo
+        $totalBop = PemasukanBOP::sum('nominal');
 
-            $saldoAwal = $totalBop + $totalIuran;
-            $sisaSaldo = $saldoAwal - $totalPengeluaran;
-            $userTotal = User::count();
-            $totalPengeluaranBop = Pengeluaran::where('tipe', 'bop')->sum('nominal');
-            $totalPengeluaranIuran = Pengeluaran::where('tipe', 'iuran')->sum('nominal');
+        // totalIuran: hanya approved yang pengumuman dibuat sebelum bulan berjalan
+        $totalIuran = PemasukanIuran::where('masuk_iuran.status', 'approved')
+            ->join('pengumuman', 'masuk_iuran.pengumuman_id', '=', 'pengumuman.id')
+            ->where(function ($q) use ($curYear, $curMonth) {
+                $q->whereYear('pengumuman.created_at', '<', $curYear)
+                  ->orWhere(function ($q2) use ($curYear, $curMonth) {
+                      $q2->whereYear('pengumuman.created_at', $curYear)
+                         ->whereMonth('pengumuman.created_at', '<', $curMonth);
+                  });
+            })
+            ->sum('masuk_iuran.nominal');
 
-            // 🔹 Hitung saldo masing-masing
-            $sisaBop = $totalBop - $totalPengeluaranBop;
-            $sisaIuran = $totalIuran - $totalPengeluaranIuran;
+        $totalPengeluaran = Pengeluaran::sum('nominal');
 
-            return Inertia::render('Dashboard', [
-                'transaksi' => $final,
-                'saldoAwal' => $saldoAwal,
-                'sisaSaldo' => $sisaSaldo,
-                'totalPengeluaran' => $totalPengeluaran,
-                'userTotal' => $userTotal,
-                'selectedDate' => $selectedDate,
-                'sisaBop' => $sisaBop,
-                'sisaIuran' => $sisaIuran
-            ]);
+        $saldoAwal = $totalBop + $totalIuran;
+        $sisaSaldo = $saldoAwal - $totalPengeluaran;
+        $userTotal = User::count();
+        $totalPengeluaranBop = Pengeluaran::where('tipe', 'bop')->sum('nominal');
+        $totalPengeluaranIuran = Pengeluaran::where('tipe', 'iuran')->sum('nominal');
+
+        // 🔹 Hitung saldo masing-masing
+        $sisaBop = $totalBop - $totalPengeluaranBop;
+        $sisaIuran = $totalIuran - $totalPengeluaranIuran;
+
+        return Inertia::render('Dashboard', [
+            'transaksi' => $final,
+            'saldoAwal' => $saldoAwal,
+            'sisaSaldo' => $sisaSaldo,
+            'totalPengeluaran' => $totalPengeluaran,
+            'userTotal' => $userTotal,
+            'selectedDate' => $selectedDate,
+            'sisaBop' => $sisaBop,
+            'sisaIuran' => $sisaIuran
+        ]);
     }
 
     // 🟣 fungsi rincian tetap sama

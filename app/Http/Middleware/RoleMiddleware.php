@@ -27,7 +27,7 @@ class RoleMiddleware
             2 => ['*'], // ketua rt
             3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show', "pengumuman",'profil.index', 'profile.update', 'bop.create', 'iuran.create', 'kat_iuran.create', 'kat_iuran.delete', 'pengumuman.create', 'pengeluaran.store'],
             4 => ['dashboard', 'kegiatan.create','kegiatan.store','kegiatan.index', 'rincian.show', "pengumuman",'profil.index', 'profile.update'],  
-            5 => ['dashboard','rincian.show', 'profil.index', 'profile.update'], 
+            5 => ['dashboard','rincian.show', 'profil.index', 'profile.update','masuk-iuran.index', 'masuk-iuran.show', 'masuk-iuran.store'], // warga
         ];
 
         $routeName = $request->route()->getName();
