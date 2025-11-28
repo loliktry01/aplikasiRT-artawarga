@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class ApiDocsController extends Controller
 {
-    private $password = 'scrumble123'; // Password yang sebenarnya
+    private $password = 'password123'; // Password yang sebenarnya
 
     public function showPasswordForm()
     {
