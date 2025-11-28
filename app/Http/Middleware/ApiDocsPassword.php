@@ -9,7 +9,7 @@ class ApiDocsPassword
 {
     public function handle(Request $request, Closure $next)
     {
-        $password = 'scrumble123'; // Variabel ini tidak digunakan di sini
+        $password = 'password123'; // Variabel ini tidak digunakan di sini
 
         if ($request->session()->get('api_docs_access') !== true) {
             // Jika sesi 'api_docs_access' tidak ada,
