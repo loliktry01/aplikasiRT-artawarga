@@ -22,7 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 // <-- tambahkan import tombol download PDF
-import DownloadPdfBtn from "@/Pages/Dashboard/DownloadPdfBtn";
+import DownloadPdfBtn from "@/components/DownloadPdfBtn";
 
 export default function Dashboard() {
     const {
