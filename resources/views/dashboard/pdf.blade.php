@@ -10,7 +10,7 @@
             color: #111;
         }
 
-        /* HEADER KOP SURAT */
+        /* --- STYLE HEADER KOP SURAT --- */
         .header-wrapper {
             position: relative;
             width: 100%;
@@ -38,7 +38,7 @@
         hr.separator { border: 0; border-bottom: 3px solid #000; margin-top: 10px; margin-bottom: 2px; }
         hr.separator-thin { border: 0; border-bottom: 1px solid #000; margin-bottom: 15px; }
 
-        /* TABEL */
+        /* --- STYLE TABEL --- */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -71,7 +71,9 @@
 <body>
 
     @php
+        // Pastikan file gambar ada di public/images/Lambang_Kota_Semarang.png
         $pathLogo = public_path('images/Lambang_Kota_Semarang.png');
+        
         $logoSrc = ''; 
         if (file_exists($pathLogo)) {
             $type = pathinfo($pathLogo, PATHINFO_EXTENSION);
@@ -110,7 +112,7 @@
             </tr>
             <tr>
                 <td style="border: none; padding: 2px 0;">DICETAK OLEH</td>
-                <td style="border: none; padding: 2px 0;">: {{ $user->name ?? 'Admin' }}</td> 
+                <td style="border: none; padding: 2px 0;">: {{ $user->nm_lengkap ?? 'Admin' }}</td> 
             </tr>
             <tr>
                 <td style="border: none; padding: 2px 0;">PERIODE BULAN/TAHUN</td>
