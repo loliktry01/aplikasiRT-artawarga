@@ -16,11 +16,6 @@ class Kelurahan extends Model
         return $this->belongsTo(Kecamatan::class);
     }
 
-    public function rws()
-    {
-        return $this->hasMany(Rw::class);
-    }
-
     public function users()
     {
         return $this->hasMany(User::class);

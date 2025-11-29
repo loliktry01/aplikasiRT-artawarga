@@ -19,12 +19,13 @@ class User extends Authenticatable
         'status', 
         'alamat', 
         'foto_profil',
+        'kode_pos',
+        'rw',
+        'rt',
 
         'kota_id',
         'kecamatan_id',
         'kelurahan_id',
-        'rw_id',
-        'rt_id',
     ];
 
     protected $hidden = [
@@ -62,15 +63,5 @@ class User extends Authenticatable
     public function kelurahan()
     {
         return $this->belongsTo(Kelurahan::class);
-    }
-
-    public function rw() // Pastikan nama Modelnya 'Rw' atau 'RW' (sesuai file kamu)
-    {
-        return $this->belongsTo(Rw::class);
-    }
-
-    public function rt() // Pastikan nama Modelnya 'Rt' atau 'RT' (sesuai file kamu)
-    {
-        return $this->belongsTo(Rt::class);
     }
 }

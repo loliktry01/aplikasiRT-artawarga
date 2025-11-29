@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Role;
 use App\Models\Kota;
-use App\Models\Rt;
+use App\Models\Kelurahan; // Kita berhenti di Kelurahan, tidak pakai RT/RW Model lagi
 use Faker\Factory as Faker;
 
 class UserSeeder extends Seeder
@@ -27,33 +27,23 @@ class UserSeeder extends Seeder
         $bendaharaRole  = Role::where('nm_role', 'Bendahara')->first()->id ?? 4;
         $wargaRole      = Role::where('nm_role', 'Warga')->first()->id ?? 5;
 
-        // 2. === AMBIL DATA KOTA SEMARANG (YANG SUDAH DIBUAT WILAYAH SEEDER) ===
+        // 2. === AMBIL DATA KOTA SEMARANG ===
         $kota = Kota::where('nama_kota', 'Kota Semarang')->first();
 
-        // Safety Check: Kalau WilayahSemarangSeeder belum dijalankan, jalankan dulu
+        // Safety Check: Kalau WilayahSemarangSeeder belum dijalankan
         if (!$kota) {
             $this->call(WilayahSemarangSeeder::class);
             $kota = Kota::where('nama_kota', 'Kota Semarang')->first();
         }
 
-        // 3. === AMBIL SATU LOKASI SPESIFIK UNTUK SUPERADMIN ===
-        // Kita ambil salah satu RT secara acak dari Kota Semarang untuk dijadikan alamat admin
-        // Logika: Kota -> Kecamatan -> Kelurahan -> RW -> RT
-        $rtAdmin = Rt::with('rw.kelurahan.kecamatan.kota')
-                    ->whereHas('rw.kelurahan.kecamatan.kota', function($q) use ($kota) {
-                        $q->where('id', $kota->id);
-                    })
-                    ->inRandomOrder()
-                    ->first();
-
-        // Simpan ID lokasi Admin biar gampang
-        $locAdmin = [
-            'kota_id'      => $kota->id,
-            'kecamatan_id' => $rtAdmin->rw->kelurahan->kecamatan->id,
-            'kelurahan_id' => $rtAdmin->rw->kelurahan->id,
-            'rw_id'        => $rtAdmin->rw->id,
-            'rt_id'        => $rtAdmin->id,
-        ];
+        // 3. === AMBIL SATU KELURAHAN ACAK UNTUK ADMIN ===
+        // Kita cari kelurahan yang ada di Kota Semarang
+        $kelurahanAdmin = Kelurahan::with('kecamatan.kota')
+                            ->whereHas('kecamatan', function($q) use ($kota) {
+                                $q->where('kota_id', $kota->id);
+                            })
+                            ->inRandomOrder()
+                            ->first();
 
         // 4. === INSERT SUPERADMIN ===
         DB::table('usr')->insert([
@@ -68,33 +58,38 @@ class UserSeeder extends Seeder
             'alamat'       => 'Jl. Pemuda No. 1', 
             'kode_pos'     => '50132',
 
-            // Masukkan lokasi yang diambil tadi
-            'kota_id'      => $locAdmin['kota_id'],
-            'kecamatan_id' => $locAdmin['kecamatan_id'],
-            'kelurahan_id' => $locAdmin['kelurahan_id'],
-            'rw_id'        => $locAdmin['rw_id'],
-            'rt_id'        => $locAdmin['rt_id'],
+            // ID Wilayah (Dari Database)
+            'kota_id'      => $kota->id,
+            'kecamatan_id' => $kelurahanAdmin->kecamatan->id,
+            'kelurahan_id' => $kelurahanAdmin->id,
+
+            // String Wilayah (Manual Angka)
+            'rw'           => '001', 
+            'rt'           => '001',
 
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
 
-        // 5. === HELPER FUNCTION USER RANDOM (Updated) ===
-        // Fungsi ini akan mengambil RT acak SETIAP KALI user dibuat
+        // 5. === HELPER FUNCTION USER RANDOM ===
         $buatUser = function ($roleId, $emailPrefix) use ($faker, $kota) {
             
-            // Ambil RT acak di Semarang
-            $rtRandom = Rt::with('rw.kelurahan.kecamatan')
-                        ->whereHas('rw.kelurahan.kecamatan', function($q) use ($kota) {
+            // Ambil Kelurahan acak di Semarang
+            $kelRandom = Kelurahan::with('kecamatan')
+                        ->whereHas('kecamatan', function($q) use ($kota) {
                             $q->where('kota_id', $kota->id);
                         })
                         ->inRandomOrder()
                         ->first();
 
+            // Generate Angka RT/RW String (001 - 020)
+            $rwRandom = str_pad($faker->numberBetween(1, 20), 3, '0', STR_PAD_LEFT);
+            $rtRandom = str_pad($faker->numberBetween(1, 20), 3, '0', STR_PAD_LEFT);
+
             return [
                 'role_id'      => $roleId,
                 'email'        => strtolower($emailPrefix) . '@example.com',
-                'no_kk'        => $faker->unique()->numerify('3374##########'), // Kode KK Semarang 3374
+                'no_kk'        => $faker->unique()->numerify('3374##########'),
                 'password'     => Hash::make('password123'),
                 'nm_lengkap'   => $faker->name(),
                 'foto_profil'  => null,
@@ -103,12 +98,14 @@ class UserSeeder extends Seeder
                 'alamat'       => $faker->streetAddress(),
                 'kode_pos'     => $faker->postcode(),
 
-                // Isi ID Wilayah sesuai RT yang terambil acak tadi
+                // Isi ID Wilayah Database
                 'kota_id'      => $kota->id,
-                'kecamatan_id' => $rtRandom->rw->kelurahan->kecamatan->id,
-                'kelurahan_id' => $rtRandom->rw->kelurahan->id,
-                'rw_id'        => $rtRandom->rw->id,
-                'rt_id'        => $rtRandom->id,
+                'kecamatan_id' => $kelRandom->kecamatan->id,
+                'kelurahan_id' => $kelRandom->id,
+
+                // Isi String Wilayah Manual
+                'rw'           => $rwRandom,
+                'rt'           => $rtRandom,
 
                 'created_at'   => now(),
                 'updated_at'   => now(),

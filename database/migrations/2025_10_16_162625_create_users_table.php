@@ -19,14 +19,14 @@ return new class extends Migration
             $table->string('foto_profil')->nullable();
             $table->string('no_hp');
             $table->text('alamat'); 
+            $table->string('kode_pos')->nullable(); 
+            $table->string('rw')->nullable();
+            $table->string('rt')->nullable();
 
             $table->foreignId('kota_id')->nullable()->constrained('kota')->nullOnDelete();
             $table->foreignId('kecamatan_id')->nullable()->constrained('kecamatan')->nullOnDelete();
             $table->foreignId('kelurahan_id')->nullable()->constrained('kelurahan')->nullOnDelete();
-            $table->foreignId('rw_id')->nullable()->constrained('rw')->nullOnDelete();
-            $table->foreignId('rt_id')->nullable()->constrained('rt')->nullOnDelete();
 
-            $table->string('kode_pos')->nullable(); 
             
             $table->enum('status', ['tetap', 'kontrak'])->default('tetap');
             $table->timestamps();

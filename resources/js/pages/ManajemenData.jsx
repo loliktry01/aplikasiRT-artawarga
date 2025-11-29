@@ -95,11 +95,10 @@ export default function ManajemenData() {
                                         <td className="py-2 px-3 max-w-xs">
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{item.alamat}</span>
-                                                {item.kota && (
-                                                    <span className="text-xs text-gray-500">
-                                                        RT {item.rt?.nomor_rt}/RW {item.rw?.nomor_rw}, {item.kelurahan?.nama_kelurahan}, {item.kecamatan?.nama_kecamatan}, {item.kota?.nama_kota}
-                                                    </span>
-                                                )}
+                                                {/* Menampilkan RW dan RT sebagai string langsung dari user */}
+                                                <span className="text-xs text-gray-500">
+                                                    RT {item.rt}/RW {item.rw}, {item.kelurahan?.nama_kelurahan}, {item.kecamatan?.nama_kecamatan}, {item.kota?.nama_kota}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="py-2 px-3">

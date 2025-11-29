@@ -3,7 +3,7 @@ import AppLayout from "@/layouts/AppLayout";
 import { Link, useForm, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNotify } from "@/Components/toastNotification"; // Pastikan path sesuai
+import { useNotify } from "@/Components/toastNotification"; 
 import {
   Select,
   SelectContent,
@@ -15,11 +15,9 @@ import {
 export default function EditData({ user, roles, wilayah = [] }) {
   const { notifySuccess, notifyError } = useNotify();
 
-  // State dropdown
+  // State dropdown (Hanya untuk Wilayah Admin)
   const [listKecamatan, setListKecamatan] = useState([]);
   const [listKelurahan, setListKelurahan] = useState([]);
-  const [listRW, setListRW] = useState([]);
-  const [listRT, setListRT] = useState([]);
 
   const { data, setData, put, processing, errors } = useForm({
     nm_lengkap: user.nm_lengkap || "",
@@ -33,74 +31,54 @@ export default function EditData({ user, roles, wilayah = [] }) {
     kota_id: user.kota_id ? user.kota_id.toString() : "",
     kecamatan_id: user.kecamatan_id ? user.kecamatan_id.toString() : "",
     kelurahan_id: user.kelurahan_id ? user.kelurahan_id.toString() : "",
-    rw_id: user.rw_id ? user.rw_id.toString() : "",
-    rt_id: user.rt_id ? user.rt_id.toString() : "",
+    
+    // Manual Input String
+    rw: user.rw || "",
+    rt: user.rt || "",
     kode_pos: user.kode_pos || "",
     
     role_id: user.role_id ? user.role_id.toString() : "",
     status: user.status || "",
   });
 
-  // --- USE EFFECT: Isi Dropdown saat halaman dimuat ---
+  // --- USE EFFECT: Isi Dropdown Wilayah saat halaman dimuat ---
   useEffect(() => {
      if (wilayah.length > 0) {
-        // 1. Set List Kecamatan berdasarkan Kota user
+        // 1. Set List Kecamatan
         if (data.kota_id) {
            const kota = wilayah.find(k => k.id.toString() === data.kota_id);
            setListKecamatan(kota ? kota.kecamatans : []);
            
-           // 2. Set List Kelurahan berdasarkan Kecamatan user
+           // 2. Set List Kelurahan
            if (data.kecamatan_id && kota) {
               const kec = kota.kecamatans.find(k => k.id.toString() === data.kecamatan_id);
               setListKelurahan(kec ? kec.kelurahans : []);
-
-              // 3. Set List RW
-              if (data.kelurahan_id && kec) {
-                 const kel = kec.kelurahans.find(k => k.id.toString() === data.kelurahan_id);
-                 setListRW(kel ? kel.rws : []);
-
-                 // 4. Set List RT
-                 if (data.rw_id && kel) {
-                    const rw = kel.rws.find(r => r.id.toString() === data.rw_id);
-                    setListRT(rw ? rw.rts : []);
-                 }
-              }
            }
         }
      }
-  }, []); // Run sekali saat mount
+  }, []); 
 
-  // --- HANDLER DROPDOWN (Sama seperti TambahData) ---
+  // --- HANDLER DROPDOWN ---
   const handleKotaChange = (val) => {
-    setData(d => ({ ...d, kota_id: val, kecamatan_id: "", kelurahan_id: "", rw_id: "", rt_id: "" }));
+    setData(d => ({ ...d, kota_id: val, kecamatan_id: "", kelurahan_id: "" }));
     const k = wilayah.find(item => item.id.toString() === val);
     setListKecamatan(k ? k.kecamatans : []);
-    setListKelurahan([]); setListRW([]); setListRT([]);
+    setListKelurahan([]);
   };
 
   const handleKecamatanChange = (val) => {
-    setData(d => ({ ...d, kecamatan_id: val, kelurahan_id: "", rw_id: "", rt_id: "" }));
+    setData(d => ({ ...d, kecamatan_id: val, kelurahan_id: "" }));
     const k = listKecamatan.find(item => item.id.toString() === val);
     setListKelurahan(k ? k.kelurahans : []);
-    setListRW([]); setListRT([]);
   };
 
   const handleKelurahanChange = (val) => {
-    setData(d => ({ ...d, kelurahan_id: val, rw_id: "", rt_id: "" }));
-    const k = listKelurahan.find(item => item.id.toString() === val);
-    setListRW(k ? k.rws : []);
-    setListRT([]);
-  };
-
-  const handleRWChange = (val) => {
-    setData(d => ({ ...d, rw_id: val, rt_id: "" }));
-    const r = listRW.find(item => item.id.toString() === val);
-    setListRT(r ? r.rts : []);
+    setData("kelurahan_id", val);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(route("superadmin.updateUser", user.id), { // Sesuaikan route di web.php
+    put(route("superadmin.updateUser", user.id), { 
       preserveScroll: true,
       onSuccess: () => {
           notifySuccess("Berhasil", "Data berhasil diperbarui!");
@@ -187,25 +165,30 @@ export default function EditData({ user, roles, wilayah = [] }) {
                      </SelectContent>
                    </Select>
                 </div>
+                
+                {/* RW (Manual Input) */}
                 <div>
                    <label className="block text-sm font-medium mb-1">RW</label>
-                   <Select onValueChange={handleRWChange} value={data.rw_id} disabled={!data.kelurahan_id}>
-                     <SelectTrigger><SelectValue placeholder="Pilih RW" /></SelectTrigger>
-                     <SelectContent>
-                        {listRW.map(r => <SelectItem key={r.id} value={r.id.toString()}>{r.nomor_rw}</SelectItem>)}
-                     </SelectContent>
-                   </Select>
+                   <Input 
+                      value={data.rw} 
+                      onChange={(e) => setData("rw", e.target.value)} 
+                      placeholder="Contoh: 005"
+                   />
+                   {errors.rw && <div className="text-red-500 text-sm">{errors.rw}</div>}
                 </div>
+
+                {/* RT (Manual Input) */}
                 <div>
                    <label className="block text-sm font-medium mb-1">RT</label>
-                   <Select onValueChange={(val) => setData("rt_id", val)} value={data.rt_id} disabled={!data.rw_id}>
-                     <SelectTrigger><SelectValue placeholder="Pilih RT" /></SelectTrigger>
-                     <SelectContent>
-                        {listRT.map(r => <SelectItem key={r.id} value={r.id.toString()}>{r.nomor_rt}</SelectItem>)}
-                     </SelectContent>
-                   </Select>
-                   {errors.rt_id && <div className="text-red-500 text-sm">RT wajib dipilih</div>}
+                   <Input 
+                      value={data.rt} 
+                      onChange={(e) => setData("rt", e.target.value)} 
+                      placeholder="Contoh: 002"
+                   />
+                   {errors.rt && <div className="text-red-500 text-sm">{errors.rt}</div>}
                 </div>
+
+                {/* Kode Pos (Manual Input) */}
                 <div>
                     <label className="block text-sm font-medium mb-1">Kode Pos</label>
                     <Input value={data.kode_pos} onChange={(e) => setData("kode_pos", e.target.value)} />
@@ -242,7 +225,7 @@ export default function EditData({ user, roles, wilayah = [] }) {
               <Button className="bg-red-500 hover:bg-red-600 text-white">Batal</Button>
             </Link>
             <Button type="submit" disabled={processing} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {processing ? "Menyimpan..." : "Simpan Perubahan"}
+              {processing ? "Simpan Perubahan" : "Simpan Perubahan"}
             </Button>
           </div>
         </form>

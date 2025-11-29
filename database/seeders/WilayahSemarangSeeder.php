@@ -63,22 +63,6 @@ class WilayahSemarangSeeder extends Seeder
                     'kecamatan_id' => $kecamatan->id,
                     'nama_kelurahan' => $namaKelurahan
                 ]);
-
-                // 4. Buat RW Dummy (Misal RW 01 - RW 03)
-                for ($i = 1; $i <= 3; $i++) {
-                    $rw = Rw::firstOrCreate([
-                        'kelurahan_id' => $kelurahan->id,
-                        'rw' => str_pad($i, 2, '0', STR_PAD_LEFT) // "01", "02"
-                    ]);
-
-                    // 5. Buat RT Dummy (Misal RT 01 - RT 03 di setiap RW)
-                    for ($j = 1; $j <= 3; $j++) {
-                        Rt::firstOrCreate([
-                            'rw_id' => $rw->id,
-                            'rt' => str_pad($j, 2, '0', STR_PAD_LEFT) // "01", "02"
-                        ]);
-                    }
-                }
             }
         }
     }
