@@ -9,6 +9,7 @@ use App\Http\Controllers\MasukIuranController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ProfileWargaController;
+use App\Http\Controllers\SpjController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -51,6 +52,8 @@ Route::middleware(['role.access'])->group(function () {
 
     Route::get('/approval', [PengumumanController::class, 'approval'])->name('approval');
     Route::patch('/approval/{id}', [PengumumanController::class, 'approval_patch'])->name('approval.patch');
+
+    Route::get('/spj/download/{id}', [SpjController::class, 'download'])->name('spj.download');
 });
 
 
