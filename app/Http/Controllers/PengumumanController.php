@@ -20,24 +20,25 @@ class PengumumanController extends Controller
         ]);
     }
     
-    public function pengumuman_create(Request $request)
-    {
-        $validated = $request->validate([
-            'judul' => 'required|string',
-            'ket' => 'required|string',
-            'jumlah' => 'required|integer',
-            'kat_iuran_id' => 'required|exists:kat_iuran,id',
-        ]);
+   public function pengumuman_create(Request $request)
+{
+    $validated = $request->validate([
+        'judul' => 'required|string',
+        'ket' => 'required|string',
+        'jumlah' => 'required|integer',
+        'kat_iuran_id' => 'required|exists:kat_iuran,id',
+    ]);
 
-        $pengumuman = Pengumuman::create([
-            'judul' => $validated['judul'],
-            'ket' => $validated['ket'],
-            'jumlah' => $validated['jumlah'],
-            'kat_iuran_id' => $validated['kat_iuran_id'],
-        ]);
+    // 1. Simpan pengumuman
+    $pengumuman = Pengumuman::create([
+        'judul' => $validated['judul'],
+        'ket' => $validated['ket'],
+        'jumlah' => $validated['jumlah'],
+        'kat_iuran_id' => $validated['kat_iuran_id'],
+    ]);
 
-        // $users = User::whereNotIn('role_id', [1, 2, 3, 4])->get();
-        $users = User::all();
+   
+    $users = User::whereNotIn('role_id', [1, 2, 3, 4])->get();
 
         foreach ($users as $user) {
             PemasukanIuran::create([
@@ -50,8 +51,9 @@ class PengumumanController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Pengumuman berhasil dibuat dan tagihan dikirim ke semua warga.');
-    }
+    return back()->with('success', 'Pengumuman berhasil dibuat dan tagihan dikirim ke semua warga (kecuali Admin/Sekretaris/Bendahara/SuperAdmin).');
+}
+
 
     public function approval()
     {
