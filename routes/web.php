@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileWargaController;
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\ApiDocsController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use Inertia\Inertia;
 
 // --- Rute untuk API Documentation Password Protection ---
