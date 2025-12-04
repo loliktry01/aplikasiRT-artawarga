@@ -21,9 +21,9 @@ class PemasukanIuran extends Model
         'status',
     ];
 
-    public function pengumuman()
+    public function users()
     {
-        return $this->belongsTo(Pengumuman::class);
+        return $this->belongsTo(User::class);
     }
 
     public function kategori_iuran()

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('masuk_iuran', function (Blueprint $table) {
             $table->id();
             $table->foreignId('usr_id')->nullable()->constrained('usr')->cascadeOnDelete();
-            $table->foreignId('pengumuman_id')->nullable()->constrained('pengumuman')->cascadeOnDelete();
             $table->foreignId('kat_iuran_id')->nullable()->constrained('kat_iuran')->cascadeOnDelete();
             $table->date('tgl');
             $table->integer('nominal')->nullable();
@@ -23,7 +22,7 @@ return new class extends Migration
             $table->string('bkt_byr')->nullable();  
             $table->date('tgl_byr')->nullable();
             $table->date('tgl_approved')->nullable();
-            $table->enum('status', ['tagihan','pending', 'approved'])->nullable();
+            $table->enum('status', ['ditagihkan','pending', 'approved'])->nullable();
             $table->timestamps();
         });
     }
