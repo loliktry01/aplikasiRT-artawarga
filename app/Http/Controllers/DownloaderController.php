@@ -31,48 +31,32 @@ class DownloaderController extends Controller
         // 3. Tentukan Rentang Tanggal & Label Periode
         $startDate = null;
         $endDate = null;
-        $periodeLabel = '-'; // Default
+        $periodeLabel = '-';
 
-        // LOGIKA PENENTUAN TANGGAL
-        if ($month && $year) {
-            // Jika User memilih Bulan & Tahun (Contoh: November 2025)
+        if ($month) {
             $dateObj = Carbon::createFromDate($year, $month, 1);
             $startDate = $dateObj->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $dateObj->copy()->endOfMonth()->format('Y-m-d');
             
-            // Format Label (B.Indonesia)
             Carbon::setLocale('id');
             $periodeLabel = $dateObj->translatedFormat('F Y'); 
-
-        } elseif ($year) {
-            // Jika User hanya memilih Tahun
+        } else {
             $dateObj = Carbon::createFromDate($year, 1, 1);
             $startDate = $dateObj->copy()->startOfYear()->format('Y-m-d');
             $endDate = $dateObj->copy()->endOfYear()->format('Y-m-d');
             
             $periodeLabel = 'Tahun ' . $year;
-
-        } else {
-            // DEFAULT (Jika tidak ada filter): Ambil Tahun Sekarang
-            $currentYear = Carbon::now()->year;
-            $dateObj = Carbon::createFromDate($currentYear, 1, 1);
-            
-            $startDate = $dateObj->copy()->startOfYear()->format('Y-m-d');
-            $endDate = $dateObj->copy()->endOfYear()->format('Y-m-d');
-            
-            $periodeLabel = 'Tahun ' . $currentYear; 
         }
 
-        // Fallback gambar jika tidak ditemukan
-        $localFallbackImage = '/mnt/data/ba72f112-b167-451f-9039-37dcbff58c73.png';
+        // Fallback gambar
+        $localFallbackImage = null; 
 
-        // Helper filter query untuk mempersingkat kode
+        // Helper filter query
         $applyFilter = function($query) use ($startDate, $endDate) {
             return $query->whereBetween('tgl', [$startDate, $endDate]);
         };
 
-        // --- 4. QUERY DATA TRANSAKSI ---
-
+        // --- QUERY DATA ---
         // A. BOP Masuk
         $queryBopMasuk = PemasukanBOP::select('id', 'tgl', 'nominal', 'ket', 'bkt_nota', 'created_at');
         $bopMasuk = $applyFilter($queryBopMasuk)->get()->map(function ($row) use ($localFallbackImage) {
@@ -97,30 +81,22 @@ class DownloaderController extends Controller
             return $this->mapData($row, 'iuran', 'keluar', $localFallbackImage);
         });
 
-        // --- 5. HITUNG SALDO AWAL ---
-        // Kita harus menghitung total uang yang masuk/keluar SEBELUM tanggal filter dimulai
-        // agar kolom "Jumlah Awal" di baris pertama PDF benar.
-        
+        // --- HITUNG SALDO AWAL ---
         $saldoBop = 0;
         $saldoIuran = 0;
 
         if ($startDate) {
-            // Saldo BOP Sebelum Periode
             $saldoBop = PemasukanBOP::where('tgl', '<', $startDate)->sum('nominal')
                 - Pengeluaran::where('tipe', 'bop')->where('tgl', '<', $startDate)->sum('nominal');
 
-            // Saldo Iuran Sebelum Periode
             $saldoIuran = PemasukanIuran::where('status', 'approved')->where('tgl', '<', $startDate)->sum('nominal')
                 - Pengeluaran::where('tipe', 'iuran')->where('tgl', '<', $startDate)->sum('nominal');
         }
 
-        // --- 6. GABUNGKAN DATA & HITUNG SALDO BERJALAN ---
+        // --- GABUNG DATA ---
         $timeline = collect()
-            ->concat($bopMasuk)
-            ->concat($bopKeluar)
-            ->concat($iuranMasuk)
-            ->concat($iuranKeluar)
-            // Urutkan berdasarkan tanggal terlama dulu untuk menghitung saldo berjalan
+            ->concat($bopMasuk)->concat($bopKeluar)
+            ->concat($iuranMasuk)->concat($iuranKeluar)
             ->sortBy(fn($item) => $item['tgl'] . '-' . ($item['created_at'] ?? ''))
             ->values();
 
@@ -128,8 +104,6 @@ class DownloaderController extends Controller
         
         foreach ($timeline as $row) {
             $kategori = ($row['tipe_dana'] === 'bop') ? 'BOP' : 'Iuran';
-            
-            // Ambil saldo terakhir dari kategori terkait
             $currentSaldo = ($row['tipe_dana'] === 'bop') ? $saldoBop : $saldoIuran;
             
             $jumlah_awal = $currentSaldo;
@@ -148,7 +122,6 @@ class DownloaderController extends Controller
                 $status = 'Pengeluaran';
             }
 
-            // Update saldo global untuk iterasi berikutnya
             if ($row['tipe_dana'] === 'bop') {
                 $saldoBop = $currentSaldo;
             } else {
@@ -161,46 +134,40 @@ class DownloaderController extends Controller
                 'tgl' => $row['tgl'],
                 'kategori' => $kategori,
                 'jumlah_awal' => $jumlah_awal,
-                'jumlah_digunakan' => $jumlah_digunakan, // Kolom Pengeluaran
-                'jumlah_pemasukan' => $jumlah_pemasukan_row, // Kolom Pemasukan (opsional)
-                'jumlah_sisa' => $jumlah_sisa, // Kolom Saldo Akhir
+                'jumlah_digunakan' => $jumlah_digunakan,
+                'jumlah_sisa' => $jumlah_sisa,
                 'status' => $status,
                 'ket' => $row['ket'] ?? null,
                 'bkt_nota' => $row['bkt_nota'] ?? null,
             ];
         }
 
-        // Urutkan Descending (Terbaru di atas) untuk tampilan PDF
         $final = collect($final)->sortByDesc('tgl')->values()->all();
 
-        // 7. RENDER VIEW PDF
+        // 7. RENDER PDF
         $pdf = Pdf::loadView('dashboard.pdf', [
             'transaksi' => $final,
             'selectedDate' => $startDate, 
-            'periodeLabel' => $periodeLabel, // Variable untuk judul periode di PDF
-            'user' => $user,
+            'periodeLabel' => $periodeLabel,
+            'user' => $user, // User sudah memuat data kelurahan->kecamatan->kota
         ]);
 
-        // Nama file dinamis
-        $filename = 'Laporan_' . str_replace([' ', '/'], '_', $periodeLabel) . '.pdf';
+        $cleanLabel = str_replace([' ', '/', '\\'], '_', $periodeLabel);
+        $filename = 'Laporan_' . $cleanLabel . '.pdf';
 
         return $pdf->download($filename);
     }
 
-    /**
-     * Helper mapping data
-     */
     private function mapData($row, $tipe, $arah, $fallbackImage)
     {
         $bktNota = $row->bkt_nota;
         $bktNotaPath = null;
 
-        // Cek file fisik
         if (!empty($bktNota) && Storage::disk('public')->exists($bktNota)) {
             $bktNotaPath = Storage::disk('public')->path($bktNota);
         } elseif (!empty($bktNota) && filter_var($bktNota, FILTER_VALIDATE_URL)) {
             $bktNotaPath = $bktNota;
-        } elseif (file_exists($fallbackImage)) {
+        } elseif ($fallbackImage && file_exists($fallbackImage)) {
             $bktNotaPath = $fallbackImage;
         }
 
