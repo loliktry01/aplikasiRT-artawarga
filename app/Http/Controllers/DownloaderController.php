@@ -13,19 +13,18 @@ use Carbon\Carbon;
 
 class DownloaderController extends Controller
 {
-    /**
-     * Download laporan PDF dengan filter Bulan & Tahun.
-     */
     public function download(Request $request)
     {
-        // 1. Ambil User Login
-        $user = Auth::user();
+        // 1. Ambil User Login DENGAN RELASI WILAYAH
+        // Pastikan model User sudah berelasi: User -> Kelurahan -> Kecamatan -> Kota
+        $user = Auth::user()->load(['kelurahan.kecamatan.kota']);
 
-        // 2. Ambil Input Filter dari Frontend
+        // 2. Ambil Input Filter
         $month = $request->input('month');
         $year = $request->input('year');
 
-        if ($month && empty($year)) {
+        // Patch: Jika Tahun kosong, pakai tahun sekarang
+        if (empty($year)) {
             $year = Carbon::now()->year;
         }
 
