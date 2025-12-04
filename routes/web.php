@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 // Controller
+use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\BopController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DownloaderController;
 use App\Http\Controllers\IuranController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\MasukIuranController;
@@ -58,6 +60,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::put('/profil/update/{id}', [ProfileWargaController::class, 'update'])->name('profil.update');
 
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
+    Route::get('/kegiatan/{id}', [KegiatanController::class, 'show'])->name('kegiatan.show');
     
     Route::get('/masuk-iuran', [MasukIuranController::class, 'index'])->name('masuk-iuran.index');
     Route::get('/masuk-iuran/{id}', [MasukIuranController::class, 'show'])->name('masuk-iuran.show');
@@ -66,8 +69,17 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/approval', [PengumumanController::class, 'approval'])->name('approval');
     Route::patch('/approval/{id}', [PengumumanController::class, 'approval_patch'])->name('approval.patch');
 
-    Route::get('/spj/download/{id}', [SpjController::class, 'download'])->name('spj.download');
-});
 
+    Route::get('/spj/download/{id}', [SpjController::class, 'download'])->name('spj.download');
+
+    Route::get('/manajemen-data', [SuperadminController::class, 'users'])->name('superadmin.users');
+    Route::get('/tambah-data', [SuperadminController::class, 'createUser'])->name('superadmin.createUser');
+    Route::post('/manajemen-data', [SuperadminController::class, 'storeUser'])->name('superadmin.storeUser');
+    Route::get('/manajemen-data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
+    Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
+    Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
+    //DOWNLOADER
+    Route::get('/download/pdf', [DownloaderController::class, 'download'])->name('download.pdf');
+});
 
 
