@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\BopController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DownloaderController;
 use App\Http\Controllers\IuranController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\MasukIuranController;
@@ -75,6 +76,8 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/manajemen-data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
     Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
     Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
+    //DOWNLOADER
+    Route::get('/download/pdf', [DownloaderController::class, 'download'])->name('download.pdf');
 });
 
 
