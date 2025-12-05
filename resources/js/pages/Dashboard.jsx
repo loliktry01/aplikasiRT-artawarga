@@ -127,7 +127,7 @@ export default function Dashboard() {
                                     >
                                         Tambah Pengeluaran
                                     </Button>
-                                    <Button
+                                    {/* <Button
                                         className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
                                         onClick={() =>
                                             router.visit(
@@ -136,7 +136,7 @@ export default function Dashboard() {
                                         }
                                     >
                                         Tambah Pengumuman
-                                    </Button>
+                                    </Button> */}
                                 </>
                             )}
                         </div>
