@@ -28,8 +28,9 @@ class Kegiatan extends Model
         return $this->hasMany(Pengeluaran::class);
     }
 
-    public function subkategori_kegiatan()
+    public function kategori_kegiatan()
     {
-        return $this->hasMany(SubkatKeg::class);
+        return $this->belongsTo(KategoriKegiatan::class);
     }
+
 }

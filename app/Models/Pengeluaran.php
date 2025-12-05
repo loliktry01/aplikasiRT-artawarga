@@ -18,13 +18,19 @@ class Pengeluaran extends Model
         'bkt_nota',
     ];
 
-    public function total()
-    {
-        return $this->hasMany(Total::class);
-    }
 
     public function kegiatan()
     {
-        return $this->belongsTo(Kegiatan::class, 'keg_id');
+        return $this->belongsTo(Kegiatan::class);
+    }
+
+    public function pemasukan_bop()
+    {
+        return $this->belongsTo(PemasukanBOP::class);
+    }
+
+    public function pemasukan_iuran()
+    {
+        return $this->belongsTo(PemasukanIuran::class);
     }
 }
