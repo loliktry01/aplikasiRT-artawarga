@@ -11,14 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tagihan_airs', function (Blueprint $table) {
+        Schema::create('tagihan_bulanan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kat_iuran_id')->constrained('kat_iuran')->cascadeOnDelete();
             $table->foreignId('usr_id')->constrained('usr')->cascadeOnDelete();
-            $table->date('tgl');
+            $table->integer('bulan');
+            $table->integer('tahun');
             $table->integer('mtr_bln_lalu');
             $table->integer('mtr_skrg');
-            $table->integer('total');
+            $table->enum('status', ['ditagihkan','pending', 'approved'])->nullable();
+            $table->integer('harga_meteran')->nullable();
+            $table->integer('harga_sampah')->nullable();
+            $table->date('tgl_byr')->nullable();
+            $table->string('bkt_byr')->nullable();  
+            $table->date('tgl_approved')->nullable();
+            $table->integer('nominal')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tagihan_airs');
+        Schema::dropIfExists('tagihan_bulanan');
     }
 };

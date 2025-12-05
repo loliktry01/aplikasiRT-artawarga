@@ -10,9 +10,9 @@ class KategoriIuran extends Model
     protected $table = 'kat_iuran';
     protected $fillable = ['nm_kat'];
 
-    public function tagihan_air()
+    public function tagihan_bulanan()
     {
-        return $this->hasMany(TagihanAir::class);
+        return $this->hasMany(TagihanBulanan::class);
     }
 
     public function masuk_iuran() 

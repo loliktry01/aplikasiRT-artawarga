@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('pengeluaran', function (Blueprint $table) {
             $table->id();
-            $table->enum('tipe', ['bop', 'iuran']);
             $table->foreignId('keg_id')->constrained('keg')->cascadeOnDelete();
+            $table->foreignId('masuk_bop_id')->constrained('masuk_bop')->cascadeOnDelete();
+            $table->foreignId('masuk_iuran_id')->constrained('masuk_iuran')->cascadeOnDelete();
             $table->date('tgl');
             $table->integer('nominal');
             $table->string('ket');
