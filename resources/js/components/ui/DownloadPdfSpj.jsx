@@ -14,8 +14,8 @@ export default function DownloadPdfSpj({ id }) {
             onClick={handleDownload}
             className="bg-purple-600 hover:bg-purple-700 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
         >
-            <Download className="w-4 h-4 mr-2" />
-            Download PDF
+            <Download className="w-4 h-4 mr-1" />
+            Download Nota
         </Button>
     );
 }
