@@ -12,8 +12,8 @@ use App\Http\Controllers\MasukIuranController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ProfileWargaController;
-use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\SpjController;
+use App\Http\Controllers\SpjPdfController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -80,6 +80,6 @@ Route::middleware(['role.access'])->group(function () {
     Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
     //DOWNLOADER
     Route::get('/download/pdf', [DownloaderController::class, 'download'])->name('download.pdf');
+    
+    Route::get('/laporan/spj/{id}', [SpjPdfController::class, 'generateSpjPdf'])->name('download.laporan.spj');
 });
-
-
