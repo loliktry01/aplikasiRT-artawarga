@@ -53,6 +53,7 @@ class DashboardController extends Controller
                 'arah' => 'keluar',
                 'nominal' => $row->nominal,
                 'ket' => $row->ket,
+                'toko' => $row->toko,
             ];
         });
 
@@ -94,6 +95,7 @@ class DashboardController extends Controller
                 'arah' => 'keluar',
                 'nominal' => $row->nominal,
                 'ket' => $row->ket,
+                'toko' => $row->toko,
             ];
         });
 
@@ -316,6 +318,7 @@ class DashboardController extends Controller
                     'status' => $status,
                     'ket' => $row['ket'],
                     'bkt_nota' => $row['bkt_nota'] ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
+                    'toko' => $row['toko'] ?? '-',
                 ];
             } else {
                 $jumlah_awal = $saldoIuran;
@@ -343,6 +346,7 @@ class DashboardController extends Controller
                     'status' => $status,
                     'ket' => $row['ket'],
                     'bkt_nota' => !empty($row['bkt_nota']) ? url('storage/' . ltrim($row['bkt_nota'], '/')) : null,
+                    'toko' => $row['toko'] ?? '-',
                 ];
             }
         }
