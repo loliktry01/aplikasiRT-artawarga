@@ -15,9 +15,9 @@ class KatIuranSeeder extends Seeder
         $kat_iurans_data = [
             [
                 'nm_kat' => 'Air',
-                'harga_meteran' => 1000,     
-                'abonemen' => 25000,         
-                'jimpitan_air' => 10,        
+                'harga_meteran' => null,     
+                'abonemen' => null,         
+                'jimpitan_air' => null,        
                 'harga_sampah' => null,
             ],
             //Kategori Kebersihan (Sampah)
@@ -26,7 +26,7 @@ class KatIuranSeeder extends Seeder
                 'harga_meteran' => null,
                 'abonemen' => null,
                 'jimpitan_air' => null,
-                'harga_sampah' => 20000,     
+                'harga_sampah' => null,     
             ],
             
             ['nm_kat' => 'Gizi'],
