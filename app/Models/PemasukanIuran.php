@@ -7,29 +7,25 @@ use Illuminate\Database\Eloquent\Model;
 class PemasukanIuran extends Model
 {
     protected $table = 'masuk_iuran';
-
+    
+    // Primary Key disetel kembali ke default 'id' (sesuai migration)
+    // HAPUS: protected $primaryKey = 'masuk_iuran_id';
+    
     protected $fillable = [
-        'usr_id',
-        'pengumuman_id',
         'kat_iuran_id',
         'tgl',
         'nominal',
         'ket',
-        'bkt_byr',
-        'tgl_byr',
-        'tgl_approved',
-        'status',
     ];
 
     public function kategori_iuran()
     {
-        // tambahkan foreign key & local key biar eksplisit
         return $this->belongsTo(KategoriIuran::class, 'kat_iuran_id', 'id');
     }
 
     public function pengeluaran()
     {
-        return $this->hasMany(Pengeluaran::class);
+        // Foreign key di tabel pengeluaran yang merujuk PK tabel ini ('id')
+        return $this->hasMany(Pengeluaran::class, 'masuk_iuran_id', 'id');
     }
-
 }
