@@ -201,6 +201,13 @@ class DashboardController extends Controller
         // 🔹 Hitung sisa saldo masing-masing kategori
         $sisaBop = $totalBop - $totalPengeluaranBop;
         $sisaIuran = $totalIuran - $totalPengeluaranIuran;
+            $sisaBop = $totalBop - $totalPengeluaranBop;
+            $sisaIuran = $totalIuran - $totalPengeluaranIuran;
+
+            $userTotal = User::count();
+
+
+            
 
         return Inertia::render('Dashboard', [
             'transaksi' => $final,

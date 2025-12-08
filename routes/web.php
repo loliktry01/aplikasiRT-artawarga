@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 // Controller
+use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\BopController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloaderController;
@@ -11,8 +12,8 @@ use App\Http\Controllers\MasukIuranController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ProfileWargaController;
-use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\SpjController;
+use App\Http\Controllers\SpjPdfController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperadminController;
@@ -61,6 +62,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::put('/profil/update/{id}', [ProfileWargaController::class, 'update'])->name('profil.update');
 
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
+    Route::get('/kegiatan/{id}', [KegiatanController::class, 'show'])->name('kegiatan.show');
     
     Route::get('/masuk-iuran', [MasukIuranController::class, 'index'])->name('masuk-iuran.index');
     Route::get('/masuk-iuran/{id}', [MasukIuranController::class, 'show'])->name('masuk-iuran.show');
@@ -68,6 +70,7 @@ Route::middleware(['role.access'])->group(function () {
 
     Route::get('/approval', [PengumumanController::class, 'approval'])->name('approval');
     Route::patch('/approval/{id}', [PengumumanController::class, 'approval_patch'])->name('approval.patch');
+
 
     Route::get('/spj/download/{id}', [SpjController::class, 'download'])->name('spj.download');
 
@@ -77,9 +80,13 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/manajemen-data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
     Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
     Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
+        
 });
 
-// --- TARUH DI SINI (DILUAR GROUP role.access) ---
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['web'])->group(function () {
+    // Rute Teman 1 (Download Laporan Keseluruhan/Dashboard)
     Route::get('/download/pdf', [DownloaderController::class, 'download'])->name('download.pdf');
+    
+    // ✅ RUTE ANDA (LAPORAN SPJ KONSOLIDASI) - Sekarang di luar role.access
+    Route::get('/laporan/spj/{id}', [SpjPdfController::class, 'generateSpjPdf'])->name('download.laporan.spj');
 });
