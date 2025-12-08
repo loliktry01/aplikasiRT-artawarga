@@ -12,13 +12,14 @@ class PemasukanIuran extends Model
     // HAPUS: protected $primaryKey = 'masuk_iuran_id';
     
     protected $fillable = [
+        'usr_id',
         'kat_iuran_id',
         'tgl',
         'nominal',
         'ket',
     ];
 
-    public function kategori_iuran()
+    public function kategoriIuran()
     {
         return $this->belongsTo(KategoriIuran::class, 'kat_iuran_id', 'id');
     }
