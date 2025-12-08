@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AppLayout from '../../Layouts/AppLayout'; // Sesuaikan path layout
+import AppLayout from '../../Layouts/AppLayout'; // Sesuaikan path layout jika berbeda
 import { Head, useForm } from '@inertiajs/react';
 
 export default function Create({ auth, wargaList, masterHarga }) {
@@ -37,9 +37,12 @@ export default function Create({ auth, wargaList, masterHarga }) {
     };
 
     // 2. LOGIC PREVIEW HARGA (Frontend Only)
+    // Akan otomatis menghitung ulang jika mtr_bln_lalu diedit manual
     useEffect(() => {
         const mtrLalu = parseInt(data.mtr_bln_lalu) || 0;
         const mtrSkrg = parseInt(data.mtr_skrg) || 0;
+        
+        // Pemakaian (cegah minus)
         const pemakaian = Math.max(0, mtrSkrg - mtrLalu);
 
         const biayaAir = pemakaian * (masterHarga.harga_meteran || 0);
@@ -53,7 +56,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('tagihan.store')); // Pastikan route ini ada
+        post(route('tagihan.store')); 
     };
 
     const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -111,17 +114,21 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                 </div>
                             </div>
 
-                            {/* Meteran */}
+                            {/* Meteran (SEKARANG BISA DIEDIT MANUAL) */}
                             <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-md">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Meteran Lalu (Otomatis)</label>
+                                    <label className="block text-sm font-medium text-gray-700">Meteran Lalu</label>
                                     <input 
                                         type="number"
-                                        className="mt-1 block w-full bg-gray-200 border-gray-300 rounded-md shadow-sm text-gray-500 cursor-not-allowed"
+                                        // Ubah class agar terlihat bisa diedit (putih, ada border focus)
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                                         value={data.mtr_bln_lalu}
-                                        readOnly // Admin sebaiknya tidak ubah ini manual kecuali terpaksa (bisa dihapus readonly nya kalo mau)
+                                        // Tambahkan onChange agar bisa diubah manual
+                                        onChange={e => setData('mtr_bln_lalu', e.target.value)}
+                                        min="0"
+                                        required
                                     />
-                                    <span className="text-xs text-gray-500">*Dari tagihan terakhir</span>
+                                    <span className="text-xs text-gray-500">*Otomatis terisi, namun bisa diubah manual</span>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Meteran Sekarang</label>
@@ -130,7 +137,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                         value={data.mtr_skrg}
                                         onChange={e => setData('mtr_skrg', e.target.value)}
-                                        min={data.mtr_bln_lalu}
+                                        min={data.mtr_bln_lalu} // Validasi HTML agar tidak lebih kecil dari bulan lalu
                                         required
                                     />
                                     {errors.mtr_skrg && <p className="text-red-500 text-xs mt-1">{errors.mtr_skrg}</p>}
