@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PemasukanIuran;
-use App\Models\KategoriIuran; 
+use App\Models\KategoriIuran; // Diperlukan untuk eager load relasi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class MasukIuranController extends Controller
@@ -13,15 +14,16 @@ class MasukIuranController extends Controller
     public function index()
     {
         $userId = Auth::id();
-
-
-        $iurans = PemasukanIuran::with(['pengumuman.kat_iuran'])
+        
+        // REVISI 1: Eager loading kategori_iuran, filter berdasarkan user dan kategori wajib (1, 2)
+        $iurans = PemasukanIuran::with(['kategori_iuran']) 
             ->where('usr_id', $userId)
             ->whereIn('kat_iuran_id', [1, 2])
             ->orderByDesc('tgl')
             ->paginate(10)
             ->withQueryString();
         
+        // Statistik Tagihan Wajib
         $totalIuran = PemasukanIuran::where('usr_id', $userId)->whereIn('kat_iuran_id', [1, 2])->count();
 
         $unpaidIuran = PemasukanIuran::where('usr_id', $userId)
@@ -42,8 +44,8 @@ class MasukIuranController extends Controller
 
     public function show($id)
     {
-        $iuran = PemasukanIuran::with(['pengumuman.kat_iuran'])->findOrFail($id);
-
+        // Relasi dikoreksi ke kategori_iuran
+        $iuran = PemasukanIuran::with(['kategori_iuran'])->findOrFail($id);
 
         if ($iuran->usr_id !== Auth::id()) {
             abort(403, 'Akses ditolak.');
@@ -54,51 +56,47 @@ class MasukIuranController extends Controller
         ]);
     }
 
-
     /**
-     * Menyimpan data Pemasukan Iuran baru.
+     * Menyimpan data (Upload Bukti Bayar Tagihan Wajib)
      */
     public function store(Request $request)
     {
-        // 🛑 FIX 1: AKTIFKAN KEMBALI VALIDASI
+        // 💡 Validasi untuk UPLOAD BUKTI BAYAR
         $validated = $request->validate([
-            'kat_iuran_id' => 'required|integer|exists:kat_iuran,id',
-            'tgl'          => 'required|date',
-            'nominal'      => 'required|integer|min:1',
-            'ket'          => 'nullable|string|max:255',
-            // Pastikan Anda telah menghapus kolom 'id' dari form jika Anda mengambil semua data ($request->all())
+            'id'      => 'required|integer|exists:masuk_iuran,id', // ID baris tagihan yang mau dibayar
+            'bkt_byr' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
+
+        $userId = Auth::id();
+
+        // Cari baris tagihan berdasarkan ID yang dikirim dari form
+        $targetIuran = PemasukanIuran::findOrFail($validated['id']);
         
-        // FIX 2: TANGANI PERUBAHAN TIPE DATA (nominal sudah di-validate integer, tapi pastikan)
-        $validated['nominal'] = (int) $validated['nominal'];
-
-        // 🛑 FIX 3: Tambahkan kolom usr_id (hampir pasti wajib di DB lama)
-        // Jika tidak ada di $fillable model, kita harus tambahkan ke model/migration dulu.
-        // Asumsi: Kita harus tambahkan ke $validated agar database mau menerima.
-        $validated['usr_id'] = Auth::id(); 
-        
-        // 🛑 FIX 4: Pastikan $fillable model Anda mencakup 'usr_id' jika Anda menyimpan ini.
-        // Jika model PemasukanIuran.php tidak memiliki 'usr_id' di $fillable,
-        // baris di atas akan gagal.
-
-        try {
-            PemasukanIuran::create($validated);
-            
-            // 🛑 FIX 5: Ganti Redirect ke Response JSON (untuk AJAX/Inertia)
-            return response()->json([
-                'success' => true, 
-                'message' => 'Data iuran berhasil disimpan!'
-            ], 200);
-
-        } catch (\Exception $e) {
-            // 🛑 DEBUG KRITIS: dd() akan menampilkan error SQL/PHP di browser.
-            dd("Gagal Menyimpan:", $e->getMessage(), $validated); 
-            
-            // Jika Anda menonaktifkan dd(), gunakan return json error
-            // return response()->json([
-            //     'success' => false, 
-            //     'message' => 'Gagal menyimpan data. ERROR: ' . $e->getMessage() 
-            // ], 500);
+        // Otorisasi: Pastikan user yang upload adalah pemilik tagihan
+        if ($targetIuran->usr_id !== $userId) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
+
+        // Logic upload file
+        if ($request->hasFile('bkt_byr')) {
+            // Hapus file lama jika ada
+            if ($targetIuran->bkt_byr) {
+                Storage::disk('public')->delete($targetIuran->bkt_byr);
+            }
+            
+            $file = $request->file('bkt_byr');
+            $filename = now()->format('Ymd_His') . '_' . $userId . '_bktbyr.' . $file->getClientOriginalExtension();
+            $targetIuran->bkt_byr = $file->storeAs('masuk_iuran', $filename, 'public');
+        }
+
+        // Update status dan tanggal bayar
+        $targetIuran->tgl_byr = now();
+        $targetIuran->status = 'pending'; 
+        $targetIuran->save();
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Bukti pembayaran berhasil diupload. Menunggu persetujuan admin.'
+        ], 200);
     }
 }

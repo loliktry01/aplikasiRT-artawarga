@@ -12,9 +12,9 @@ use App\Http\Controllers\ProfileWargaController;
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\SpjController;
 use App\Http\Controllers\SuperadminController;
-use App\Http\Controllers\KategoriIuranController; 
+use App\Http\Controllers\KategoriIuranController;
+use App\Http\Controllers\TagihanBulananController; 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TagihanBulananController;
 use Inertia\Inertia;
 
 // --- API Documentation Password Protection ---
@@ -52,9 +52,8 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/dashboard/kegiatan', [KegiatanController::class, 'create'])->name('kegiatan.create');
     Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store');
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index'); 
-
+    
     // PENGELUARAN & SPJ
-
     Route::get('/dashboard/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran');
     Route::post('/pengeluaran', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
     Route::get('/spj/download/{id}', [SpjController::class, 'download'])->name('spj.download');
@@ -68,46 +67,17 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/masuk-iuran/{id}', [MasukIuranController::class, 'show'])->name('masuk-iuran.show');
     Route::post('/masuk-iuran/upload', [MasukIuranController::class, 'store'])->name('masuk-iuran.store');
 
-
-
-    Route::get('/spj/download/{id}', [SpjController::class, 'download'])->name('spj.download');
-
+    // MANAJEMEN DATA (Superadmin)
     Route::get('/manajemen-data', [SuperadminController::class, 'users'])->name('superadmin.users');
     Route::get('/tambah-data', [SuperadminController::class, 'createUser'])->name('superadmin.createUser');
     Route::post('/manajemen-data', [SuperadminController::class, 'storeUser'])->name('superadmin.storeUser');
     Route::get('/manajemen-data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
     Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
     Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
-        
-});
-
-Route::middleware(['web'])->group(function () {
-    // Rute Teman 1 (Download Laporan Keseluruhan/Dashboard)
-    
-    
-    // TAGIHAN BULANAN
-
-    Route::get('/tagihan-bulanan/create', [TagihanBulananController::class, 'create'])->name('tagihan.create');
-    Route::post('/tagihan-bulanan/store', [TagihanBulananController::class, 'store'])->name('tagihan.store');
-    Route::post('/tagihan-bulanan/upload', [TagihanBulananController::class, 'upload_bukti'])->name('tagihan.upload');
-    //UNTUK RT
-    //NANTI INI DIHAPUS
-    Route::post('/tagihan-bulanan/generate', [TagihanBulananController::class, 'generate'])->name('tagihan.generate');
-    Route::get('/tagihan-bulanan/monitoring', [TagihanBulananController::class, 'index_rt'])->name('tagihan.monitoring');
-    //SAMPE ATAS INI
-    Route::patch('/tagihan-bulanan/{id}/approve', [TagihanBulananController::class, 'approve'])->name('tagihan.approve');
-    Route::patch('/tagihan-bulanan/{id}/decline', [TagihanBulananController::class, 'decline'])->name('tagihan.decline');
-    
-    //UNTUK WARGA
-    Route::get('/tagihan-bulanan', [TagihanBulananController::class, 'index_warga'])->name('tagihan.warga.index');
-    Route::get('/tagihan-bulanan/{id}', [TagihanBulananController::class, 'show_warga'])->name('tagihan.warga.show');
-    Route::post('/tagihan-bulanan/bayar', [TagihanBulananController::class, 'bayar'])->name('tagihan.bayar');
 });
 
 
 // --- Rute yang Memerlukan Autentikasi Saja ---
 Route::middleware(['auth'])->group(function () {
     Route::get('/download/pdf', [DownloaderController::class, 'download'])->name('download.pdf');
-    
-    
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { useForm, router } from "@inertiajs/react"; 
+import { useForm, router } from "@inertiajs/react";
 import { route } from "ziggy-js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +29,7 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
 
     const { data, setData, reset } = useForm({
         kat_iuran_id: "",
-        tgl: tanggal || new Date().toISOString().slice(0, 10), 
+        tgl: tanggal || new Date().toISOString().slice(0, 10),
         nominal: "",
         ket: "",
     });
@@ -72,21 +72,30 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
         setIsLoading(true);
 
         const cleanNominalString = data.nominal.replace(/[^0-9]/g, "");
-        const cleanNominal = parseInt(cleanNominalString) || 0; 
+        const cleanNominal = parseInt(cleanNominalString) || 0;
 
         // 🔍 Validasi
         if (!data.kat_iuran_id) {
-            notifyError("Belum memilih jenis iuran", "Pilih kategori iuran terlebih dahulu.");
+            notifyError(
+                "Belum memilih jenis iuran",
+                "Pilih kategori iuran terlebih dahulu."
+            );
             setIsLoading(false);
             return;
         }
         if (cleanNominal <= 0) {
-            notifyError("Nominal belum diisi", "Masukkan jumlah uang iuran yang sesuai.");
+            notifyError(
+                "Nominal belum diisi",
+                "Masukkan jumlah uang iuran yang sesuai."
+            );
             setIsLoading(false);
             return;
         }
         if (!data.ket.trim()) {
-            notifyError("Keterangan kosong", "Tuliskan keterangan singkat, misal bulan atau tujuan iuran.");
+            notifyError(
+                "Keterangan kosong",
+                "Tuliskan keterangan singkat, misal bulan atau tujuan iuran."
+            );
             setIsLoading(false);
             return;
         }
@@ -94,39 +103,40 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
         // Payload data yang akan dikirim
         const payload = {
             kat_iuran_id: data.kat_iuran_id,
-            tgl: data.tgl, 
-            nominal: cleanNominal, 
+            tgl: data.tgl,
+            nominal: cleanNominal,
             ket: data.ket,
         };
 
         try {
-            const res = await axios.post(route("masuk-iuran.store"), payload); 
+            const res = await axios.post(route("iuran.create"), payload);
 
             if (res.data.success) {
                 notifySuccess("Berhasil", res.data.message);
                 reset();
-                router.visit(route("masuk-iuran.index")); 
+                router.visit(route("dashboard"));
             } else {
-                 notifyError("Gagal Menyimpan", res.data.message);
+                notifyError("Gagal Menyimpan", res.data.message);
             }
         } catch (error) {
             // 💡 Penanganan Error dari Controller (termasuk pesan ERROR: ... )
             let pesan = "Terjadi kesalahan, coba beberapa saat lagi.";
             if (error.response && error.response.data) {
                 if (error.response.status === 422) {
-                    pesan = "Periksa kembali data yang kamu isi, ada yang belum sesuai.";
+                    pesan =
+                        "Periksa kembali data yang kamu isi, ada yang belum sesuai.";
                 } else {
                     pesan = error.response.data.message || pesan;
                 }
             } else if (error.message) {
-                 pesan = "Gagal koneksi ke server.";
+                pesan = "Gagal koneksi ke server.";
             }
             notifyError("Gagal Menyimpan", pesan);
         } finally {
             setIsLoading(false);
         }
     };
-    
+
     // ... (Fungsi handleAddKategori dan handleDeleteKategori tetap sama)
     const handleAddKategori = async () => {
         if (!namaKat.trim()) {
@@ -135,18 +145,30 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
         }
 
         try {
-            const res = await axios.post(route("kat_iuran.create"), { nm_kat: namaKat });
+            const res = await axios.post(route("kat_iuran.create"), {
+                nm_kat: namaKat,
+            });
 
             if (res.data.success) {
                 setKategori((prev) => [...prev, res.data.data]);
-                notifySuccess("Kategori Ditambahkan", res.data.message || "Jenis iuran baru berhasil disimpan.");
+                notifySuccess(
+                    "Kategori Ditambahkan",
+                    res.data.message || "Jenis iuran baru berhasil disimpan."
+                );
                 setNamaKat("");
                 setOpenAdd(false);
             } else {
-                notifyError("Gagal Menambah", res.data.message || "Terjadi kesalahan.");
+                notifyError(
+                    "Gagal Menambah",
+                    res.data.message || "Terjadi kesalahan."
+                );
             }
         } catch (error) {
-            notifyError("Gagal Menambah", error.response?.data?.message || "Terjadi kesalahan pada server.");
+            notifyError(
+                "Gagal Menambah",
+                error.response?.data?.message ||
+                    "Terjadi kesalahan pada server."
+            );
         }
     };
 
@@ -154,20 +176,33 @@ export default function FormIuran({ tanggal, kategori_iuran = [] }) {
         if (!selectedDelete) return;
 
         try {
-            const res = await axios.delete(route("kat_iuran.delete", selectedDelete));
+            const res = await axios.delete(
+                route("kat_iuran.delete", selectedDelete)
+            );
 
             if (res.data.success) {
-                setKategori((prev) => prev.filter((item) => item.id !== selectedDelete));
-                notifySuccess("Berhasil", res.data.message || "Kategori berhasil dihapus.");
+                setKategori((prev) =>
+                    prev.filter((item) => item.id !== selectedDelete)
+                );
+                notifySuccess(
+                    "Berhasil",
+                    res.data.message || "Kategori berhasil dihapus."
+                );
                 setOpenDelete(false);
             } else {
-                notifyError("Gagal Menghapus", res.data.message || "Tidak dapat menghapus kategori.");
+                notifyError(
+                    "Gagal Menghapus",
+                    res.data.message || "Tidak dapat menghapus kategori."
+                );
             }
         } catch (error) {
-             notifyError("Gagal Menghapus", error.response?.data?.message || "Terjadi kesalahan pada server.");
+            notifyError(
+                "Gagal Menghapus",
+                error.response?.data?.message ||
+                    "Terjadi kesalahan pada server."
+            );
         }
     };
-
 
     return (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
