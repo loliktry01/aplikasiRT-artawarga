@@ -16,65 +16,64 @@ class RoleMiddleware
             return redirect('/');
         }
 
-        $role = $user->role_id; 
-
         $kategoriIuranRoutes = [
-            'kat_iuran.index',   
-            'kat_iuran.store',   
-            'kat_iuran.show',    
-            'kat_iuran.update',  
-            'kat_iuran.destroy', 
+            'kat_iuran.index',    
+            'kat_iuran.store',     
+            'kat_iuran.update',   
+            'kat_iuran.destroy',   
         ];
 
+        $role = $user->role_id; 
+
         $access = [
+            // ID 1: Superadmin
             1 => array_merge(
                 ['dashboard', 'profil.index', 'profil.update', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], 
-                $kategoriIuranRoutes 
+                $kategoriIuranRoutes
             ), 
-            2 => array_merge([ 
+            
+            // ID 2: Ketua RT
+            2 => array_merge([
                 'dashboard',
                 'pemasukan.index',
-                'kegiatan.create',
-                'kegiatan.store',
-                'kegiatan.index',
                 'bop.create',
                 'iuran.create',
-                'pengumuman',
-                'pengumuman.create',
                 'pengeluaran',
                 'pengeluaran.store',
                 'rincian.show',
                 'profil.index',
                 'profil.update',
-                'approval',
-                'approval.patch'
+                'kegiatan.create',
+                'kegiatan.store',
+                'kegiatan.index',
             ], $kategoriIuranRoutes), 
             
-            3 => array_merge([ // Bendahara
+            // ID 3: Bendahara
+            3 => array_merge([ 
                 'dashboard', 
                 'pemasukan.index', 
                 'pengeluaran', 
                 'rincian.show', 
-                'pengumuman',
                 'profil.index', 
                 'profil.update', 
                 'bop.create', 
                 'iuran.create', 
-                'pengumuman.create', 
                 'pengeluaran.store'
             ], $kategoriIuranRoutes), 
             
-            4 => [ // Sekretaris
+            // ID 4: Sekretaris
+            4 => [ 
                 'dashboard', 
                 'kegiatan.create',
                 'kegiatan.store',
                 'kegiatan.index', 
                 'rincian.show', 
-                'pengumuman',
                 'profil.index', 
                 'profil.update'
             ], 
-            5 => [ // Warga
+            
+            // ID 5: Warga
+            5 => [ 
                 'dashboard',
                 'rincian.show', 
                 'profil.index', 

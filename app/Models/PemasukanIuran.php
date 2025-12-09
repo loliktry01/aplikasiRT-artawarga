@@ -3,22 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PemasukanIuran extends Model
 {
-    protected $table = 'masuk_iuran';
+    use HasFactory;
 
+    protected $table = 'masuk_iuran';
+    
     protected $fillable = [
-        'usr_id',
-        'pengumuman_id',
-        'kat_iuran_id',
+        'kat_iuran_id', 
+        'usr_id', // BARU: Tambahkan FK User
         'tgl',
         'nominal',
         'ket',
+        'status', // BARU: Tambahkan kolom status
         'bkt_byr',
-        'tgl_byr',
-        'tgl_approved',
-        'status',
     ];
 
     public function kategori_iuran()
