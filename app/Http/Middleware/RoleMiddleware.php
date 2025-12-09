@@ -23,7 +23,7 @@ class RoleMiddleware
         $role = $user->role_id; // pastikan kolom ini ada di tabel users
 
         $access = [
-            1 => ['dashboard', 'profil.index', 'profile.update'], // superadmin
+            1 => ['dashboard', 'profil.index', 'profile.update', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], // superadmin
             2 => [ // ketua rt
             'dashboard',
             'pemasukan.index',

@@ -31,9 +31,16 @@ class ProfileWargaController extends Controller
                 'no_hp'          => $user->no_hp,
                 'rt'             => $user->rt,
                 'rw'             => $user->rw,
-                'status'             => $user->status,
+                'status'         => $user->status,
                 'kode_pos'       => $user->kode_pos,
-                'alamat'         => $user->alamat
+                'alamat'         => $user->alamat,
+
+                'kecamatan_nama' => $user->kecamatan->nama_kecamatan ?? '-', 
+                'kelurahan_nama' => $user->kelurahan->nama_kelurahan ?? '-',
+
+                'kecamatan_id'   => $user->kecamatan_id,
+                'kelurahan_id'   => $user->kelurahan_id,
+
             ]
         ]);
     }
@@ -52,9 +59,11 @@ class ProfileWargaController extends Controller
             'no_kk'      => 'nullable|string',
             'rt'         => 'nullable|string',
             'rw'         => 'nullable|string',
-            'status'         => 'nullable|string',
+            'status'     => 'nullable|string',
             'kode_pos'   => 'nullable|string',
             'alamat'     => 'nullable|string',
+            'kelurahan_id'  => 'nullable|string',
+            'kecamatan_id'  => 'nullable|string',
         ]);
 
         if (!empty($validated['password'])) {
