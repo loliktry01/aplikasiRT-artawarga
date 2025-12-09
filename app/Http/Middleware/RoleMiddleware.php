@@ -28,7 +28,8 @@ class RoleMiddleware
 
         $access = [
             1 => array_merge(
-                ['dashboard', 'profil.index', 'profil.update', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], 
+                ['dashboard', 'profil.index', 'profil.update','profil.updatePhoto',
+                'profil.deletePhoto', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], 
             ), // SuperAdmin
             2 => array_merge([ 
                 'dashboard',
@@ -53,6 +54,9 @@ class RoleMiddleware
                 'tagihan.monitoring',
                 'tagihan.approve',
                 'tagihan.decline',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'spj.download',
             ], $kategoriIuranRoutes), // Ketua RT
             
             3 => array_merge([ // Bendahara
@@ -73,6 +77,9 @@ class RoleMiddleware
                 'tagihan.monitoring',
                 'tagihan.approve',
                 'tagihan.decline',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'spj.download',
             ], $kategoriIuranRoutes), 
             
             4 => [ // Sekretaris
@@ -90,6 +97,9 @@ class RoleMiddleware
                 'tagihan.monitoring',
                 'tagihan.approve',
                 'tagihan.decline',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'spj.download',
             ], 
             5 => [ // Warga
                 'dashboard',
@@ -103,6 +113,8 @@ class RoleMiddleware
                 'tagihan.warga.index',
                 'tagihan.warga.show',
                 'tagihan.bayar',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
             ], 
         ];
 

@@ -27,8 +27,7 @@ return new class extends Migration
             $table->foreignId('kecamatan_id')->nullable()->constrained('kecamatan')->nullOnDelete();
             $table->foreignId('kelurahan_id')->nullable()->constrained('kelurahan')->nullOnDelete();
 
-            
-            $table->enum('status', ['tetap', 'kontrak'])->default('tetap');
+            $table->enum('status', ['Tetap', 'Kontrak'])->default('Tetap');
             $table->timestamps();
         });
     }

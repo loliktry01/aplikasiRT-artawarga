@@ -11,8 +11,8 @@ use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\ProfileWargaController;
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\SpjController;
-use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\KategoriIuranController; 
+use App\Http\Controllers\SuperadminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TagihanBulananController;
 use Inertia\Inertia;
@@ -65,6 +65,9 @@ Route::middleware(['role.access'])->group(function () {
     Route::put('/profil/update/{id}', [ProfileWargaController::class, 'update'])->name('profil.update');
     
     // PEMBAYARAN IURAN WARGA (Upload Bukti Bayar)
+    Route::post('/profil/photo/{id}', [ProfileWargaController::class, 'updatePhoto'])->name('profil.updatePhoto');
+    Route::delete('/profil/photo/{id}', [ProfileWargaController::class, 'deletePhoto'])->name('profil.deletePhoto');
+
     Route::get('/masuk-iuran', [MasukIuranController::class, 'index'])->name('masuk-iuran.index');
     Route::get('/masuk-iuran/{id}', [MasukIuranController::class, 'show'])->name('masuk-iuran.show');
     Route::post('/masuk-iuran/upload', [MasukIuranController::class, 'store'])->name('masuk-iuran.store');
