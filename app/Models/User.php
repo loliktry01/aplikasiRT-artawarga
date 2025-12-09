@@ -44,11 +44,6 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id');
     }
 
-    public function masuk_iuran()
-    {
-        return $this->hasMany(PemasukanIuran::class);
-    }
-
 
     public function kota()
     {
@@ -63,5 +58,10 @@ class User extends Authenticatable
     public function kelurahan()
     {
         return $this->belongsTo(Kelurahan::class);
+    }
+
+    public function tagihan_bulanan()
+    {
+        return $this->hasMany(TagihanBulanan::class);
     }
 }

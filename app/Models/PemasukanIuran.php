@@ -12,8 +12,8 @@ class PemasukanIuran extends Model
     protected $table = 'masuk_iuran';
     
     protected $fillable = [
-        'kat_iuran_id', 
-        'usr_id', // BARU: Tambahkan FK User
+        'usr_id',
+        'kat_iuran_id',
         'tgl',
         'nominal',
         'ket',
@@ -21,7 +21,7 @@ class PemasukanIuran extends Model
         'bkt_byr',
     ];
 
-    public function kategori_iuran()
+    public function kategoriIuran()
     {
         // tambahkan foreign key & local key biar eksplisit
         return $this->belongsTo(KategoriIuran::class, 'kat_iuran_id', 'id');

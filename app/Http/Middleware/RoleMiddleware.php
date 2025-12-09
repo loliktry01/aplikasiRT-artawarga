@@ -43,9 +43,18 @@ class RoleMiddleware
                 'rincian.show',
                 'profil.index',
                 'profil.update',
-                'kegiatan.create',
-                'kegiatan.store',
-                'kegiatan.index',
+                'approval',
+                'approval.patch',
+                'tagihan.create',
+                'tagihan.store',
+                'tagihan.upload',
+                'tagihan.generate',
+                'tagihan.monitoring',
+                'tagihan.approve',
+                'tagihan.decline',
+                'tagihan.warga.index',
+                'tagihan.warga.show',
+                'tagihan.bayar',
             ], $kategoriIuranRoutes), 
             
             // ID 3: Bendahara
@@ -58,7 +67,18 @@ class RoleMiddleware
                 'profil.update', 
                 'bop.create', 
                 'iuran.create', 
-                'pengeluaran.store'
+                'pengumuman.create', 
+                'pengeluaran.store',
+                'tagihan.create',
+                'tagihan.store',
+                'tagihan.upload',
+                'tagihan.generate',
+                'tagihan.monitoring',
+                'tagihan.approve',
+                'tagihan.decline',
+                'tagihan.warga.index',
+                'tagihan.warga.show',
+                'tagihan.bayar',
             ], $kategoriIuranRoutes), 
             
             // ID 4: Sekretaris
@@ -69,7 +89,17 @@ class RoleMiddleware
                 'kegiatan.index', 
                 'rincian.show', 
                 'profil.index', 
-                'profil.update'
+                'profil.update',
+                'tagihan.create',
+                'tagihan.store',
+                'tagihan.upload',
+                'tagihan.generate',
+                'tagihan.monitoring',
+                'tagihan.approve',
+                'tagihan.decline',
+                'tagihan.warga.index',
+                'tagihan.warga.show',
+                'tagihan.bayar',
             ], 
             
             // ID 5: Warga
@@ -80,7 +110,11 @@ class RoleMiddleware
                 'profil.update',
                 'masuk-iuran.index', 
                 'masuk-iuran.show', 
-                'masuk-iuran.store'
+                'masuk-iuran.store',
+                'tagihan.upload',
+                'tagihan.warga.index',
+                'tagihan.warga.show',
+                'tagihan.bayar',
             ], 
         ];
 
