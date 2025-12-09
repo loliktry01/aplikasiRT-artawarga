@@ -81,7 +81,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::post('/tagihan-bulanan/upload', [TagihanBulananController::class, 'upload_bukti'])->name('tagihan.upload');
     
     //UNTUK RT
-    Route::get('/approval', [TagihanBulananController::class, 'index_rt'])->name('tagihan.monitoring');
+    Route::get('/approval', [TagihanBulananController::class, 'approval_rt'])->name('tagihan.approval');
     Route::patch('/tagihan-bulanan/{id}/approve', [TagihanBulananController::class, 'approve'])->name('tagihan.approve');
     Route::patch('/tagihan-bulanan/{id}/decline', [TagihanBulananController::class, 'decline'])->name('tagihan.decline');
     

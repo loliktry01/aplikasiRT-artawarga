@@ -117,7 +117,7 @@ class TagihanBulananController extends Controller
     /**
      * MONITORING TAGIHAN (INDEX RT)
      */
-    public function index_rt()
+    public function approval_rt()
     {
         // Hitung Saldo Ditagihkan (Status: ditagihkan & pending)
         // Kita asumsikan 'pending' juga masih masuk kategori belum masuk kas (masih proses)
