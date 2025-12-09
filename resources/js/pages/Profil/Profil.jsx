@@ -37,6 +37,9 @@ export default function Profil() {
         rw: user.rw || "",
         kode_pos: user.kode_pos || "",
         role_id: user.role_id || "",
+        kelurahan_id: user.kelurahan_id || "",
+        kecamatan_id: user.kecamatan_id || "",
+        kota_id: user.kota_id || "",
     });
 
     const [isEditing, setIsEditing] = useState(false);
@@ -158,6 +161,9 @@ export default function Profil() {
             rw: user.rw || "",
             kode_pos: user.kode_pos || "",
             role_id: user.role_id || "",
+            kelurahan_id: user.kelurahan_id || "",
+            kecamatan_id: user.kecamatan_id || "",
+            kota_id: user.kota_id || "",
         });
     };
 
@@ -452,6 +458,20 @@ export default function Profil() {
                                 onChange={handleChange}
                                 disabled={true}
                             />
+                            <InputField
+                                label="Kelurahan"
+                                name="kelurahan_nama"
+                                value={user.kelurahan_nama}
+                                onChange={handleChange}
+                                disabled={true}
+                            />
+                            <InputField
+                                label="Kota"
+                                name="kota_nama"
+                                value={user.kota_nama}
+                                onChange={handleChange}
+                                disabled={true}
+                            />
                         </div>
                         <div className="flex flex-col gap-5">
                             <InputField
@@ -486,6 +506,13 @@ export default function Profil() {
                                 label="RW"
                                 name="rw"
                                 value={formData.rw}
+                                onChange={handleChange}
+                                disabled={true}
+                            />
+                           <InputField
+                                label="Kecamatan"
+                                name="kecamatan_nama"
+                                value={user.kecamatan_nama}
                                 onChange={handleChange}
                                 disabled={true}
                             />
