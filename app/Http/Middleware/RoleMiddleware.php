@@ -16,31 +16,28 @@ class RoleMiddleware
             return redirect('/');
         }
 
-        $role = $user->role_id; 
-
         $kategoriIuranRoutes = [
-            'kat_iuran.index',   
-            'kat_iuran.store',   
-            'kat_iuran.show',    
-            'kat_iuran.update',  
-            'kat_iuran.destroy', 
+            'kat_iuran.index',    
+            'kat_iuran.store',     
+            'kat_iuran.update',   
+            'kat_iuran.destroy',   
         ];
 
+        $role = $user->role_id; 
+
         $access = [
+            // ID 1: Superadmin
             1 => array_merge(
-                ['dashboard', 'profil.index', 'profil.update','profil.updatePhoto',
-                'profil.deletePhoto', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], 
-            ), // SuperAdmin
-            2 => array_merge([ 
+                ['dashboard', 'profil.index', 'profil.update', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], 
+                $kategoriIuranRoutes
+            ), 
+            
+            // ID 2: Ketua RT
+            2 => array_merge([
                 'dashboard',
                 'pemasukan.index',
-                'kegiatan.create',
-                'kegiatan.store',
-                'kegiatan.index',
                 'bop.create',
                 'iuran.create',
-                'pengumuman',
-                'pengumuman.create',
                 'pengeluaran',
                 'pengeluaran.store',
                 'rincian.show',
@@ -59,12 +56,12 @@ class RoleMiddleware
                 'spj.download',
             ], $kategoriIuranRoutes), // Ketua RT
             
-            3 => array_merge([ // Bendahara
+            // ID 3: Bendahara
+            3 => array_merge([ 
                 'dashboard', 
                 'pemasukan.index', 
                 'pengeluaran', 
                 'rincian.show', 
-                'pengumuman',
                 'profil.index', 
                 'profil.update', 
                 'bop.create', 
@@ -82,13 +79,13 @@ class RoleMiddleware
                 'spj.download',
             ], $kategoriIuranRoutes), 
             
-            4 => [ // Sekretaris
+            // ID 4: Sekretaris
+            4 => [ 
                 'dashboard', 
                 'kegiatan.create',
                 'kegiatan.store',
                 'kegiatan.index', 
                 'rincian.show', 
-                'pengumuman',
                 'profil.index', 
                 'profil.update',
                 'tagihan.create',
@@ -101,7 +98,9 @@ class RoleMiddleware
                 'profil.deletePhoto',
                 'spj.download',
             ], 
-            5 => [ // Warga
+            
+            // ID 5: Warga
+            5 => [ 
                 'dashboard',
                 'rincian.show', 
                 'profil.index', 

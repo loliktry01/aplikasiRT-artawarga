@@ -3,14 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\KategoriIuran;
+use App\Models\HargaIuran; 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB; // 💡 Import DB Facade
 
 class KatIuranSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         // 1. DAFTAR KATEGORI YANG INGIN KITA PERTAHANKAN
