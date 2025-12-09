@@ -85,7 +85,6 @@ class IuranController extends Controller
      */
     public function iuran_create(Request $request)
     {
-        // 🛑 REVISI 1: Validasi diperbarui
         $validated = $request->validate([
             'kat_iuran_id' => 'required|integer|exists:kat_iuran,id', 
             'tgl'          => 'required|date',
@@ -93,24 +92,15 @@ class IuranController extends Controller
             'ket'          => 'nullable|string',
         ]);
         
-        // 🛑 REVISI 2 & 3: Tambahkan usr_id dan status
-        $validated['usr_id'] = Auth::id(); 
-        $validated['status'] = 'approved'; 
-
-        $validated['tgl_byr'] = null;
-        $validated['bkt_byr'] = null;
-
         try {
             PemasukanIuran::create($validated);
             
-            // 🛑 REVISI 4: Response JSON untuk AJAX
             return response()->json([
                 'success' => true, 
                 'message' => 'Data iuran umum berhasil disimpan.'
             ], 200);
 
         } catch (\Exception $e) {
-            // Debug: Kembalikan error spesifik database
             return response()->json([
                 'success' => false, 
                 'message' => 'Gagal menyimpan data. ERROR: ' . $e->getMessage() 
