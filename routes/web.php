@@ -79,15 +79,14 @@ Route::middleware(['role.access'])->group(function () {
     Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
     Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
     
-    
     // TAGIHAN BULANAN
 
     Route::get('/tagihan-bulanan/create', [TagihanBulananController::class, 'create'])->name('tagihan.create');
     Route::post('/tagihan-bulanan/store', [TagihanBulananController::class, 'store'])->name('tagihan.store');
     Route::post('/tagihan-bulanan/upload', [TagihanBulananController::class, 'upload_bukti'])->name('tagihan.upload');
+    
     //UNTUK RT
     Route::get('/tagihan-bulanan/monitoring', [TagihanBulananController::class, 'index_rt'])->name('tagihan.monitoring');
-    //SAMPE ATAS INI
     Route::patch('/tagihan-bulanan/{id}/approve', [TagihanBulananController::class, 'approve'])->name('tagihan.approve');
     Route::patch('/tagihan-bulanan/{id}/decline', [TagihanBulananController::class, 'decline'])->name('tagihan.decline');
     

@@ -21,7 +21,7 @@ class SuperadminController extends Controller
         
         $roles = Role::all();
 
-        return Inertia::render('ManajemenData', [
+        return Inertia::render('Manajemen/ManajemenData', [
             'users' => $users,
             'roles' => $roles,
             'flash' => [
@@ -37,7 +37,7 @@ class SuperadminController extends Controller
         // LOAD: Wilayah juga cukup sampai Kelurahan
         $kotas = Kota::with('kecamatans.kelurahans')->get();
 
-        return Inertia::render('TambahData', [
+        return Inertia::render('Manajemen/TambahData', [
             'roles' => $roles,
             'wilayah' => $kotas
         ]);
@@ -98,7 +98,7 @@ class SuperadminController extends Controller
         $roles = Role::where('id', '!=', 1)->get();
         $kotas = Kota::with('kecamatans.kelurahans')->get();
 
-        return Inertia::render('EditData', [
+        return Inertia::render('Manajemen/EditData', [
             'user' => $user,
             'roles' => $roles,
             'wilayah' => $kotas 
