@@ -11,7 +11,25 @@ use Inertia\Inertia;
 
 class KategoriIuranController extends Controller
 {
+    /**
+     * GET /kategori-setting
+     * Menampilkan halaman management kategori (List Data)
+     */
+    public function index()
+    {
+        // Mengambil data kategori urut abjad
+        $kategoriList = KategoriIuran::orderBy('nm_kat', 'asc')->whereNot('id', 1)->get();
 
+        // Render halaman React yang baru kita buat tadi
+        return Inertia::render('TagihanBulanan/KategoriIndex', [
+            'kategoriList' => $kategoriList
+        ]);
+    }
+
+    /**
+     * POST /kategori-setting
+     * Menyimpan kategori baru & membuat slot harga default
+     */
     /**
      * POST /kat_iuran: Menyimpan NAMA kategori iuran baru dan membuat entri harga default.
      */

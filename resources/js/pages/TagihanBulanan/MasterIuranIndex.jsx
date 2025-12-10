@@ -1,253 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import AppLayout from '../../Layouts/AppLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import React from "react";
+import { useForm } from "@inertiajs/react";
+import { route } from "ziggy-js";
+import AppLayout from "@/layouts/AppLayout";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useNotify } from "@/components/ToastNotification";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
-// Komponen Modal Sederhana (Bisa diganti dengan Modal bawaan template kamu jika ada)
-const Modal = ({ show, onClose, title, children }) => {
-    if (!show) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-4 overflow-hidden">
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">&times;</button>
-                </div>
-                <div className="p-6">
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-};
+export default function MasterData({ auth, kategoriIurans }) {
+    // 1. Setup Data Awal
+    const firstData = kategoriIurans.length > 0 ? kategoriIurans[0] : null;
 
-export default function HargaIuranIndex({ auth, kategoriIurans }) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editItem, setEditItem] = useState(null);
-
-    // Setup Form Inertia
-    const { data, setData, put, processing, errors, reset, clearErrors } = useForm({
-        harga_meteran: '',
-        abonemen: '',
-        harga_sampah: '',
-        jimpitan_air: '',
+    // 2. Setup Form Inertia
+    const { data, setData, put, processing } = useForm({
+        id: firstData?.id || "",
+        harga_meteran: firstData?.harga_meteran || 0,
+        abonemen: firstData?.abonemen || 0,
+        harga_sampah: firstData?.harga_sampah || 0,
+        jimpitan_air: firstData?.jimpitan_air || 0,
     });
 
-    // Helper Format Rupiah
-    const formatRupiah = (number) => {
-        if (number === null || number === undefined) return '-';
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(number);
+    const { notifySuccess, notifyError } = useNotify();
+
+    // 3. Helper Format Rupiah
+    const formatRupiah = (value) => {
+        if (!value) return "Rp 0";
+        const numberString = String(value).replace(/[^,\d]/g, "");
+        const split = numberString.split(",");
+        const sisa = split[0].length % 3;
+        let rupiah = split[0].substr(0, sisa);
+        const ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            const separator = sisa ? "." : "";
+            rupiah += separator + ribuan.join(".");
+        }
+        rupiah = split[1] !== undefined ? rupiah + "," + split[1] : rupiah;
+        return "Rp " + rupiah;
     };
 
-    // Buka Modal Edit
-    const handleEdit = (item) => {
-        setEditItem(item);
-        setData({
-            harga_meteran: item.harga_meteran ?? '',
-            abonemen: item.abonemen ?? '',
-            harga_sampah: item.harga_sampah ?? '',
-            jimpitan_air: item.jimpitan_air ?? '',
-        });
-        clearErrors();
-        setIsModalOpen(true);
+    // 4. Handle Perubahan Input Angka
+    const handleNumberChange = (field, value) => {
+        const cleanValue = value.replace(/[^0-9]/g, "");
+        let numericValue = parseInt(cleanValue || "0", 10);
+
+        if (field === "jimpitan_air" && numericValue > 100) {
+            numericValue = 100;
+        }
+
+        setData(field, numericValue);
     };
 
-    // Tutup Modal
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setEditItem(null);
-        reset();
+    // 5. Tombol Batal (Kembali ke halaman sebelumnya)
+    const handleCancel = () => {
+        window.history.back();
     };
 
-    // Submit Form
+    // 6. Submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        
-        // Pastikan route ini sesuai dengan routes/web.php kamu
-        // Route::put('/harga-iuran/{harga_iuran}', ...)
-        put(route('harga_iuran.update', editItem.id), {
-            onSuccess: () => closeModal(),
+        put(route("kat_iuran.update", data.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                notifySuccess("Berhasil", "Master data berhasil diperbarui!");
+            },
+            onError: (err) => {
+                notifyError("Gagal", "Terjadi kesalahan saat menyimpan.");
+            },
         });
     };
 
     return (
-        <AppLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800">Master Harga Iuran</h2>}>
-            <Head title="Pengaturan Harga" />
+        <AppLayout>
+            <div className="w-full min-h-screen bg-white overflow-y-auto overflow-x-hidden pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
+                
+                <h1 className="text-3xl font-bold mb-8">MASTER DATA</h1>
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <Breadcrumbs
+                    items={[
+                        { label: "Dashboard", href: route("dashboard") },
+                        { label: "Master Data" },
+                    ]}
+                />
+
+                <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                     
-                    {/* Info Card */}
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded shadow-sm">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-blue-700">
-                                    Halaman ini digunakan untuk mengatur tarif dasar (Meteran, Abonemen, Sampah, dll) yang akan digunakan saat pembuatan tagihan bulanan otomatis.
-                                </p>
-                            </div>
-                        </div>
+                    {/* 1. INPUT KATEGORI (FIX TERANG, TANPA BINTANG MERAH) */}
+                    <div className="space-y-2">
+                        <Label>Kategori</Label>
+                        <Input
+                            type="text"
+                            value="Air dan Sampah"
+                            readOnly
+                            className="w-full border-gray-300 bg-white text-gray-900 focus:ring-0 cursor-default"
+                        />
                     </div>
 
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori Iuran</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga Air /m³</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Abonemen</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sampah</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jimpitan</th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {kategoriIurans.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Data konfigurasi harga belum tersedia.</td>
-                                        </tr>
-                                    ) : (
-                                        kategoriIurans.map((item) => (
-                                            <tr key={item.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-bold text-gray-900">
-                                                        {item.kategori?.nm_kat || 'Tanpa Nama'}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatRupiah(item.harga_meteran)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatRupiah(item.abonemen)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatRupiah(item.harga_sampah)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatRupiah(item.jimpitan_air)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button
-                                                        onClick={() => handleEdit(item)}
-                                                        className="inline-flex items-center px-3 py-1 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150"
-                                                    >
-                                                        Edit Tarif
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                    {/* 2. INPUT HARGA ABONEMEN */}
+                    <div className="space-y-2">
+                        <Label>
+                            Harga Abonemen <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            type="text"
+                            placeholder="Rp 0"
+                            value={formatRupiah(data.abonemen)}
+                            onChange={(e) => handleNumberChange("abonemen", e.target.value)}
+                            className="w-full border-gray-300"
+                        />
                     </div>
-                </div>
-            </div>
 
-            {/* MODAL EDIT HARGA */}
-            <Modal show={isModalOpen} onClose={closeModal} title={`Edit Harga: ${editItem?.kategori?.nm_kat || ''}`}>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    
-                    {/* Input Harga Meteran */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Harga Meteran Air (per m³)</label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 sm:text-sm">Rp</span>
-                            </div>
-                            <input
-                                type="number"
-                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                                value={data.harga_meteran}
-                                onChange={e => setData('harga_meteran', e.target.value)}
-                                placeholder="0"
+                    {/* 3. INPUT HARGA METERAN */}
+                    <div className="space-y-2">
+                        <Label>
+                            Harga/meter persegi <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            type="text"
+                            placeholder="Rp 0"
+                            value={formatRupiah(data.harga_meteran)}
+                            onChange={(e) => handleNumberChange("harga_meteran", e.target.value)}
+                            className="w-full border-gray-300"
+                        />
+                    </div>
+
+                    {/* 4. INPUT HARGA SAMPAH */}
+                    <div className="space-y-2">
+                        <Label>
+                            Harga Sampah <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            type="text"
+                            placeholder="Rp 0"
+                            value={formatRupiah(data.harga_sampah)}
+                            onChange={(e) => handleNumberChange("harga_sampah", e.target.value)}
+                            className="w-full border-gray-300"
+                        />
+                    </div>
+
+                    {/* 5. INPUT JIMPITAN AIR (PERSEN) */}
+                    <div className="space-y-2">
+                        <Label>
+                            Jimpitan Air (%) <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="relative">
+                            <Input
+                                type="text"
+                                placeholder="0 - 100" 
+                                value={data.jimpitan_air || ""} 
+                                onChange={(e) => handleNumberChange("jimpitan_air", e.target.value)}
+                                className="w-full border-gray-300 pr-8"
                             />
-                        </div>
-                        {errors.harga_meteran && <p className="text-red-500 text-xs mt-1">{errors.harga_meteran}</p>}
-                    </div>
-
-                    {/* Input Abonemen */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Biaya Abonemen (Tetap)</label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 sm:text-sm">Rp</span>
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 font-semibold">%</span>
                             </div>
-                            <input
-                                type="number"
-                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                                value={data.abonemen}
-                                onChange={e => setData('abonemen', e.target.value)}
-                                placeholder="0"
-                            />
                         </div>
-                        {errors.abonemen && <p className="text-red-500 text-xs mt-1">{errors.abonemen}</p>}
                     </div>
 
-                    {/* Input Harga Sampah */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Iuran Sampah</label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 sm:text-sm">Rp</span>
-                            </div>
-                            <input
-                                type="number"
-                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                                value={data.harga_sampah}
-                                onChange={e => setData('harga_sampah', e.target.value)}
-                                placeholder="0"
-                            />
-                        </div>
-                        {errors.harga_sampah && <p className="text-red-500 text-xs mt-1">{errors.harga_sampah}</p>}
-                    </div>
-
-                    {/* Input Jimpitan */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Jimpitan Air (Maks 100 jika persen, atau nominal)
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 sm:text-sm">Rp</span>
-                            </div>
-                            <input
-                                type="number"
-                                className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                                value={data.jimpitan_air}
-                                onChange={e => setData('jimpitan_air', e.target.value)}
-                                placeholder="0"
-                            />
-                        </div>
-                        {errors.jimpitan_air && <p className="text-red-500 text-xs mt-1">{errors.jimpitan_air}</p>}
-                    </div>
-
-                    <div className="flex justify-end pt-4 gap-2">
-                        <button
+                    {/* TOMBOL ACTION */}
+                    <div className="flex justify-end gap-4 pt-4">
+                        <Button
                             type="button"
-                            onClick={closeModal}
-                            className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+                            onClick={handleCancel}
+                            className="bg-gray-500 hover:bg-gray-600 text-white"
                         >
                             Batal
-                        </button>
-                        <button
+                        </Button>
+
+                        <Button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
+                            className="bg-rose-500 hover:bg-rose-600 text-white"
                         >
-                            {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                        </button>
+                            {processing ? "Menyimpan..." : "Simpan"}
+                        </Button>
                     </div>
+
                 </form>
-            </Modal>
+            </div>
         </AppLayout>
     );
 }

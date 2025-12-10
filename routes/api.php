@@ -13,7 +13,8 @@ use App\Http\Controllers\Api\KegiatanApiController;
 use App\Http\Controllers\Api\PengeluaranApiController;
 //use App\Http\Controllers\Api\PengumumanApiController; 
 use App\Http\Controllers\Api\SuperadminApiController;
-use App\Http\Controllers\Api\HargaIuranApiController; 
+use App\Http\Controllers\Api\HargaIuranApiController;
+
 // --- PUBLIC (Tanpa Login) ---
 
 Route::get('/check', function () {
@@ -44,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/iuran/update/{id}', [IuranApiController::class, 'iuran_update']);
     Route::delete('/iuran/{id}', [IuranApiController::class, 'iuran_delete']);
 
-    // 4. Kategori Iuran (MASTER NAMA & KONFIGURASI HARGA)
+   // 4. Kategori Iuran (MASTER NAMA & KONFIGURASI HARGA)
     
     // A. Master Nama Kategori (CRUD Dasar)
     Route::resource('kat_iuran', KategoriIuranApiController::class)->only(['index', 'store', 'show', 'destroy']);

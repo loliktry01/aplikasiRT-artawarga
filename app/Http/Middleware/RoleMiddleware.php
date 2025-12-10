@@ -20,7 +20,8 @@ class RoleMiddleware
             'kat_iuran.index',    
             'kat_iuran.store',     
             'kat_iuran.update',   
-            'kat_iuran.destroy',   
+            'kat_iuran.destroy',
+            'kategori.index',   
         ];
 
         $role = $user->role_id; 
