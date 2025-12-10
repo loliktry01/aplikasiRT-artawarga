@@ -57,7 +57,7 @@ class KegiatanController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'kat_keg_id'  => 'required|exists:kat_keg,id', // Tambahkan validasi ini
+            'kat_keg_id'  => 'required|exists:kat_keg,id', 
             'nm_keg'      => 'required|string|max:255',
             'tgl_mulai'   => 'nullable|date',
             'tgl_selesai' => 'nullable|date|after_or_equal:tgl_mulai',
