@@ -94,7 +94,7 @@ class KegiatanController extends Controller
     /**
      * Update kegiatan.
      */
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $kegiatan = Kegiatan::findOrFail($id);
 
@@ -104,21 +104,39 @@ class KegiatanController extends Controller
             'tgl_selesai' => 'nullable|date|after_or_equal:tgl_mulai',
             'pj_keg'      => 'nullable|string|max:255',
             'panitia'     => 'nullable|string|max:255',
-            'dok_keg'     => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'kat_keg_id'  => 'required|exists:kat_keg,id', // Pastikan validasi kategori ada
+            
+            // UBAH VALIDASI MENJADI ARRAY
+            'dok_keg'     => 'nullable|array', 
+            'dok_keg.*'   => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         if ($request->hasFile('dok_keg')) {
-            // hapus file lama jika ada
-            if ($kegiatan->dok_keg && Storage::disk('public')->exists($kegiatan->dok_keg)) {
-                Storage::disk('public')->delete($kegiatan->dok_keg);
+            // 1. HAPUS FILE LAMA (Looping karena formatnya Array)
+            if ($kegiatan->dok_keg) {
+                // Pastikan tipe data array agar bisa di-loop
+                $oldFiles = is_array($kegiatan->dok_keg) ? $kegiatan->dok_keg : [$kegiatan->dok_keg];
+                
+                foreach ($oldFiles as $oldFile) {
+                    if (Storage::disk('public')->exists($oldFile)) {
+                        Storage::disk('public')->delete($oldFile);
+                    }
+                }
             }
 
-            $file = $request->file('dok_keg');
-            $filename = now()->format('Ymd_His') . '_keg.' . $file->getClientOriginalExtension();
-            $data['dok_keg'] = $file->storeAs('keg', $filename, 'public');
+            // 2. UPLOAD FILE BARU (Looping seperti fungsi store)
+            $paths = [];
+            foreach ($request->file('dok_keg') as $index => $file) {
+                $filename = now()->format('Ymd_His') . '_' . $index . '_keg.' . $file->getClientOriginalExtension();
+                $paths[] = $file->storeAs('keg', $filename, 'public');
+            }
+            
+            // Simpan array path baru
+            $data['dok_keg'] = $paths;
         } else {
-            // pertahankan nilai lama jika tidak upload baru
-            $data['dok_keg'] = $kegiatan->dok_keg ?? ($data['dok_keg'] ?? '');
+            // Jika tidak ada file baru yg diupload, buang key 'dok_keg' dari array data
+            // agar data lama tidak tertimpa null/kosong
+            unset($data['dok_keg']);
         }
 
         $kegiatan->update($data);
@@ -126,15 +144,24 @@ class KegiatanController extends Controller
         return back()->with('success', 'Kegiatan berhasil diupdate.');
     }
 
-    /**
+   /**
      * Hapus kegiatan.
      */
     public function destroy($id)
     {
         $kegiatan = Kegiatan::findOrFail($id);
 
-        if ($kegiatan->dok_keg && Storage::disk('public')->exists($kegiatan->dok_keg)) {
-            Storage::disk('public')->delete($kegiatan->dok_keg);
+        // Cek apakah kolom dok_keg ada isinya
+        if (!empty($kegiatan->dok_keg)) {
+            // Pastikan formatnya array (jaga-jaga kalau ada data lama yg masih string)
+            $files = is_array($kegiatan->dok_keg) ? $kegiatan->dok_keg : [$kegiatan->dok_keg];
+
+            // Looping untuk hapus satu per satu
+            foreach ($files as $file) {
+                if (Storage::disk('public')->exists($file)) {
+                    Storage::disk('public')->delete($file);
+                }
+            }
         }
 
         $kegiatan->delete();
@@ -142,7 +169,16 @@ class KegiatanController extends Controller
         return back()->with('success', 'Kegiatan berhasil dihapus.');
     }
 
-   
+   public function edit($id)
+    {
+        $kegiatan = Kegiatan::findOrFail($id);
+        $kategoris = KategoriKegiatan::select('id', 'nm_kat')->get();
+
+        return Inertia::render('Kegiatan/Tambah_kegiatan', [
+            'kategoris' => $kategoris,
+            'kegiatan'  => $kegiatan // Kirim data kegiatan yang mau diedit
+        ]);
+    }
 
 
 }
