@@ -90,11 +90,6 @@ export default function AppLayout({ children }) {
             url: "/kategori-setting",
             icon: List,
         },
-        {
-            title: "Tagihan Bulanan Air",
-            url: "/kat_iuran",
-            icon: Droplet,
-        },
         // {
         //     title: "Bayar Iuran",  <-- INI DIHAPUS DARI DEFAULT
         //     url: "/masuk-iuran",

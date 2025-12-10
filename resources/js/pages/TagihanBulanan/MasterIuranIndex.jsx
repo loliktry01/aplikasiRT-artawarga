@@ -45,10 +45,6 @@ export default function MasterData({ auth, kategoriIurans }) {
         const cleanValue = value.replace(/[^0-9]/g, "");
         let numericValue = parseInt(cleanValue || "0", 10);
 
-        if (field === "jimpitan_air" && numericValue > 100) {
-            numericValue = 100;
-        }
-
         setData(field, numericValue);
     };
 
