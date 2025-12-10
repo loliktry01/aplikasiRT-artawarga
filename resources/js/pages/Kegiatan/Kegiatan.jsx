@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { usePage, router, Link } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
+import { route } from "ziggy-js"; 
 import AppLayout from "@/layouts/AppLayout";
 import {
     Table,
@@ -10,12 +11,15 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
     ChevronsUpDown,
     ChevronLeft,
     ChevronRight,
     FileText,
+    X,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function Kegiatan() {
     const { kegiatans } = usePage().props;
@@ -23,6 +27,9 @@ export default function Kegiatan() {
     const [sortField, setSortField] = useState("tgl_mulai");
     const [sortOrder, setSortOrder] = useState("desc");
     const [currentPage, setCurrentPage] = useState(1);
+    
+    // ✅ State untuk Popup Gambar
+    const [selectedImage, setSelectedImage] = useState(null);
 
     const itemsPerPage = 8;
 
@@ -57,6 +64,22 @@ export default function Kegiatan() {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    // ✅ Fungsi helper format tarikh (seperti kod rakan anda)
+    const formatDate = (dateString) => {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+        });
+    };
+
+    // Fungsi untuk pindah ke halaman detail saat baris diklik
+    const handleRowClick = (id) => {
+        router.visit(route('kegiatan.show', id));
+    };
 
     return (
         <AppLayout>
@@ -110,23 +133,35 @@ export default function Kegiatan() {
                                     paginatedData.map((keg, i) => (
                                         <TableRow
                                             key={i}
-                                            className="hover:bg-gray-50 transition"
+                                            // ✅ 1. Jadikan Baris Bisa Diklik
+                                            className="hover:bg-gray-50 transition cursor-pointer"
+                                            onClick={() => handleRowClick(keg.id)}
                                         >
                                             <TableCell>{keg.nm_keg}</TableCell>
-                                            <TableCell>{keg.tgl_mulai}</TableCell>
-                                            <TableCell>{keg.tgl_selesai}</TableCell>
+                                            {/* ✅ Gunakan formatDate di sini */}
+                                            <TableCell>{formatDate(keg.tgl_mulai)}</TableCell>
+                                            <TableCell>{formatDate(keg.tgl_selesai)}</TableCell>
                                             <TableCell>{keg.pj_keg}</TableCell>
                                             <TableCell>{keg.panitia}</TableCell>
 
                                             <TableCell>
-                                                {/* Menggunakan Link ke Detail */}
-                                                <Link
-                                                    href={route('kegiatan.show', keg.id)}
-                                                    className="text-blue-500 flex items-center gap-1 hover:underline"
-                                                >
-                                                    <FileText className="w-4 h-4" />
-                                                    Lihat
-                                                </Link>
+                                                {keg.dok_keg ? (
+                                                    // ✅ 2. Tombol Lihat: Buka Popup & Cegah Pindah Halaman
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // ⛔ PENTING: Agar tidak men-trigger klik baris
+                                                            setSelectedImage(`/storage/${keg.dok_keg}`);
+                                                        }}
+                                                        className="text-blue-500 flex items-center gap-1 hover:underline hover:text-blue-700 transition z-10 relative"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                        Lihat
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs italic">
+                                                        -
+                                                    </span>
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -179,6 +214,33 @@ export default function Kegiatan() {
                         </div>
                     )}
                 </div>
+
+                {/* ✅ 3. MODAL POPUP GAMBAR */}
+                <Dialog 
+                    open={!!selectedImage} 
+                    onOpenChange={(open) => !open && setSelectedImage(null)}
+                >
+                    <DialogContent className="max-w-3xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+                        <div className="relative flex justify-center items-center">
+                            {/* Tombol Close */}
+                            <button
+                                onClick={() => setSelectedImage(null)}
+                                className="absolute -top-10 right-0 md:-right-10 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+
+                            {selectedImage && (
+                                <img
+                                    src={selectedImage}
+                                    alt="Preview Dokumentasi"
+                                    className="w-auto h-auto max-h-[80vh] max-w-full rounded-lg shadow-2xl object-contain bg-black"
+                                />
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
             </div>
         </AppLayout>
     );
