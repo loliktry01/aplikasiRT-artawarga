@@ -3,43 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PemasukanIuran extends Model
 {
-    protected $table = 'masuk_iuran';
+    use HasFactory;
 
+    protected $table = 'masuk_iuran';
+    
     protected $fillable = [
-        'usr_id',
-        'pengumuman_id',
-        'kat_iuran_id',
+        'kat_iuran_id', 
         'tgl',
         'nominal',
         'ket',
-        'bkt_byr',
-        'bkt_nota',
-        'tgl_byr',
-        'tgl_approved',
-        'status',
     ];
-
-    public function pengumuman()
-    {
-        return $this->belongsTo(Pengumuman::class);
-    }
 
     public function kategori_iuran()
     {
-        // tambahkan foreign key & local key biar eksplisit
         return $this->belongsTo(KategoriIuran::class, 'kat_iuran_id', 'id');
     }
 
-    public function total()
+    public function pengeluaran()
     {
-        return $this->hasMany(Total::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class,'usr_id', 'id');
+        return $this->hasMany(Pengeluaran::class, 'masuk_iuran_id', 'id');
     }
 }

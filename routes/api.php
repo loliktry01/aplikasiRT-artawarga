@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\BopApiController;
 use App\Http\Controllers\Api\DashboardApiController;
@@ -9,15 +11,16 @@ use App\Http\Controllers\Api\IuranApiController;
 use App\Http\Controllers\Api\KategoriIuranApiController;
 use App\Http\Controllers\Api\KegiatanApiController;
 use App\Http\Controllers\Api\PengeluaranApiController;
-use App\Http\Controllers\Api\PengumumanApiController;
+//use App\Http\Controllers\Api\PengumumanApiController; 
 use App\Http\Controllers\Api\SuperadminApiController;
+use App\Http\Controllers\Api\HargaIuranApiController;
 
+// --- PUBLIC (Tanpa Login) ---
 
 Route::get('/check', function () {
     return response()->json(['message' => 'API Connected']);
 });
 
-// --- PUBLIC (Tanpa Login) ---
 Route::post('/login', [AuthApiController::class, 'login']);
 
 
@@ -31,21 +34,27 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // 2. BOP
-    Route::get('/bop', [BopApiController::class, 'index']);
-    Route::post('/bop/create', [BopApiController::class, 'bop_create']); 
-    Route::delete('/bop/{id}', [BopApiController::class, 'destroy']);
-    Route::patch('/bop/update/{id}', [BopApiController::class, 'update']);
-
+    Route::resource('bop', BopApiController::class)->only(['index', 'destroy'])
+        ->parameters(['bop' => 'id']);
+    Route::post('/bop', [BopApiController::class, 'bop_create']); 
+    Route::patch('/bop/{id}', [BopApiController::class, 'update']); 
+    
     // 3. Iuran
-    Route::get('/iuran', [IuranApiController::class, 'index']);          // History
-    Route::post('/iuran/create', [IuranApiController::class, 'iuran_create']); // Bayar
+    Route::get('/iuran', [IuranApiController::class, 'index']);      
+    Route::post('/iuran/create', [IuranApiController::class, 'iuran_create']); 
     Route::patch('/iuran/update/{id}', [IuranApiController::class, 'iuran_update']);
     Route::delete('/iuran/{id}', [IuranApiController::class, 'iuran_delete']);
 
-    // 4. Kategori Iuran
-    Route::get('/iuran/kategori', [KategoriIuranApiController::class, 'kategori']);
-    Route::post('/iuran/kategori', [KategoriIuranApiController::class, 'kat_iuran_create']);
-    Route::delete('/iuran/kategori/{id}', [KategoriIuranApiController::class, 'kat_iuran_delete']);
+   // 4. Kategori Iuran (MASTER NAMA & KONFIGURASI HARGA)
+    
+    // A. Master Nama Kategori (CRUD Dasar)
+    Route::resource('kat_iuran', KategoriIuranApiController::class)->only(['index', 'store', 'show', 'destroy']);
+    
+    // B. Konfigurasi Harga (
+    Route::prefix('kat_iuran')->group(function () {
+        Route::get('/harga', [HargaIuranApiController::class, 'index'])->name('kat_iuran.harga.index');
+        Route::patch('/harga/{id}', [HargaIuranApiController::class, 'update'])->name('kat_iuran.harga.update');
+    });
 
     // 5. Kegiatan
     Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
@@ -54,27 +63,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/kegiatan/update/{id}', [KegiatanApiController::class, 'update']);
     Route::delete('/kegiatan/{id}', [KegiatanApiController::class, 'destroy']);
 
-    // 6. Pengeluaran
-    Route::get('/pengeluaran', [PengeluaranApiController::class, 'index']);
-    Route::post('/pengeluaran', [PengeluaranApiController::class, 'store']);
-    Route::get('/pengeluaran/{id}', [PengeluaranApiController::class, 'show']);
-    Route::patch('/pengeluaran/update/{id}', [PengeluaranApiController::class, 'update']);
-    Route::delete('/pengeluaran/{id}', [PengeluaranApiController::class, 'destroy']);
+    // 5. Kegiatan 
+    Route::resource('kegiatan', KegiatanApiController::class)->except(['create', 'edit'])
+        ->parameters(['kegiatan' => 'id']);
+
+    // 6. Pengeluaran 
+    Route::resource('pengeluaran', PengeluaranApiController::class)->except(['create', 'edit'])
+        ->parameters(['pengeluaran' => 'id']);
 
     // 7. Pengumuman
-    Route::get('/pengumuman', [PengumumanApiController::class, 'index']);
-    Route::post('/pengumuman', [PengumumanApiController::class, 'store']);
-    Route::get('/pengumuman/{id}', [PengumumanApiController::class, 'show']);
-    Route::patch('/pengumuman/update/{id}', [PengumumanApiController::class, 'update']);
-    Route::delete('/pengumuman/{id}', [PengumumanApiController::class, 'destroy']);
+    // Route::resource('pengumuman', PengumumanApiController::class)->except(['create', 'edit'])
+    //  ->parameters(['pengumuman' => 'id']);
 
     // 8. Superadmin (User Management)
     Route::prefix('admin')->group(function () {
-        Route::get('/users', [SuperadminApiController::class, 'index']);
-        Route::post('/users', [SuperadminApiController::class, 'store']);
-        Route::get('/users/{id}', [SuperadminApiController::class, 'show']);
-        Route::patch('/users/update/{id}', [SuperadminApiController::class, 'update']);
-        Route::delete('/users/{id}', [SuperadminApiController::class, 'destroy']);
+        Route::resource('users', SuperadminApiController::class)->only(['index', 'store', 'show', 'update', 'destroy'])
+            ->parameters(['users' => 'id']);
     });
 
 });

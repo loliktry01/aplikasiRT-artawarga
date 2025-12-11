@@ -2,104 +2,88 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kegiatan;
+use App\Models\Pengeluaran;
 use App\Models\PemasukanBOP;
 use App\Models\PemasukanIuran;
-use App\Models\Pengeluaran;
+use App\Models\Kegiatan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage; // Tambahkan ini
 use Inertia\Inertia;
 
 class PengeluaranController extends Controller
 {
     public function index()
     {
-        $pengeluarans = Pengeluaran::with('kegiatan')->latest()->get();
+        $pengeluarans = Pengeluaran::with(['kegiatan', 'pemasukan_bop', 'pemasukan_iuran'])
+            ->latest()
+            ->get()
+            ->map(function ($pengeluaran) {
+                // Tambahkan URL lengkap untuk ditampilkan di frontend
+                $pengeluaran->bkt_nota_url = $pengeluaran->bkt_nota 
+                    ? asset('storage/' . $pengeluaran->bkt_nota) 
+                    : null;
+                return $pengeluaran;
+            });
 
-        $jumlahApproved = PemasukanIuran::where('masuk_iuran.status', 'approved')
-            ->whereIn('masuk_iuran.kat_iuran_id', [1, 2])
-            ->join('pengumuman', 'masuk_iuran.pengumuman_id', '=', 'pengumuman.id')
-            ->sum('pengumuman.jumlah');
+        // Hitung saldo
+        $totalMasukBop = PemasukanBOP::sum('nominal');
+        $totalMasukIuran = PemasukanIuran::sum('nominal');
 
-        $totalIuranManual = PemasukanIuran::where('status', 'approved')
-            ->whereNull('pengumuman_id')
-            ->sum('nominal');
+        // Pengeluaran yang diambil dari BOP
+        $totalKeluarBop = Pengeluaran::whereNotNull('masuk_bop_id')->sum('nominal');
+        $totalKeluarIuran = Pengeluaran::whereNotNull('masuk_iuran_id')->sum('nominal');
 
-        $totalIuran = $totalIuranManual + $jumlahApproved;
+        $sisaBop = $totalMasukBop - $totalKeluarBop;
+        $sisaIuran = $totalMasukIuran - $totalKeluarIuran;
 
-        $saldoBop = PemasukanBOP::sum('nominal') - Pengeluaran::where('tipe', 'bop')->sum('nominal');
-        $saldoIuran = $totalIuran - Pengeluaran::where('tipe', 'iuran')->sum('nominal');
-
+        // Data pendukung
         $kegiatans = Kegiatan::select('id', 'nm_keg')->get();
-
-        $totalBop = PemasukanBOP::sum('nominal');
-        $totalPengeluaranBop = Pengeluaran::where('tipe', 'bop')->sum('nominal');
-        $totalPengeluaranIuran = Pengeluaran::where('tipe', 'iuran')->sum('nominal');
-
-        $sisaBop = $totalBop - $totalPengeluaranBop;
-        $sisaIuran = $totalIuran - $totalPengeluaranIuran;
 
         return Inertia::render('Ringkasan/Pengeluaran', [
             'pengeluarans' => $pengeluarans,
-            'saldo' => [
-                'bop' => $saldoBop,
-                'iuran' => $saldoIuran,
-            ],
             'kegiatans' => $kegiatans,
             'sisaBop' => $sisaBop,
             'sisaIuran' => $sisaIuran,
         ]);
     }
 
-
-    public function pengeluaran(Request $request)
+    public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'tgl' => 'required|date',
             'keg_id' => 'required|exists:keg,id',
-            'nominal' => 'required|numeric|min:0',
+            'nominal' => 'required|numeric|min:1',
             'ket' => 'required|string',
+            'toko' => 'nullable|string',
             'tipe' => 'required|in:bop,iuran',
-            'toko'  => 'nullable|string|max:255',
-            'bkt_nota' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'bkt_nota' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
+        $data = [
+            'tgl' => $request->tgl,
+            'keg_id' => $request->keg_id,
+            'nominal' => $request->nominal,
+            'ket' => $request->ket,
+            'toko' => $request->toko,
+        ];
+
+        // LOGIKA PENYIMPANAN FILE
         if ($request->hasFile('bkt_nota')) {
-            $file       = $request->file('bkt_nota');
-            $extension  = $file->getClientOriginalExtension();
-            $filename   = now()->format('Ymd_His') . '_nota.' . $extension;
-            $path       = $file->storeAs('nota_pengeluaran', $filename, 'public');
-
-            $validated['bkt_nota'] = $path;
+            // Simpan ke folder 'storage/app/public/nota'
+            $path = $request->file('bkt_nota')->store('nota', 'public');
+            $data['bkt_nota'] = $path;
         }
 
-        if ($validated['tipe'] === 'bop') {
-            $totalMasuk = PemasukanBOP::sum('nominal');
-        } else {
-            $jumlahApproved = PemasukanIuran::where('masuk_iuran.status', 'approved')
-                ->whereIn('masuk_iuran.kat_iuran_id', [1, 2])
-                ->join('pengumuman', 'masuk_iuran.pengumuman_id', '=', 'pengumuman.id')
-                ->sum('pengumuman.jumlah');
-
-            $totalIuranManual = PemasukanIuran::where('status', 'approved')
-                ->whereNull('pengumuman_id')
-                ->sum('nominal');
-
-            $totalMasuk = $totalIuranManual + $jumlahApproved;
+        // Tentukan sumber dana
+        if ($request->tipe === 'bop') {
+            $data['masuk_bop_id'] = PemasukanBOP::latest()->value('id'); 
+        } elseif ($request->tipe === 'iuran') {
+            $data['masuk_iuran_id'] = PemasukanIuran::latest()->value('id');
         }
 
-        $totalKeluar = Pengeluaran::where('tipe', $validated['tipe'])->sum('nominal');
-        $saldo = $totalMasuk - $totalKeluar;
+        Pengeluaran::create($data);
 
-        if ($saldo < $validated['nominal']) {
-            return back()->withErrors([
-                'nominal' => 'Saldo ' . strtoupper($validated['tipe']) . ' tidak mencukupi.',
-            ]);
-        }
-
-        Pengeluaran::create($validated);
-
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Pengeluaran dari ' . strtoupper($validated['tipe']) . ' berhasil disimpan.');
+        return back()->with('success', 'Pengeluaran berhasil ditambahkan.');
     }
+
 }

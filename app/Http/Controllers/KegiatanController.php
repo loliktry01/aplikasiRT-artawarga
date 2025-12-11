@@ -3,29 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kegiatan;
-use App\Models\KatKeg;
+use App\Models\KategoriKegiatan;
 use App\Models\PemasukanBOP;
 use App\Models\PemasukanIuran;
 use App\Models\Pengeluaran;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class KegiatanController extends Controller
 {
     /**
-     * Tampilkan list kegiatan (Inertia).
+     * Tampilkan list kegiatan.
      */
     public function index(Request $request)
     {
         $query = Kegiatan::query();
 
-        // Fitur Pencarian
         if ($request->filled('q')) {
             $query->where('nm_keg', 'like', '%' . $request->input('q') . '%');
         }
 
-        // Ambil data, urutkan dari yang terbaru, dan paginasi
         $kegiatans = $query->orderBy('tgl_mulai', 'desc')
                            ->paginate($request->input('per_page', 10))
                            ->withQueryString();
@@ -36,124 +35,145 @@ class KegiatanController extends Controller
     }
 
     /**
-     * Tampilkan detail kegiatan (Inertia).
-     * DIGUNAKAN DI HALAMAN RINCIAN
+     * Tampilkan detail kegiatan (Rincian).
      */
     public function show($id)
     {
-        // 1. Ambil kegiatan BESERTA pengeluaran DAN relasi kategori
+        // 1. Ambil data kegiatan beserta relasinya
+        // Menggunakan 'with' untuk mengambil SEMUA pengeluaran terkait
         $kegiatan = Kegiatan::with(['pengeluaran', 'kategori_relasi'])->findOrFail($id);
 
-        // 2. Format URL Dokumentasi agar bisa tampil di frontend
+        // 2. Format URL Dokumentasi (Support Multiple Files / JSON)
+        $dokumenUrls = [];
         if ($kegiatan->dok_keg) {
-            // Bersihkan tanda kutip jika ada (bugfix data lama)
-            $cleanPath = str_replace('"', '', $kegiatan->dok_keg); 
-            $kegiatan->dokumentasi_url = url('storage/' . $cleanPath);
-        } else {
-            $kegiatan->dokumentasi_url = null;
-        }
-
-        // 3. Masukkan nama kategori ke properti 'kategori' 
-        $kegiatan->kategori = $kegiatan->kategori_relasi ? $kegiatan->kategori_relasi->nm_kat : '-';
-
-        // 4. Data Nominal Pengeluaran Kegiatan Ini
-        $totalPengeluaran = 0;
-        if ($kegiatan->pengeluaran) {
-            $totalPengeluaran = $kegiatan->pengeluaran->nominal;
+            // Pastikan formatnya array (Model sudah cast 'array')
+            // Jika data lama masih string, bungkus jadi array
+            $files = is_array($kegiatan->dok_keg) ? $kegiatan->dok_keg : [$kegiatan->dok_keg];
             
-            // Format URL Bukti Nota Pengeluaran
-            if ($kegiatan->pengeluaran->bkt_nota) {
-                $cleanNota = str_replace('"', '', $kegiatan->pengeluaran->bkt_nota);
-                $kegiatan->pengeluaran->bkt_nota_url = url('storage/' . $cleanNota);
+            foreach ($files as $path) {
+                if (is_string($path)) {
+                    // Bersihkan tanda kutip jika ada sisa data lama
+                    $cleanPath = str_replace('"', '', $path);
+                    // Buat URL lengkap
+                    $dokumenUrls[] = url('storage/' . $cleanPath);
+                }
             }
         }
+        
+        // Kirim array URL ke frontend
+        $kegiatan->dokumentasi_urls = $dokumenUrls;
+        // Fallback single url
+        $kegiatan->dokumentasi_url = !empty($dokumenUrls) ? $dokumenUrls[0] : null;
 
-        // 5. HITUNG SISA SALDO BOP & IURAN (Global Real-time)
-        // Agar Frontend bisa menghitung "Dana Awal = Sisa Sekarang + Pengeluaran Ini"
+        // 3. Nama Kategori
+        $kegiatan->kategori = $kegiatan->kategori_relasi ? $kegiatan->kategori_relasi->nm_kat : '-';
+
+        // 4. DATA PENGELUARAN (LOGIKA BANYAK DATA)
+        // Hitung total nominal dari semua item pengeluaran
+        $totalPengeluaran = $kegiatan->pengeluaran->sum('nominal');
+
+        // Siapkan list pengeluaran dengan URL Nota yang benar
+        $listPengeluaran = $kegiatan->pengeluaran->map(function ($item) {
+            if ($item->bkt_nota) {
+                $cleanNota = str_replace('"', '', $item->bkt_nota);
+                $item->bkt_nota_url = url('storage/' . $cleanNota);
+            } else {
+                $item->bkt_nota_url = null;
+            }
+            return $item;
+        });
+
+        // 5. HITUNG SISA DANA GLOBAL (Sesuai Logika DashboardController Terbaru)
         
         // --- Hitung Saldo BOP ---
         $totalBop = PemasukanBOP::sum('nominal');
-        $keluarBop = Pengeluaran::where('tipe', 'bop')->sum('nominal');
+        // Pengeluaran BOP ditandai dengan adanya 'masuk_bop_id'
+        $keluarBop = Pengeluaran::whereNotNull('masuk_bop_id')->sum('nominal');
         $sisaBop = $totalBop - $keluarBop;
 
         // --- Hitung Saldo Iuran ---
-        // Iuran Manual
-        $totalIuranManual = PemasukanIuran::where('status', 'approved')
-            ->whereNull('pengumuman_id')
-            ->sum('nominal');
-        
-        // Iuran Tagihan (Approved)
-        $jumlahApproved = PemasukanIuran::where('masuk_iuran.status', 'approved')
-            ->whereIn('masuk_iuran.kat_iuran_id', [1, 2])
-            ->join('pengumuman', 'masuk_iuran.pengumuman_id', '=', 'pengumuman.id')
-            ->sum('pengumuman.jumlah');
-        
-        $totalIuran = $totalIuranManual + $jumlahApproved;
-        $keluarIuran = Pengeluaran::where('tipe', 'iuran')->sum('nominal');
+        $totalIuran = PemasukanIuran::sum('nominal'); 
+        // Pengeluaran Iuran ditandai dengan adanya 'masuk_iuran_id'
+        $keluarIuran = Pengeluaran::whereNotNull('masuk_iuran_id')->sum('nominal');
         $sisaIuran = $totalIuran - $keluarIuran;
 
-
-        // 6. Cek Izin Tambah Pengeluaran (Hanya RT=2 dan Bendahara=3)
-        $userRole = auth()->user()->role_id;
+        // 6. Cek Izin Akses
+        $userRole = Auth::user()->role_id;
         $canAddExpense = in_array($userRole, [2, 3]);
 
         return Inertia::render('Kegiatan/Detail', [
             'kegiatan' => $kegiatan,
-            'totalPengeluaran' => $totalPengeluaran,
+            'totalPengeluaran' => $totalPengeluaran, // Total Sum semua pengeluaran
+            'listPengeluaran' => $listPengeluaran,   // List Array rincian belanja
             'canAddExpense' => $canAddExpense,
-            'sisaBop' => $sisaBop,     // Dikirim ke frontend
-            'sisaIuran' => $sisaIuran  // Dikirim ke frontend
+            'sisaBop' => $sisaBop,
+            'sisaIuran' => $sisaIuran
         ]);
     }
 
     /**
-     * Halaman Tambah Kegiatan (Form)
+     * Halaman Form Tambah Kegiatan
      */
     public function create()
     {
-        // Ambil list kategori untuk dropdown
-        $kategori = KatKeg::all();
-        
+        $kategoris = KategoriKegiatan::select('id', 'nm_kat')->get();
         return Inertia::render('Kegiatan/Tambah_kegiatan', [
-            'listKategori' => $kategori
+            'listKategori' => $kategoris 
         ]);
     }
 
     /**
-     * Simpan kegiatan baru ke database.
+     * Simpan kegiatan baru.
      */
     public function store(Request $request)
     {
-        // Validasi Input
         $data = $request->validate([
             'nm_keg'           => 'required|string|max:255',
             'tgl_mulai'        => 'nullable|date',
             'tgl_selesai'      => 'nullable|date|after_or_equal:tgl_mulai',
             'pj_keg'           => 'nullable|string|max:255',
             'panitia'          => 'nullable|string|max:255',
-            'dok_keg'          => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'kat_keg_id'       => 'nullable', 
+            // Validasi Array File
+            'dok_keg'          => 'nullable|array', 
+            'dok_keg.*'        => 'file|mimes:jpg,jpeg,png,pdf|max:5120', 
+            'kat_keg_id'       => 'required|exists:kat_keg,id',
             'rincian_kegiatan' => 'nullable|string'
         ]);
 
-        // Proses Upload File
+        // Logic Multiple Upload
+        $paths = [];
         if ($request->hasFile('dok_keg')) {
-            $file = $request->file('dok_keg');
-            $filename = now()->format('Ymd_His') . '_keg.' . $file->getClientOriginalExtension();
-            $data['dok_keg'] = $file->storeAs('keg', $filename, 'public');
-        } else {
-            $data['dok_keg'] = '';
+            foreach ($request->file('dok_keg') as $index => $file) {
+                // Beri nama unik dengan index
+                $filename = now()->format('Ymd_His') . '_' . $index . '_keg.' . $file->getClientOriginalExtension();
+                $paths[] = $file->storeAs('keg', $filename, 'public');
+            }
         }
 
-        // Simpan ke Database
+        // Simpan array path (Laravel otomatis convert ke JSON krn casts di Model)
+        $data['dok_keg'] = !empty($paths) ? $paths : null;
+
         Kegiatan::create($data);
 
-        // Redirect kembali ke daftar kegiatan
         return redirect()->route('kegiatan.index')->with('success', 'Kegiatan berhasil ditambahkan.');
     }
 
     /**
-     * Update data kegiatan yang sudah ada.
+     * Halaman Edit Kegiatan
+     */
+    public function edit($id)
+    {
+        $kegiatan = Kegiatan::findOrFail($id);
+        $kategoris = KategoriKegiatan::select('id', 'nm_kat')->get();
+
+        return Inertia::render('Kegiatan/Tambah_kegiatan', [
+            'listKategori' => $kategoris,
+            'kegiatan' => $kegiatan 
+        ]);
+    }
+
+    /**
+     * Update kegiatan.
      */
     public function update(Request $request, $id)
     {
@@ -165,49 +185,65 @@ class KegiatanController extends Controller
             'tgl_selesai'      => 'nullable|date|after_or_equal:tgl_mulai',
             'pj_keg'           => 'nullable|string|max:255',
             'panitia'          => 'nullable|string|max:255',
-            'dok_keg'          => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'kat_keg_id'       => 'nullable',
+            'dok_keg'          => 'nullable|array',
+            'dok_keg.*'        => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'kat_keg_id'       => 'nullable|exists:kat_keg,id',
             'rincian_kegiatan' => 'nullable|string'
         ]);
 
-        // Cek jika ada file baru diupload
+        // Jika user upload file baru
         if ($request->hasFile('dok_keg')) {
-            // Hapus file lama jika ada & bersihkan path
-            $oldPath = str_replace('"', '', $kegiatan->dok_keg);
-            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
+            // Hapus file lama (Looping)
+            if ($kegiatan->dok_keg) {
+                $oldFiles = is_array($kegiatan->dok_keg) ? $kegiatan->dok_keg : [$kegiatan->dok_keg];
+                foreach ($oldFiles as $oldFile) {
+                    if(is_string($oldFile)) {
+                        $cleanOldFile = str_replace('"', '', $oldFile);
+                        if (Storage::disk('public')->exists($cleanOldFile)) {
+                            Storage::disk('public')->delete($cleanOldFile);
+                        }
+                    }
+                }
             }
 
-            // Simpan file baru
-            $file = $request->file('dok_keg');
-            $filename = now()->format('Ymd_His') . '_keg.' . $file->getClientOriginalExtension();
-            $data['dok_keg'] = $file->storeAs('keg', $filename, 'public');
+            // Simpan file baru (Looping)
+            $paths = [];
+            foreach ($request->file('dok_keg') as $index => $file) {
+                $filename = now()->format('Ymd_His') . '_' . $index . '_keg.' . $file->getClientOriginalExtension();
+                $paths[] = $file->storeAs('keg', $filename, 'public');
+            }
+            $data['dok_keg'] = $paths;
         } else {
-            // Jika tidak ada file baru, hapus key dok_keg agar data lama tidak tertimpa null
+            // Jika tidak ada file baru, jangan ubah kolom dok_keg
             unset($data['dok_keg']);
         }
 
         $kegiatan->update($data);
 
-        return back()->with('success', 'Kegiatan berhasil diupdate.');
+        return redirect()->route('kegiatan.index')->with('success', 'Kegiatan berhasil diupdate.');
     }
 
     /**
-     * Hapus kegiatan beserta fotonya.
+     * Hapus kegiatan.
      */
     public function destroy($id)
     {
         $kegiatan = Kegiatan::findOrFail($id);
-
-        // Hapus file fisik di storage
-        $path = str_replace('"', '', $kegiatan->dok_keg);
-        if ($path && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        
+        // Hapus banyak file
+        if ($kegiatan->dok_keg) {
+            $files = is_array($kegiatan->dok_keg) ? $kegiatan->dok_keg : [$kegiatan->dok_keg];
+            foreach ($files as $file) {
+                if(is_string($file)) {
+                    $cleanFile = str_replace('"', '', $file);
+                    if (Storage::disk('public')->exists($cleanFile)) {
+                        Storage::disk('public')->delete($cleanFile);
+                    }
+                }
+            }
         }
-
-        // Hapus data di database
+        
         $kegiatan->delete();
-
         return back()->with('success', 'Kegiatan berhasil dihapus.');
     }
 }

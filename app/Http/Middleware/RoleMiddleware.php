@@ -12,48 +12,145 @@ class RoleMiddleware
     {
         $user = Auth::user();
 
-        // Jika user belum login
         if (!$user) {
             return redirect('/');
         }
 
-      
+        $kategoriIuranRoutes = [
+            'kat_iuran.index',    
+            'kat_iuran.store',     
+            'kat_iuran.update',   
+            'kat_iuran.destroy',
+            'kategori.index',   
+        ];
 
-        // Definisi izin akses
-        $role = $user->role_id; // pastikan kolom ini ada di tabel users
+        $role = $user->role_id; 
 
         $access = [
-            1 => ['dashboard', 'profil.index', 'profile.update', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser'], // superadmin
-            2 => [ // ketua rt
-            'dashboard',
-            'pemasukan.index',
-            'kat_iuran.create',
-            'kat_iuran.delete',
-            'kegiatan.create',
-            'kegiatan.store',
-            'kegiatan.index',
-            'kegiatan.show',
-            'bop.create',
-            'iuran.create',
-            'pengumuman',
-            'pengumuman.create',
-            'pengeluaran',
-            'pengeluaran.store',
-            'rincian.show',
-            'profil.index',
-            'profil.update',
-            'approval',
-            'approval.patch'],
-            3 => ['dashboard', 'pemasukan.index', 'pengeluaran', 'rincian.show', "pengumuman",'profil.index', 'profile.update', 'bop.create', 'iuran.create', 'kat_iuran.create', 'kat_iuran.delete', 'pengumuman.create', 'pengeluaran.store'],
-            4 => ['dashboard', 'kegiatan.create','kegiatan.store','kegiatan.index', 'rincian.show', "pengumuman",'profil.index', 'profile.update'],  
-            5 => ['dashboard','rincian.show', 'profil.index', 'profile.update','masuk-iuran.index', 'masuk-iuran.show', 'masuk-iuran.store'], // warga
+            // ID 1: Superadmin
+            1 => array_merge(
+                ['dashboard', 'profil.index', 'profil.update', 'superadmin.users', 'superadmin.createUser', 'superadmin.storeUser', 'superadmin.editUser', 'superadmin.updateUser', 'superadmin.deleteUser', 'kegiatan.show'], 
+                $kategoriIuranRoutes
+            ), 
+            
+            // ID 2: Ketua RT
+            2 => array_merge([
+                'dashboard',
+                'pemasukan.index',
+                'bop.create',
+                'iuran.create',
+                'pengeluaran',
+                'pengeluaran.store',
+                'rincian.show',
+                'profil.index',
+                'profil.update',
+                'kegiatan.create',
+                'kegiatan.store',
+                'kegiatan.index',
+                'kegiatan.show',
+                'kegiatan.edit',    
+                'kegiatan.update', 
+                'kegiatan.destroy', 
+                'approval',
+                'approval.patch',
+                'tagihan.create',
+                'tagihan.store',
+                'tagihan.generate',
+                'tagihan.approval',
+                'tagihan.approve',
+                'tagihan.decline',
+                'tagihan.rt.index',
+                'tagihan.edit',
+                'tagihan.update',
+                'tagihan.destroy',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'spj.download',
+            ], $kategoriIuranRoutes), // Ketua RT
+            
+            // ID 3: Bendahara
+            3 => array_merge([ 
+                'dashboard', 
+                'pemasukan.index', 
+                'pengeluaran', 
+                'rincian.show', 
+                'profil.index', 
+                'profil.update', 
+                'bop.create', 
+                'iuran.create', 
+                'pengumuman.create', 
+                'pengeluaran.store',
+                'kegiatan.index',
+                'kegiatan.show',
+                'tagihan.create',
+                'tagihan.store',
+                'tagihan.generate',
+                'tagihan.approval',
+                'tagihan.approve',
+                'tagihan.decline',
+                'tagihan.rt.index',
+                'tagihan.edit',
+                'tagihan.update',
+                'tagihan.destroy',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'spj.download',
+            ], $kategoriIuranRoutes), 
+            
+            // ID 4: Sekretaris
+            4 => [ 
+                'dashboard', 
+                'kegiatan.create',
+                'kegiatan.store',
+                'kegiatan.index', 
+                'kegiatan.show',
+                'kegiatan.edit',
+                'rincian.show', 
+                'profil.index', 
+                'profil.update',
+                'kegiatan.create',
+                'kegiatan.store',
+                'kegiatan.index',
+                'tagihan.create',
+                'tagihan.store',
+                'tagihan.generate',
+                'tagihan.approval',
+                'tagihan.approve',
+                'tagihan.decline',
+                'tagihan.rt.index',
+                'tagihan.edit',
+                'tagihan.update',
+                'tagihan.destroy',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'spj.download',
+            ], 
+            
+            // ID 5: Warga
+            5 => [ 
+                'dashboard',
+                'rincian.show', 
+                'profil.index', 
+                'profil.update',
+                'masuk-iuran.index', 
+                'masuk-iuran.show', 
+                'masuk-iuran.store',
+                'tagihan.upload',
+                'tagihan.warga.index',
+                'tagihan.warga.show',
+                'tagihan.bayar',
+                'profil.updatePhoto',
+                'profil.deletePhoto',
+                'kegiatan.index',
+                'kegiatan.show',
+            ], 
         ];
 
         $routeName = $request->route()->getName();
 
-        if (!in_array($routeName, $access[$role])) {
-        return redirect('/dashboard');
-    }
+        if (!isset($access[$role]) || !in_array($routeName, $access[$role])) {
+            return redirect('/dashboard');
+        }
 
         return $next($request);
     }

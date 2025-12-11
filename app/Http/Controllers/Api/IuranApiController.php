@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\KategoriIuran;
 use App\Models\PemasukanIuran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,8 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class IuranApiController extends Controller
 {
     /**
-     * GET all data pemasukan iuran
-     * @authenticated
+     * Lihat daftar data iuran
      */
     public function index()
     {
@@ -26,9 +26,70 @@ class IuranApiController extends Controller
         ]);
     }
 
+    /**
+     * Lihat daftar kategori iuran (kecuali id 1 & 2)
+     */
+    public function kategori()
+    {
+        $kategori = KategoriIuran::whereNotIn('id', [1, 2])->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $kategori
+        ]);
+    }
 
     /**
-     * Create data pemasukan iuran
+     * Tambah kategori iuran baru
+     */
+    public function kat_iuran_create(Request $request)
+    {
+        $validated = $request->validate([
+            'nm_kat' => 'required|string',
+        ]);
+
+        $kategori = KategoriIuran::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori iuran berhasil disimpan.',
+            'data' => $kategori,
+        ]);
+    }
+
+    /**
+     * Hapus kategori iuran
+     */
+    public function kat_iuran_delete($id)
+    {
+        $kategori = KategoriIuran::find($id);
+
+        if (!$kategori) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori iuran tidak ditemukan.'
+            ], 404);
+        }
+
+        $dipakai = PemasukanIuran::where('kat_iuran_id', $id)->exists();
+
+        if ($dipakai) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori digunakan di data iuran lain dan tidak dapat dihapus.'
+            ], 400);
+        }
+
+        $kategori->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori berhasil dihapus.'
+        ]);
+    }
+
+    /**
+     * Tambah data iuran
      */
     public function iuran_create(Request $request)
     {
@@ -56,7 +117,7 @@ class IuranApiController extends Controller
     }
 
     /**
-     * PATCH / PUT untuk update iuran
+     * Update data iuran
      */
     public function iuran_update(Request $request, $id)
     {
@@ -86,7 +147,7 @@ class IuranApiController extends Controller
     }
 
     /**
-     * DELETE iuran
+     * Hapus data iuran
      */
     public function iuran_delete($id)
     {
