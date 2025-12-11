@@ -1,9 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
 import { route } from "ziggy-js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -18,99 +17,82 @@ import axios from "axios";
 import AppLayout from "@/layouts/AppLayout";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
-export default function TambahKegiatan() {
+// Props 'kegiatan' akan null jika Tambah, dan ada isinya jika Edit
+export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
     const { notifySuccess, notifyError } = useNotify();
+    const isEdit = !!kegiatan; // Cek mode Edit
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return "";
+
+        return dateString.substring(0, 10);
+    };
+
     const { data, setData, reset } = useForm({
-        nm_keg: "",
-        tgl_mulai: "",
-        tgl_selesai: "",
-        kategori: "",
-        rincian: "",
-        pj_keg: "",
-        panitia: "",
-        dok_keg: null,
+        nm_keg: kegiatan?.nm_keg || "",
+        tgl_mulai: formatDateForInput(kegiatan?.tgl_mulai),
+        tgl_selesai: formatDateForInput(kegiatan?.tgl_selesai),
+        kat_keg_id: kegiatan?.kat_keg_id ? String(kegiatan.kat_keg_id) : "",
+        pj_keg: kegiatan?.pj_keg || "",
+        panitia: kegiatan?.panitia || "",
+        dok_keg: [], // File baru selalu kosong
     });
 
-    const [preview, setPreview] = useState(null);
+    const [previews, setPreviews] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef(null);
 
-    const kategoriList = [
-        "Administrasi",
-        "Kegiatan Sosial dan Pemberdayaan",
-        "Kebersihan dan Pembangunan Lingkungan",
-    ];
+    // Jika edit, mungkin kita ingin reset preview jika batal
+    useEffect(() => {
+        if (!isEdit) {
+            // Logic reset biasa
+        }
+    }, [isEdit]);
 
     const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData("dok_keg", file);
-            setPreview(URL.createObjectURL(file));
-        } else setPreview(null);
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            setData("dok_keg", files);
+            const newPreviews = files.map((file) => URL.createObjectURL(file));
+            setPreviews(newPreviews);
+        } else {
+            setPreviews([]);
+        }
     };
+
+    useEffect(() => {
+        return () => {
+            previews.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [previews]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // 🧩 Validasi user-friendly
+        // --- 1. Validasi Input Text ---
         if (!data.nm_keg.trim()) {
-            notifyError(
-                "Nama kegiatan kosong",
-                "Isi nama kegiatan terlebih dahulu."
-            );
+            notifyError("Error", "Nama kegiatan kosong");
             setIsLoading(false);
             return;
         }
         if (!data.tgl_mulai) {
-            notifyError(
-                "Tanggal mulai belum diisi",
-                "Pilih tanggal mulai kegiatan."
-            );
+            notifyError("Error", "Tanggal mulai belum diisi");
             setIsLoading(false);
             return;
         }
-        if (!data.tgl_selesai) {
-            notifyError(
-                "Tanggal selesai belum diisi",
-                "Pilih tanggal selesai kegiatan."
-            );
+        if (!data.kat_keg_id) {
+            notifyError("Error", "Kategori belum dipilih");
             setIsLoading(false);
             return;
         }
-        if (!data.kategori) {
+
+        // --- 2. Validasi Dokumen ---
+        // Mode Edit: Boleh kosong (artinya gambar lama dipertahankan)
+        // Mode Tambah: Wajib ada minimal 1 gambar
+        if (!isEdit && data.dok_keg.length === 0) {
             notifyError(
-                "Kategori belum dipilih",
-                "Pilih kategori kegiatan dari daftar."
-            );
-            setIsLoading(false);
-            return;
-        }
-        if (!data.rincian.trim()) {
-            notifyError(
-                "Rincian kosong",
-                "Tuliskan rincian kegiatan secara singkat."
-            );
-            setIsLoading(false);
-            return;
-        }
-        if (!data.pj_keg.trim()) {
-            notifyError(
-                "Penanggung jawab kosong",
-                "Isi nama penanggung jawab kegiatan."
-            );
-            setIsLoading(false);
-            return;
-        }
-        if (!data.panitia.trim()) {
-            notifyError("Panitia kosong", "Tuliskan siapa panitianya.");
-            setIsLoading(false);
-            return;
-        }
-        if (!data.dok_keg) {
-            notifyError(
-                "Dokumentasi belum diunggah",
-                "Unggah file dokumentasi kegiatan."
+                "Dokumentasi Kosong",
+                "Unggah minimal satu foto kegiatan."
             );
             setIsLoading(false);
             return;
@@ -120,43 +102,51 @@ export default function TambahKegiatan() {
         formData.append("nm_keg", data.nm_keg);
         formData.append("tgl_mulai", data.tgl_mulai);
         formData.append("tgl_selesai", data.tgl_selesai);
-        formData.append("kategori", data.kategori);
-        formData.append("rincian", data.rincian);
+        formData.append("kat_keg_id", data.kat_keg_id);
         formData.append("pj_keg", data.pj_keg);
         formData.append("panitia", data.panitia);
-        if (data.dok_keg) formData.append("dok_keg", data.dok_keg);
+
+        // --- 3. Handle File Upload (DIPERBAIKI) ---
+        // Baik Edit maupun Tambah, kita kirim sebagai array "dok_keg[]"
+        // agar Backend bisa melakukan looping (foreach).
+        if (data.dok_keg.length > 0) {
+            data.dok_keg.forEach((file) => {
+                formData.append("dok_keg[]", file); // Gunakan []
+            });
+        }
 
         try {
-            await axios.post(route("kegiatan.store"), formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            if (isEdit) {
+                // SPOOFING PUT METHOD (Wajib untuk FormData di Laravel)
+                formData.append("_method", "PUT");
 
-            notifySuccess("Berhasil", "Kegiatan berhasil disimpan!");
+                await axios.post(
+                    route("kegiatan.update", kegiatan.id),
+                    formData,
+                    {
+                        headers: { "Content-Type": "multipart/form-data" },
+                    }
+                );
+                notifySuccess("Berhasil", "Kegiatan berhasil diperbarui!");
+            } else {
+                await axios.post(route("kegiatan.store"), formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                notifySuccess("Berhasil", "Kegiatan berhasil disimpan!");
+            }
+
+            // Cleanup Form & Redirect
             reset();
-            setPreview(null);
+            setPreviews([]);
             if (fileInputRef.current) fileInputRef.current.value = null;
-            router.visit("/kegiatan");
+            router.visit(route("kegiatan.index")); // Kembali ke halaman list
         } catch (error) {
             console.error(error);
-            let pesan = "Terjadi kesalahan, coba beberapa saat lagi.";
+            let pesan = "Terjadi kesalahan.";
             if (error.response) {
-                switch (error.response.status) {
-                    case 422:
-                        pesan =
-                            "Periksa kembali data yang kamu isi, ada yang belum sesuai.";
-                        break;
-                    case 413:
-                        pesan = "Ukuran file terlalu besar (maksimal 2MB).";
-                        break;
-                    case 500:
-                        pesan =
-                            "Server sedang bermasalah. Coba beberapa saat lagi.";
-                        break;
-                    default:
-                        pesan = error.response.data?.message || pesan;
-                }
+                pesan = error.response.data?.message || pesan;
             }
-            notifyError("Gagal Menyimpan", pesan);
+            notifyError("Gagal", pesan);
         } finally {
             setIsLoading(false);
         }
@@ -165,17 +155,20 @@ export default function TambahKegiatan() {
     return (
         <AppLayout>
             <div className="w-full min-h-screen bg-white overflow-y-auto overflow-x-hidden pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
-                <h1 className="text-3xl font-bold mb-10">TAMBAH KEGIATAN</h1>
+                <h1 className="text-3xl font-bold mb-10">
+                    {isEdit ? "EDIT KEGIATAN" : "TAMBAH KEGIATAN"}
+                </h1>
 
                 <Breadcrumbs
                     items={[
                         { label: "Dashboard", href: route("dashboard") },
-                        { label: "Tambah Kegiatan" },
+                        { label: "Kegiatan", href: route("kegiatan.index") },
+                        { label: isEdit ? "Edit Kegiatan" : "Tambah Kegiatan" },
                     ]}
                 />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Nama & Tanggal */}
+                    {/* Form Input sama seperti sebelumnya, value diambil dari data.* */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <Label>
@@ -183,7 +176,6 @@ export default function TambahKegiatan() {
                                 <span className="text-red-500">*</span>
                             </Label>
                             <Input
-                                placeholder="Contoh: Rapat RT"
                                 value={data.nm_keg}
                                 onChange={(e) =>
                                     setData("nm_keg", e.target.value)
@@ -218,62 +210,46 @@ export default function TambahKegiatan() {
                         </div>
                     </div>
 
-                    {/* Kategori */}
                     <div className="space-y-2">
                         <Label>
                             Kategori <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                            onValueChange={(val) => setData("kategori", val)}
-                            value={data.kategori}
+                            onValueChange={(val) => setData("kat_keg_id", val)}
+                            value={data.kat_keg_id}
                         >
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Pilih kategori" />
                             </SelectTrigger>
                             <SelectContent>
-                                {kategoriList.map((kat) => (
-                                    <SelectItem key={kat} value={kat}>
-                                        {kat}
+                                {kategoris.map((kat) => (
+                                    <SelectItem
+                                        key={kat.id}
+                                        value={String(kat.id)}
+                                    >
+                                        {kat.nm_kat}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    {/* Rincian */}
-                    <div className="space-y-2">
-                        <Label>
-                            Rincian Kegiatan{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Textarea
-                            rows={4}
-                            placeholder="Tuliskan rincian kegiatan"
-                            value={data.rincian}
-                            onChange={(e) => setData("rincian", e.target.value)}
-                        />
-                    </div>
-
-                    {/* Penanggung Jawab */}
                     <div className="space-y-2">
                         <Label>
                             Penanggung Jawab{" "}
                             <span className="text-red-500">*</span>
                         </Label>
                         <Input
-                            placeholder="Contoh: Pengurus RT"
                             value={data.pj_keg}
                             onChange={(e) => setData("pj_keg", e.target.value)}
                         />
                     </div>
 
-                    {/* Panitia */}
                     <div className="space-y-2">
                         <Label>
                             Panitia <span className="text-red-500">*</span>
                         </Label>
                         <Input
-                            placeholder="Contoh: Karang Taruna"
                             value={data.panitia}
                             onChange={(e) => setData("panitia", e.target.value)}
                         />
@@ -282,23 +258,44 @@ export default function TambahKegiatan() {
                     {/* Dokumentasi */}
                     <div className="space-y-2">
                         <Label>
-                            Dokumentasi <span className="text-red-500">*</span>
+                            Dokumentasi{" "}
+                            {isEdit
+                                ? "(Upload untuk mengganti)"
+                                : "(Bisa banyak foto)"}
+                            {!isEdit && <span className="text-red-500">*</span>}
                         </Label>
+
+                        {/* Jika Edit, tampilkan info dokumen lama (opsional) */}
+                        {isEdit && kegiatan.dok_keg && (
+                            <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                                <strong>Info:</strong> Kegiatan ini sudah
+                                memiliki dokumen. Jika Anda mengupload file
+                                baru, dokumen lama akan terganti.
+                            </div>
+                        )}
+
                         <label
                             htmlFor="dok_keg"
-                            className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg py-10 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                            className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg py-10 cursor-pointer hover:bg-gray-50 transition-colors duration-200 min-h-[200px]"
                         >
-                            {preview ? (
-                                <img
-                                    src={preview}
-                                    alt="Preview"
-                                    className="max-h-64 object-contain mb-3"
-                                />
+                            {previews.length > 0 ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 w-full">
+                                    {previews.map((url, index) => (
+                                        <img
+                                            key={index}
+                                            src={url}
+                                            alt="Preview"
+                                            className="h-32 w-full object-cover rounded-md shadow-sm"
+                                        />
+                                    ))}
+                                </div>
                             ) : (
                                 <>
                                     <Upload className="w-6 h-6 mb-2 text-gray-500" />
                                     <span className="text-sm text-gray-500">
-                                        Klik atau seret gambar ke sini
+                                        {isEdit
+                                            ? "Klik untuk ganti gambar (Opsional)"
+                                            : "Klik atau seret gambar ke sini"}
                                     </span>
                                 </>
                             )}
@@ -306,23 +303,20 @@ export default function TambahKegiatan() {
                                 id="dok_keg"
                                 ref={fileInputRef}
                                 type="file"
-                                accept="image/*,application/pdf"
+                                multiple={true} // Backend update di controller Anda hanya support single file, jadi disable multiple saat edit
+                                accept="image/*"
                                 className="hidden"
                                 onChange={handleFileChange}
                             />
                         </label>
                     </div>
 
-                    {/* Tombol Aksi */}
                     <div className="flex justify-end gap-4 pt-2">
                         <Button
-                            type="reset"
-                            onClick={() => {
-                                reset();
-                                setPreview(null);
-                                if (fileInputRef.current)
-                                    fileInputRef.current.value = null;
-                            }}
+                            type="button"
+                            onClick={() =>
+                                router.visit(route("kegiatan.index"))
+                            }
                             className="bg-gray-500 hover:bg-gray-600 text-white"
                         >
                             Batal
@@ -332,7 +326,11 @@ export default function TambahKegiatan() {
                             disabled={isLoading}
                             className="bg-blue-500 hover:bg-blue-600 text-white"
                         >
-                            {isLoading ? "Menyimpan..." : "Tambah Kegiatan"}
+                            {isLoading
+                                ? "Menyimpan..."
+                                : isEdit
+                                ? "Update Kegiatan"
+                                : "Tambah Kegiatan"}
                         </Button>
                     </div>
                 </form>
