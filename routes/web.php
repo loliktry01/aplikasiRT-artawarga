@@ -17,6 +17,7 @@ use App\Http\Controllers\HargaIuranController;
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\TagihanBulananController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // --- API Documentation Password Protection ---
@@ -92,7 +93,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::patch('/tagihan-bulanan/{id}/approve', [TagihanBulananController::class, 'approve'])->name('tagihan.approve');
     Route::patch('/tagihan-bulanan/{id}/decline', [TagihanBulananController::class, 'decline'])->name('tagihan.decline');
     
-    Route::get('/tagihan-bulanan/index', [TagihanBulananController::class, 'index_rt'])->name('tagihan.rt.index');
+    Route::get('/tagihan-bulanan/monitoring', [TagihanBulananController::class, 'index_rt'])->name('tagihan.rt.index');
     Route::get('/tagihan-bulanan/{id}/edit', [TagihanBulananController::class, 'edit'])->name('tagihan.edit');
     Route::put('/tagihan-bulanan/{id}', [TagihanBulananController::class, 'update'])->name('tagihan.update');
     Route::delete('/tagihan-bulanan/{id}', [TagihanBulananController::class, 'destroy'])->name('tagihan.destroy');
