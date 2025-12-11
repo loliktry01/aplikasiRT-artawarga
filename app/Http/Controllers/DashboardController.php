@@ -57,8 +57,8 @@ class DashboardController extends Controller
                 ];
             });
 
-        // 3️⃣ AMBIL DATA IURAN MASUK (Tanpa Status Approved)
         $iuranMasuk = PemasukanIuran::query()
+            ->where('kat_iuran_id', '!=', 1)
             ->when($selectedDate, function ($query, $selectedDate) {
                 return $query->whereDate('tgl', $selectedDate);
             })

@@ -44,7 +44,7 @@ Route::middleware(['role.access'])->group(function () {
     // KATEGORI IURAN (TERPISAH ANTARA NAMA & HARGA)
     
     // A. Konfigurasi Harga (Menggunakan HargaIuranController)
-    Route::get('/kat-iuran', [HargaIuranController::class, 'index'])->name('kat_iuran.index'); 
+    Route::get('/tagihan-bulanan/tagihan-air-dan-sampah', [HargaIuranController::class, 'index'])->name('kat_iuran.index'); 
     Route::put('/kat-iuran/{harga_iuran}', [HargaIuranController::class, 'update'])->name('kat_iuran.update'); 
     
     // B. Master Nama Kategori (Menggunakan KategoriIuranController)

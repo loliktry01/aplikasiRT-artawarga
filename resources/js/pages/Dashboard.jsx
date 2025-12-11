@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { usePage, router } from "@inertiajs/react";
 import AppLayout from "@/layouts/AppLayout";
+import { Head, Link } from "@inertiajs/react";
 import {
     Table,
     TableBody,
@@ -18,11 +19,12 @@ import {
     Calculator,
     Clock,
     Database,
+    RotateCcw,
+    Plus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 import FinancialLineChart from "@/components/FinancialLineChart";
-
 import DownloadPdfBtn from "@/components/DownloadPdfBtn";
 
 export default function Dashboard() {
@@ -38,13 +40,17 @@ export default function Dashboard() {
     } = usePage().props;
     const userRole = auth?.user?.role_id;
 
+    // --- STATE CONFIG ---
     const [sortField, setSortField] = useState("tgl");
     const [sortOrder, setSortOrder] = useState("desc");
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedMonth, setSelectedMonth] = useState("");
     const [selectedYear, setSelectedYear] = useState("");
-
     const itemsPerPage = 8;
+
+    // --- HELPER FUNCTIONS ---
+    const formatRupiah = (val) =>
+        "Rp " + parseInt(val || 0).toLocaleString("id-ID");
 
     const toggleSort = (field) => {
         if (field === sortField) {
@@ -55,14 +61,10 @@ export default function Dashboard() {
         }
     };
 
-    const formatRupiah = (val) =>
-        "Rp " + parseInt(val || 0).toLocaleString("id-ID");
-
     const handleFilterChange = (month, year) => {
         setSelectedMonth(month);
         setSelectedYear(year);
 
-        // Update URL params agar state tersimpan saat refresh (opsional)
         router.get(
             route("dashboard"),
             { month, year },
@@ -70,8 +72,7 @@ export default function Dashboard() {
         );
     };
 
-    // --- LOGIKA FILTER UTAMA ---
-    // Menggabungkan filter Bulan & Tahun untuk data tabel dan chart
+    // --- LOGIKA FILTER & SORTING ---
     const filteredData = useMemo(() => {
         return transaksi.filter((t) => {
             const d = new Date(t.tgl);
@@ -85,7 +86,6 @@ export default function Dashboard() {
         });
     }, [transaksi, selectedMonth, selectedYear]);
 
-    // --- LOGIKA SORTING & PAGINATION ---
     const sortedData = useMemo(() => {
         return [...filteredData].sort((a, b) => {
             const valA = a[sortField];
@@ -100,16 +100,16 @@ export default function Dashboard() {
         });
     }, [filteredData, sortField, sortOrder]);
 
+    // --- PAGINATION ---
     const totalPages = Math.ceil(sortedData.length / itemsPerPage);
     const paginatedData = sortedData.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    // --- LOGIKA DATA CHART ---
+    // --- CHART DATA ---
     const chartData = useMemo(() => {
         const monthlyData = {};
-
         filteredData.forEach((t) => {
             const date = new Date(t.tgl);
             const key = `${date.getFullYear()}-${String(
@@ -137,13 +137,11 @@ export default function Dashboard() {
         });
 
         let saldo = 0;
-
         return Object.keys(monthlyData)
             .sort()
             .map((key) => {
                 const d = monthlyData[key];
                 saldo += d.pemasukan - d.pengeluaran;
-
                 return {
                     month: d.dateObj.toLocaleString("id-ID", {
                         month: "short",
@@ -156,86 +154,149 @@ export default function Dashboard() {
             });
     }, [filteredData]);
 
-    // --- PERSIAPAN TANGGAL UNTUK TOMBOL DOWNLOAD PDF ---
-    // Karena dropdown terpisah (Bulan/Tahun), kita gabung jadi format YYYY-MM-DD (tanggal 01)
-    // agar backend bisa membacanya sebagai tanggal valid.
-    const dateForPdf = useMemo(() => {
-        if (selectedYear && selectedMonth) {
-            return `${selectedYear}-${selectedMonth}-01`;
-        }
-        return "";
-    }, [selectedYear, selectedMonth]);
+    // --- COMPONENT: CARD ITEM (Untuk menyamakan style) ---
+    const InfoCard = ({
+        title,
+        value,
+        icon: Icon,
+        colorClass = "text-gray-600",
+    }) => (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center">
+                <div className="bg-gray-100 p-3 rounded-lg mr-4">
+                    <Icon className={`w-6 h-6 ${colorClass}`} />
+                </div>
+                <div>
+                    <p className="text-sm font-medium text-gray-600">{title}</p>
+                    <p className="font-bold text-gray-800 text-lg">{value}</p>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
-        <AppLayout>
-            {/* padding global kanan kiri */}
-            <div className="space-y-10">
-                {/* HEADER DASHBOARD */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full bg-white">
-                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
-                        <span className="font-bold text-gray-900 pr-5">
+        <AppLayout user={auth.user}>
+            <Head title="Dashboard" />
+
+            <div className="py-1">
+                <div className="w-full px-1">
+                    {/* --- HEADER & BUTTONS --- */}
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                             DASHBOARD
-                        </span>
-                    </h1>
+                        </h1>
 
-                    {userRole !== 5 && (
-                        <div className="flex gap-2 mt-4 md:mt-0">
-                            {/* {(userRole === 2 || userRole === 4) && (
-                                <Button
-                                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                                    onClick={() =>
-                                        router.visit("/dashboard/kegiatan")
-                                    }
-                                >
-                                    Tambah Kegiatan
-                                </Button>
-                            )} */}
+                        {/* Action Buttons */}
+                        {userRole !== 5 && (
+                            <div className="flex gap-3">
+                                {(userRole === 2 || userRole === 3) && (
+                                    <>
+                                        <Button
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                            onClick={() =>
+                                                router.visit(
+                                                    "/dashboard/pemasukan"
+                                                )
+                                            }
+                                        >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Tambah Pemasukan
+                                        </Button>
+                                        <Button
+                                            className="bg-red-600 hover:bg-red-700 text-white shadow-sm"
+                                            onClick={() =>
+                                                router.visit(
+                                                    "/dashboard/pengeluaran"
+                                                )
+                                            }
+                                        >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Tambah Pengeluaran
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-                            {(userRole === 2 || userRole === 3) && (
-                                <>
-                                    <Button
-                                        className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                                        onClick={() =>
-                                            router.visit("/dashboard/pemasukan")
-                                        }
-                                    >
-                                        Tambah Pemasukan
-                                    </Button>
-                                    <Button
-                                        className="bg-red-500 hover:bg-red-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                                        onClick={() =>
-                                            router.visit(
-                                                "/dashboard/pengeluaran"
-                                            )
-                                        }
-                                    >
-                                        Tambah Pengeluaran
-                                    </Button>
-                                    {/* <Button
-                                        className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
-                                        onClick={() =>
-                                            router.visit(
-                                                "/dashboard/pengumuman"
-                                            )
-                                        }
-                                    >
-                                        Tambah Pengumuman
-                                    </Button> */}
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
+                    {/* --- CARDS GRID --- */}
+                    <div
+                        className={`grid grid-cols-1 md:grid-cols-2 ${
+                            userRole === 1 ? "lg:grid-cols-4" : "lg:grid-cols-3"
+                        } gap-4 mb-8 w-full`}
+                    >
+                        {/* BAGIAN ADMIN (4 KARTU) */}
+                        {userRole === 1 && (
+                            <>
+                                <InfoCard
+                                    title="Total KK"
+                                    value={userTotal}
+                                    icon={Database}
+                                    colorClass="text-blue-600"
+                                />
+                                <InfoCard
+                                    title="Dana BOP"
+                                    value={formatRupiah(sisaBop)}
+                                    icon={Banknote}
+                                    colorClass="text-purple-600"
+                                />
+                                <InfoCard
+                                    title="Dana Iuran"
+                                    value={formatRupiah(sisaIuran)}
+                                    icon={Banknote}
+                                    colorClass="text-yellow-600"
+                                />
+                                <InfoCard
+                                    title="Total Saldo"
+                                    value={formatRupiah(sisaSaldo)}
+                                    icon={Calculator}
+                                    colorClass="text-green-600"
+                                />
+                            </>
+                        )}
 
-                {/* RINGKASAN */}
-                <div className="">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-semibold text-gray-800">
-                            RINGKASAN
-                        </h2>
+                        {/* BAGIAN USER LAIN (3 KARTU) */}
+                        {(userRole === 2 ||
+                            userRole === 3 ||
+                            userRole === 4 ||
+                            userRole === 5) && (
+                            <>
+                                <InfoCard
+                                    title="Total Pemasukan"
+                                    value={formatRupiah(saldoAwal)}
+                                    icon={Banknote}
+                                    colorClass="text-emerald-600"
+                                />
+                                <InfoCard
+                                    title="Total Pengeluaran"
+                                    value={formatRupiah(totalPengeluaran)}
+                                    icon={Clock}
+                                    colorClass="text-red-600"
+                                />
+                                <InfoCard
+                                    title="Saldo Sekarang"
+                                    value={formatRupiah(sisaSaldo)}
+                                    icon={Calculator}
+                                    colorClass="text-blue-600"
+                                />
+                            </>
+                        )}
+                    </div>
 
-                        <div className="flex items-center gap-2">
-                            {/* Dropdown Bulan */}
+                    {/* --- CHART SECTION --- */}
+                    <div>
+                        <FinancialLineChart data={chartData} />
+                    </div>
+
+                    {/* --- TABLE CONTAINER (IndexRT Style) --- */}
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 mt-8">
+                        {/* Filter Bar */}
+                        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-2 items-center justify-end bg-gray-50/50">
+                            <span className="text-sm text-gray-600 font-medium mr-1">
+                                Filter:
+                            </span>
+
+                            {/* Filter Bulan */}
                             <select
                                 value={selectedMonth}
                                 onChange={(e) =>
@@ -244,35 +305,23 @@ export default function Dashboard() {
                                         selectedYear
                                     )
                                 }
-                                className="border rounded-lg px-3 py-2 text-sm text-gray-700"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500 h-9"
                             >
-                                <option value="">Bulan</option>
-                                {[
-                                    "01",
-                                    "02",
-                                    "03",
-                                    "04",
-                                    "05",
-                                    "06",
-                                    "07",
-                                    "08",
-                                    "09",
-                                    "10",
-                                    "11",
-                                    "12",
-                                ].map((m, i) => (
-                                    <option key={m} value={m}>
+                                <option value="">Semua Bulan</option>
+                                {[...Array(12)].map((_, i) => (
+                                    <option
+                                        key={i}
+                                        value={String(i + 1).padStart(2, "0")}
+                                    >
                                         {new Date(0, i).toLocaleString(
                                             "id-ID",
-                                            {
-                                                month: "long",
-                                            }
+                                            { month: "long" }
                                         )}
                                     </option>
                                 ))}
                             </select>
 
-                            {/* Dropdown Tahun */}
+                            {/* Filter Tahun */}
                             <select
                                 value={selectedYear}
                                 onChange={(e) =>
@@ -281,10 +330,10 @@ export default function Dashboard() {
                                         e.target.value
                                     )
                                 }
-                                className="border rounded-lg px-3 py-2 text-sm text-gray-700"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500 h-9"
                             >
-                                <option value="">Tahun</option>
-                                {Array.from({ length: 6 }).map((_, i) => {
+                                <option value="">Semua Tahun</option>
+                                {[...Array(6)].map((_, i) => {
                                     const year = new Date().getFullYear() - i;
                                     return (
                                         <option key={year} value={year}>
@@ -294,10 +343,11 @@ export default function Dashboard() {
                                 })}
                             </select>
 
-                            {/* Tombol Reset */}
+                            {/* Reset Button */}
                             {(selectedMonth || selectedYear) && (
                                 <Button
                                     variant="outline"
+                                    size="sm"
                                     onClick={() => {
                                         setSelectedMonth("");
                                         setSelectedYear("");
@@ -310,311 +360,182 @@ export default function Dashboard() {
                                             }
                                         );
                                     }}
-                                    className="text-red-600 hover:text-red-800 text-xs font-medium px-2 border border-red-200 rounded bg-red-50 py-1.5 hover:bg-red-100 transition"
+                                    className="text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700 h-9"
                                 >
-                                    Reset
+                                    <RotateCcw className="w-3 h-3" />
                                 </Button>
                             )}
 
-                            {/* TOMBOL DOWNLOAD PDF (Ditempatkan di sini) */}
+                            {/* Download PDF */}
                             <DownloadPdfBtn
                                 month={selectedMonth}
                                 year={selectedYear}
                             />
                         </div>
-                    </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="flex flex-col md:flex-row gap-4 w-full">
-                            {userRole === 1 && (
-                                <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                    <div className="bg-gray-100 p-2 rounded-lg">
-                                        <Database className="w-5 h-5 text-gray-600" />
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-gray-500 font-medium">
-                                            Total KK
-                                        </p>
-                                        <p className="text-lg font-semibold text-gray-900">
-                                            {userTotal}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                            {userRole === 1 && (
-                                <>
-                                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                        <div className="bg-gray-100 p-2 rounded-lg">
-                                            <Banknote className="w-5 h-5 text-gray-600" />
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-medium">
-                                                Dana BOP Sekarang
-                                            </p>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {formatRupiah(sisaBop)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                        <div className="bg-gray-100 p-2 rounded-lg">
-                                            <Banknote className="w-5 h-5 text-gray-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-medium">
-                                                Dana Iuran Sekarang
-                                            </p>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {formatRupiah(sisaIuran)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                        <div className="bg-gray-100 p-2 rounded-lg">
-                                            <Calculator className="w-5 h-5 text-gray-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-medium">
-                                                Total Keseluruhan
-                                            </p>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {formatRupiah(sisaSaldo)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                            {(userRole === 2 ||
-                                userRole === 3 ||
-                                userRole === 4 ||
-                                userRole === 5) && (
-                                <>
-                                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                        <div className="bg-gray-100 p-2 rounded-lg">
-                                            <Banknote className="w-5 h-5 text-gray-600" />
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-medium">
-                                                Total Pemasukan
-                                            </p>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {formatRupiah(saldoAwal)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                        <div className="bg-gray-100 p-2 rounded-lg">
-                                            <Clock className="w-5 h-5 text-gray-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-medium">
-                                                Total Pengeluaran
-                                            </p>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {formatRupiah(totalPengeluaran)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                                        <div className="bg-gray-100 p-2 rounded-lg">
-                                            <Calculator className="w-5 h-5 text-gray-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-medium">
-                                                Saldo Sekarang
-                                            </p>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {formatRupiah(sisaSaldo)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* CHART KEJUTAN */}
-                <div className="mt-8 mb-8">
-                    <FinancialLineChart data={chartData} />
-                </div>
-                {/* AKHIR CHART KEJUTAN */}
-
-                {/* TABEL TRANSAKSI */}
-                <div className="pb-10">
-                    <div className="rounded-xl border overflow-hidden">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-white">
-                                    {[
-                                        {
-                                            key: "tgl",
-                                            label: "Tanggal Transaksi",
-                                        },
-                                        { key: "kategori", label: "Kategori" },
-                                        {
-                                            key: "jumlah_awal",
-                                            label: "Jumlah Awal",
-                                        },
-                                        {
-                                            key: "jumlah_pemasukan",
-                                            label: "Jumlah Pemasukan",
-                                        },
-                                        {
-                                            key: "jumlah_pengeluaran",
-                                            label: "Jumlah Pengeluaran",
-                                        },
-                                        {
-                                            key: "jumlah_sisa",
-                                            label: "Jumlah Sekarang",
-                                        },
-                                        { key: "status", label: "Status" },
-                                    ].map((col) => (
-                                        <TableHead
-                                            key={col.key}
-                                            onClick={() => toggleSort(col.key)}
-                                            className="font-semibold cursor-pointer select-none"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                {col.label}
-                                                <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-                                            </div>
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-
-                            <TableBody>
-                                {paginatedData.length ? (
-                                    paginatedData.map((t, i) => {
-                                        const nominal =
-                                            t.status === "Pemasukan"
-                                                ? t.jumlah_sisa - t.jumlah_awal
-                                                : t.jumlah_digunakan;
-
-                                        const jumlahPemasukan =
-                                            t.status === "Pemasukan"
-                                                ? formatRupiah(nominal)
-                                                : "–";
-
-                                        const jumlahPengeluaran =
-                                            t.status === "Pengeluaran"
-                                                ? formatRupiah(nominal)
-                                                : "–";
-
-                                        return (
-                                            <TableRow
-                                                key={i}
+                        {/* Table Content (Using Shadcn Table inside the container) */}
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
+                                        {[
+                                            { key: "tgl", label: "Tanggal" },
+                                            {
+                                                key: "kategori",
+                                                label: "Kategori",
+                                            },
+                                            {
+                                                key: "jumlah_awal",
+                                                label: "Saldo Awal",
+                                            },
+                                            {
+                                                key: "jumlah_pemasukan",
+                                                label: "Saldo Masuk",
+                                            },
+                                            {
+                                                key: "jumlah_pengeluaran",
+                                                label: "Saldo Keluar",
+                                            },
+                                            {
+                                                key: "jumlah_sisa",
+                                                label: "Saldo Akhir",
+                                            },
+                                            { key: "status", label: "Status" },
+                                        ].map((col) => (
+                                            <TableHead
+                                                key={col.key}
                                                 onClick={() =>
-                                                    router.visit(
-                                                        `/rincian/${t.id}`
-                                                    )
+                                                    toggleSort(col.key)
                                                 }
-                                                className="hover:bg-gray-100 cursor-pointer transition"
+                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none h-auto"
                                             >
-                                                <TableCell>{t.tgl}</TableCell>
-                                                <TableCell>
-                                                    {t.kategori}
-                                                </TableCell>
-
-                                                {/* Jumlah Awal */}
-                                                <TableCell>
-                                                    {formatRupiah(
-                                                        t.jumlah_awal
-                                                    )}
-                                                </TableCell>
-
-                                                {/* Jumlah Pemasukan */}
-                                                <TableCell className="font-medium text-emerald-700">
-                                                    {jumlahPemasukan}
-                                                </TableCell>
-
-                                                {/* Jumlah Pengeluaran */}
-                                                <TableCell className="font-medium text-red-700">
-                                                    {jumlahPengeluaran}
-                                                </TableCell>
-
-                                                {/* Jumlah Sekarang */}
-                                                <TableCell>
-                                                    {formatRupiah(
-                                                        t.jumlah_sisa
-                                                    )}
-                                                </TableCell>
-
-                                                {/* Status */}
-                                                <TableCell>
-                                                    {t.status ===
-                                                        "Pemasukan" && (
-                                                        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 font-medium">
-                                                            Pemasukan
-                                                        </Badge>
-                                                    )}
-                                                    {t.status ===
-                                                        "Pengeluaran" && (
-                                                        <Badge className="bg-red-50 text-red-700 hover:bg-red-50 font-medium">
-                                                            Pengeluaran
-                                                        </Badge>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={7}
-                                            className="text-center text-gray-500"
-                                        >
-                                            Tidak ada data transaksi
-                                        </TableCell>
+                                                <div className="flex items-center gap-1">
+                                                    {col.label}
+                                                    <ChevronsUpDown className="h-3 w-3 text-gray-400" />
+                                                </div>
+                                            </TableHead>
+                                        ))}
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                        {/* Pagination */}
-                        <div className="flex justify-end items-center gap-2 mt-6 px-2 pb-4">
-                            <Button
-                                variant="outline"
-                                disabled={currentPage === 1}
-                                onClick={() =>
-                                    setCurrentPage((p) => Math.max(p - 1, 1))
-                                }
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
+                                </TableHeader>
+                                <TableBody className="bg-white divide-y divide-gray-200">
+                                    {paginatedData.length ? (
+                                        paginatedData.map((t, i) => {
+                                            const nominal =
+                                                t.status === "Pemasukan"
+                                                    ? t.jumlah_sisa -
+                                                      t.jumlah_awal
+                                                    : t.jumlah_digunakan;
 
-                            {Array.from(
-                                { length: totalPages },
-                                (_, i) => i + 1
-                            ).map((num) => (
-                                <Button
-                                    key={num}
-                                    onClick={() => setCurrentPage(num)}
-                                    className={`${
-                                        num === currentPage
-                                            ? "bg-blue-500 text-white"
-                                            : "bg-white border text-blue-500"
-                                    } hover:bg-blue-300 transition`}
-                                >
-                                    {num}
-                                </Button>
-                            ))}
-
-                            <Button
-                                variant="outline"
-                                disabled={currentPage === totalPages}
-                                onClick={() =>
-                                    setCurrentPage((p) =>
-                                        Math.min(p + 1, totalPages)
-                                    )
-                                }
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+                                            return (
+                                                <TableRow
+                                                    key={i}
+                                                    onClick={() =>
+                                                        router.visit(
+                                                            `/rincian/${t.id}`
+                                                        )
+                                                    }
+                                                    className="hover:bg-gray-50 transition duration-150 cursor-pointer border-0"
+                                                >
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {t.tgl}
+                                                    </TableCell>
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {t.kategori}
+                                                    </TableCell>
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {formatRupiah(
+                                                            t.jumlah_awal
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
+                                                        {t.status ===
+                                                        "Pemasukan"
+                                                            ? formatRupiah(
+                                                                  nominal
+                                                              )
+                                                            : "–"}
+                                                    </TableCell>
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                                                        {t.status ===
+                                                        "Pengeluaran"
+                                                            ? formatRupiah(
+                                                                  nominal
+                                                              )
+                                                            : "–"}
+                                                    </TableCell>
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                                                        {formatRupiah(
+                                                            t.jumlah_sisa
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className={`
+                                                                ${
+                                                                    t.status ===
+                                                                    "Pemasukan"
+                                                                        ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                                                        : "bg-red-100 text-red-800 border-red-200"
+                                                                } border
+                                                            `}
+                                                        >
+                                                            {t.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={7}
+                                                className="px-6 py-8 text-center text-gray-500"
+                                            >
+                                                Tidak ada data transaksi.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
+
+                        {/* Pagination Controls (IndexRT Style) */}
+                        {filteredData.length > 0 && (
+                            <div className="flex justify-end items-center gap-2 px-6 py-4 bg-white border-t border-gray-200">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            Math.max(p - 1, 1)
+                                        )
+                                    }
+                                    disabled={currentPage === 1}
+                                    className="h-8 w-8"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </Button>
+
+                                <span className="text-sm text-gray-600">
+                                    Halaman {currentPage} dari {totalPages}
+                                </span>
+
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            Math.min(p + 1, totalPages)
+                                        )
+                                    }
+                                    disabled={currentPage === totalPages}
+                                    className="h-8 w-8"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

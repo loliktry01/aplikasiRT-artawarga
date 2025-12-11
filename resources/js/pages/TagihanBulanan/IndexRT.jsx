@@ -1,16 +1,20 @@
 import React, { useState, useMemo } from "react";
 import AppLayout from "../../Layouts/AppLayout";
 import { Head, Link, router } from "@inertiajs/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    ChevronLeft,
+    ChevronRight,
+    Pencil,
+    Trash2,
+    Plus,
+    Settings,
+    RotateCcw,
+} from "lucide-react";
 import Swal from "sweetalert2";
+// Pastikan path ini sesuai dengan lokasi komponen Button Shadcn Anda
+import { Button } from "@/components/ui/button";
 
-export default function IndexRT({
-    auth,
-    tagihan,
-    // totalDitagihkan, // Hapus atau abaikan props ini dari server
-    // totalLunas,      // Hapus atau abaikan props ini dari server
-    // totalJimpitan,   // Hapus atau abaikan props ini dari server
-}) {
+export default function IndexRT({ auth, tagihan }) {
     // --- 1. SETUP TANGGAL DEFAULT (HARI INI) ---
     const today = new Date();
     today.setMonth(today.getMonth() - 1);
@@ -31,9 +35,8 @@ export default function IndexRT({
             minimumFractionDigits: 0,
         }).format(number || 0);
 
-    // --- DELETE FUNCTION (Sama seperti sebelumnya) ---
+    // --- DELETE FUNCTION ---
     const handleDelete = (id, nama) => {
-        // ... (Kode delete tetap sama) ...
         Swal.fire({
             title: "Apakah Anda yakin?",
             text: `Tagihan milik ${nama} akan dihapus permanen.`,
@@ -56,7 +59,7 @@ export default function IndexRT({
         setSelectedYear("");
     };
 
-    // --- LOGIKA FILTER (Sama seperti sebelumnya) ---
+    // --- LOGIKA FILTER ---
     const filteredData = useMemo(() => {
         return tagihan.filter((item) => {
             const itemMonth = String(item.bulan).padStart(2, "0");
@@ -69,24 +72,20 @@ export default function IndexRT({
         });
     }, [tagihan, selectedMonth, selectedYear]);
 
-    // --- [BARU] LOGIKA KALKULASI TOTAL DINAMIS ---
-    // Menghitung total berdasarkan data yang sudah difilter
+    // --- LOGIKA KALKULASI TOTAL DINAMIS ---
     const dynamicTotals = useMemo(() => {
         let hitungDitagihkan = 0;
         let hitungLunas = 0;
         let hitungJimpitan = 0;
 
         filteredData.forEach((item) => {
-            // Konversi ke number untuk keamanan
             const nominal = Number(item.nominal) || 0;
             const jimpitan = Number(item.jimpitan_air) || 0;
 
-            // Logika Saldo Ditagihkan (Pending / Ditagihkan)
             if (["ditagihkan", "pending"].includes(item.status)) {
                 hitungDitagihkan += nominal;
             }
 
-            // Logika Saldo Lunas & Jimpitan (Approved)
             if (item.status === "approved") {
                 hitungLunas += nominal;
                 hitungJimpitan += jimpitan;
@@ -98,7 +97,7 @@ export default function IndexRT({
             lunas: hitungLunas,
             jimpitan: hitungJimpitan,
         };
-    }, [filteredData]); // Akan berjalan ulang setiap kali filter berubah
+    }, [filteredData]);
 
     // --- LOGIKA PAGINATION ---
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -111,7 +110,7 @@ export default function IndexRT({
         setCurrentPage(1);
     }, [selectedMonth, selectedYear]);
 
-    // --- WARNA STATUS (Sama) ---
+    // --- WARNA STATUS ---
     const getStatusBadgeClass = (status) => {
         switch (status) {
             case "approved":
@@ -139,23 +138,31 @@ export default function IndexRT({
                             MONITORING TAGIHAN BULANAN
                         </h1>
                         <div className="flex gap-3">
-                            {/* ... (Tombol Edit & Tambah sama) ... */}
-                            <Link
-                                href={route("kat_iuran.index")}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded-md transition shadow-sm font-medium"
+                            {/* Tombol Edit Tarif Air */}
+                            <Button
+                                asChild
+                                className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm"
                             >
-                                Edit Tarif Air
-                            </Link>
-                            <Link
-                                href={route("tagihan.create")}
-                                className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md transition shadow-sm font-medium flex items-center gap-2"
+                                <Link href={route("kat_iuran.index")}>
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Edit Tarif Air
+                                </Link>
+                            </Button>
+
+                            {/* Tombol Tambah Tagihan */}
+                            <Button
+                                asChild
+                                className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                             >
-                                Tambah Tagihan
-                            </Link>
+                                <Link href={route("tagihan.create")}>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Tambah Tagihan
+                                </Link>
+                            </Button>
                         </div>
                     </div>
 
-                    {/* --- CARDS SECTION (MENGGUNAKAN dynamicTotals) --- */}
+                    {/* --- CARDS SECTION --- */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                         {/* Card 1: Saldo Ditagihkan */}
                         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
@@ -180,7 +187,6 @@ export default function IndexRT({
                                         Saldo Ditagihkan
                                     </p>
                                     <p className="font-bold text-gray-800">
-                                        {/* Ubah di sini: */}
                                         {formatRupiah(dynamicTotals.ditagihkan)}
                                     </p>
                                 </div>
@@ -210,7 +216,6 @@ export default function IndexRT({
                                         Saldo Lunas
                                     </p>
                                     <p className=" font-bold text-gray-800">
-                                        {/* Ubah di sini: */}
                                         {formatRupiah(dynamicTotals.lunas)}
                                     </p>
                                 </div>
@@ -240,7 +245,6 @@ export default function IndexRT({
                                         Total Jimpitan
                                     </p>
                                     <p className="font-bold text-gray-800">
-                                        {/* Ubah di sini: */}
                                         {formatRupiah(dynamicTotals.jimpitan)}
                                     </p>
                                 </div>
@@ -248,13 +252,10 @@ export default function IndexRT({
                         </div>
                     </div>
 
-                    {/* ... (SISA KODE TABLE DAN PAGINATION SAMA PERSIS) ... */}
-                    {/* Pastikan menggunakan {paginatedData} di tabel */}
-
+                    {/* Table Container */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
                         {/* Filter Bar */}
                         <div className="p-4 border-b border-gray-100 flex flex-wrap gap-2 items-center justify-end bg-gray-50/50">
-                            {/* ... (Select Month & Year Logic Sama) ... */}
                             <span className="text-sm text-gray-600 font-medium mr-1">
                                 Filter:
                             </span>
@@ -263,7 +264,7 @@ export default function IndexRT({
                                 onChange={(e) =>
                                     setSelectedMonth(e.target.value)
                                 }
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500 h-9"
                             >
                                 <option value="">Semua Bulan</option>
                                 {[
@@ -293,7 +294,7 @@ export default function IndexRT({
                                 onChange={(e) =>
                                     setSelectedYear(e.target.value)
                                 }
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500 h-9"
                             >
                                 <option value="">Semua Tahun</option>
                                 {Array.from({ length: 5 }).map((_, i) => {
@@ -306,20 +307,22 @@ export default function IndexRT({
                                     );
                                 })}
                             </select>
+
                             {(selectedMonth || selectedYear) && (
-                                <button
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={handleReset}
-                                    className="text-red-600 hover:text-red-800 text-xs font-medium px-2 border border-red-200 rounded bg-red-50 py-1.5 hover:bg-red-100 transition"
+                                    className="text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700 h-9"
                                 >
-                                    Reset
-                                </button>
+                                    <RotateCcw className="w-3 h-3" />
+                                </Button>
                             )}
                         </div>
 
                         {/* Table */}
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                {/* ... (Thead dan Tbody menggunakan paginatedData, sama persis seperti kode awal Anda) ... */}
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -361,7 +364,6 @@ export default function IndexRT({
                                                 key={item.id}
                                                 className="hover:bg-gray-50 transition duration-150"
                                             >
-                                                {/* ... (Isi Row Table Anda sama persis) ... */}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {(currentPage - 1) *
                                                         itemsPerPage +
@@ -415,18 +417,32 @@ export default function IndexRT({
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    {/* Tombol Edit & Hapus */}
-                                                    <div className="flex justify-center items-center gap-3">
-                                                        <Link
-                                                            href={route(
-                                                                "tagihan.edit",
-                                                                item.id
-                                                            )}
-                                                            className="text-indigo-600 hover:text-indigo-900 font-medium hover:underline"
+                                                    {/* ACTION BUTTONS WITH ICONS */}
+                                                    <div className="flex justify-center items-center gap-2">
+                                                        {/* Tombol Edit (Icon Only) */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            asChild
+                                                            className="h-8 w-8 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50"
                                                         >
-                                                            Edit
-                                                        </Link>
-                                                        <button
+                                                            <Link
+                                                                href={route(
+                                                                    "tagihan.edit",
+                                                                    item.id
+                                                                )}
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                                <span className="sr-only">
+                                                                    Edit
+                                                                </span>
+                                                            </Link>
+                                                        </Button>
+
+                                                        {/* Tombol Hapus (Icon Only) */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
                                                             onClick={() =>
                                                                 handleDelete(
                                                                     item.id,
@@ -434,10 +450,13 @@ export default function IndexRT({
                                                                         ?.nm_lengkap
                                                                 )
                                                             }
-                                                            className="text-red-600 hover:text-red-900 font-medium hover:underline"
+                                                            className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
                                                         >
-                                                            Hapus
-                                                        </button>
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="sr-only">
+                                                                Hapus
+                                                            </span>
+                                                        </Button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -446,34 +465,41 @@ export default function IndexRT({
                                 </tbody>
                             </table>
                         </div>
-                        {/* Pagination Controls (Sama seperti sebelumnya) */}
+
+                        {/* Pagination Controls */}
                         {filteredData.length > 0 && (
                             <div className="flex justify-end items-center gap-2 px-6 py-4 bg-white border-t border-gray-200">
-                                <button
+                                <Button
+                                    variant="outline"
+                                    size="icon"
                                     onClick={() =>
                                         setCurrentPage((p) =>
                                             Math.max(p - 1, 1)
                                         )
                                     }
                                     disabled={currentPage === 1}
-                                    className="p-2 rounded-md border text-gray-600 border-gray-300 hover:bg-gray-50"
+                                    className="h-8 w-8"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
-                                </button>
+                                </Button>
+
                                 <span className="text-sm text-gray-600">
                                     Halaman {currentPage} dari {totalPages}
                                 </span>
-                                <button
+
+                                <Button
+                                    variant="outline"
+                                    size="icon"
                                     onClick={() =>
                                         setCurrentPage((p) =>
                                             Math.min(p + 1, totalPages)
                                         )
                                     }
                                     disabled={currentPage === totalPages}
-                                    className="p-2 rounded-md border text-gray-600 border-gray-300 hover:bg-gray-50"
+                                    className="h-8 w-8"
                                 >
                                     <ChevronRight className="w-4 h-4" />
-                                </button>
+                                </Button>
                             </div>
                         )}
                     </div>

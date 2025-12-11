@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import AppLayout from "../../Layouts/AppLayout";
 import { Head, router } from "@inertiajs/react";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
-// Import komponen UI Table
+// --- SHADCN IMPORTS ---
 import {
     Table,
     TableBody,
@@ -12,7 +13,6 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-// Import komponen Dialog (Modal) untuk popup bukti
 import {
     Dialog,
     DialogContent,
@@ -20,14 +20,28 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
-// Import Ikon
 import {
-    Clock,
-    CheckCircle,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+// --- ICONS ---
+import {
     Check,
     X,
-    ChevronsUpDown,
     Eye,
+    ChevronLeft,
+    ChevronRight,
+    Search,
+    RotateCcw,
+    Filter,
 } from "lucide-react";
 
 export default function IndexRT({
@@ -36,9 +50,85 @@ export default function IndexRT({
     totalDitagihkan,
     totalLunas,
 }) {
-    // State untuk mengontrol Modal Bukti Pembayaran
+    // --- STATE FILTERS & PAGINATION ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
+    // State Filter
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [filterBulan, setFilterBulan] = useState("all");
+    const [filterTahun, setFilterTahun] = useState("all");
+
+    // State Modal Bukti
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProofUrl, setSelectedProofUrl] = useState(null);
+
+    // --- HELPER NAMA BULAN ---
+    const getNamaBulan = (bulan) => {
+        const monthNames = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ];
+        const index = parseInt(bulan) - 1;
+        if (index >= 0 && index < 12) return monthNames[index];
+        return bulan;
+    };
+
+    // --- LOGIKA FILTERING (CLIENT SIDE) ---
+    const filteredData = useMemo(() => {
+        return tagihan.filter((item) => {
+            // 1. Filter Search (Nama Warga)
+            const matchSearch = item.user?.nm_lengkap
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase());
+
+            // 2. Filter Status
+            let matchStatus = true;
+            if (filterStatus !== "all") {
+                matchStatus = item.status === filterStatus;
+            }
+
+            // 3. Filter Bulan
+            let matchBulan = true;
+            if (filterBulan !== "all") {
+                matchBulan = item.bulan.toString() === filterBulan;
+            }
+
+            // 4. Filter Tahun
+            let matchTahun = true;
+            if (filterTahun !== "all") {
+                matchTahun = item.tahun.toString() === filterTahun;
+            }
+
+            return matchSearch && matchStatus && matchBulan && matchTahun;
+        });
+    }, [tagihan, searchQuery, filterStatus, filterBulan, filterTahun]);
+
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const paginatedData = filteredData.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Reset halaman ke 1 jika filter berubah
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterStatus, filterBulan, filterTahun]);
+
+    const uniqueYears = [...new Set(tagihan.map((item) => item.tahun))].sort(
+        (a, b) => b - a
+    );
 
     const formatRupiah = (number) =>
         new Intl.NumberFormat("id-ID", {
@@ -47,230 +137,454 @@ export default function IndexRT({
             minimumFractionDigits: 0,
         }).format(number || 0);
 
-    // --- FUNGSI AKSI (TANPA CONFIRM ALERT) ---
+    // --- ACTION HANDLERS WITH SWEETALERT2 ---
+
     const handleApprove = (id) => {
-        // Langsung eksekusi patch
-        router.patch(route("tagihan.approve", id));
+        Swal.fire({
+            title: "Setujui Tagihan?",
+            text: "Tagihan akan ditandai sebagai lunas.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#16a34a", // Green-600
+            cancelButtonColor: "#6b7280", // Gray-500
+            confirmButtonText: "Ya, Setujui!",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.patch(
+                    route("tagihan.approve", id),
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: "Berhasil!",
+                                text: "Tagihan berhasil disetujui.",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false,
+                            });
+                        },
+                    }
+                );
+            }
+        });
     };
 
     const handleDecline = (id) => {
-        // Langsung eksekusi patch
-        router.patch(route("tagihan.decline", id));
+        Swal.fire({
+            title: "Tolak Tagihan?",
+            text: "Status tagihan akan kembali menjadi belum bayar.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc2626", // Red-600
+            cancelButtonColor: "#6b7280", // Gray-500
+            confirmButtonText: "Ya, Tolak!",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.patch(
+                    route("tagihan.decline", id),
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: "Ditolak!",
+                                text: "Tagihan berhasil ditolak.",
+                                icon: "success", // Atau 'info'
+                                timer: 1500,
+                                showConfirmButton: false,
+                            });
+                        },
+                    }
+                );
+            }
+        });
     };
 
-    // Fungsi untuk membuka modal bukti
     const handleViewProof = (url) => {
         setSelectedProofUrl(url);
         setIsModalOpen(true);
     };
 
+    const handleResetFilter = () => {
+        setSearchQuery("");
+        setFilterStatus("all");
+        setFilterBulan("all");
+        setFilterTahun("all");
+    };
+
     return (
         <AppLayout>
-            <Head title="Manajemen Tagihan" />
+            <Head title="Approval Tagihan" />
 
-            <div className="space-y-8">
+            <div className="space-y-6">
                 {/* --- HEADER --- */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full bg-white">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Manajemen Tagihan (RT)
+                        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
+                            <span className="font-bold text-gray-900 pr-5">
+                                APPROVAL
+                            </span>
                         </h1>
-                        <p className="text-gray-500 text-sm mt-1">
-                            Monitor pembayaran dan verifikasi bukti transfer
-                            warga.
-                        </p>
                     </div>
                 </div>
 
-                {/* --- CARD STATISTIK --- */}
-                <div className="flex flex-col md:flex-row gap-4 w-full">
-                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3 ">
-                        <div className="bg-yellow-50 p-3 rounded-lg">
-                            <Clock className="w-6 h-6 text-yellow-600" />
-                        </div>
-                        <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-                                Ditagihkan (Pending)
-                            </p>
-                            <p className="text-xl font-bold text-gray-900 mt-0.5">
-                                {formatRupiah(totalDitagihkan)}
-                            </p>
-                        </div>
+                {/* --- TOOLBAR FILTER & SEARCH --- */}
+                <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+                    {/* Search Bar */}
+                    <div className="relative w-full md:w-1/3">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                            placeholder="Cari nama warga..."
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
 
-                    <div className="flex-1 bg-white border rounded-xl p-4 flex items-center gap-3">
-                        <div className="bg-green-50 p-3 rounded-lg">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-                                Saldo Lunas
-                            </p>
-                            <p className="text-xl font-bold text-gray-900 mt-0.5">
-                                {formatRupiah(totalLunas)}
-                            </p>
-                        </div>
+                    {/* Filters Group */}
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto items-center">
+                        {/* Filter Status */}
+                        <Select
+                            value={filterStatus}
+                            onValueChange={setFilterStatus}
+                        >
+                            <SelectTrigger className="w-full md:w-[180px]">
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Semua Status
+                                </SelectItem>
+                                <SelectItem value="pending">
+                                    Menunggu Konfirmasi
+                                </SelectItem>
+                                <SelectItem value="approved">
+                                    Disetujui
+                                </SelectItem>
+                                <SelectItem value="ditagihkan">
+                                    Belum Bayar / Ditolak
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {/* Filter Bulan */}
+                        <Select
+                            value={filterBulan}
+                            onValueChange={setFilterBulan}
+                        >
+                            <SelectTrigger className="w-full md:w-[140px]">
+                                <SelectValue placeholder="Bulan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Bulan</SelectItem>
+                                {Array.from(
+                                    { length: 12 },
+                                    (_, i) => i + 1
+                                ).map((bln) => (
+                                    <SelectItem
+                                        key={bln}
+                                        value={bln.toString()}
+                                    >
+                                        {getNamaBulan(bln)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {/* Filter Tahun */}
+                        <Select
+                            value={filterTahun}
+                            onValueChange={setFilterTahun}
+                        >
+                            <SelectTrigger className="w-full md:w-[120px]">
+                                <SelectValue placeholder="Tahun" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Tahun</SelectItem>
+                                {uniqueYears.map((thn) => (
+                                    <SelectItem
+                                        key={thn}
+                                        value={thn.toString()}
+                                    >
+                                        {thn}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {/* Reset Button */}
+                        {(searchQuery ||
+                            filterStatus !== "all" ||
+                            filterBulan !== "all" ||
+                            filterTahun !== "all") && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleResetFilter}
+                                className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 shrink-0"
+                                title="Reset Filter"
+                            >
+                                <RotateCcw className="h-4 w-4" />
+                            </Button>
+                        )}
                     </div>
                 </div>
 
                 {/* --- TABEL TAGIHAN --- */}
-                <div className="rounded-xl border bg-white overflow-hidden ">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-white border-b hover:bg-white">
-                                <TableHead className="py-4 px-6 font-semibold text-gray-900">
-                                    <div className="flex items-center gap-2 cursor-pointer hover:text-gray-600">
+                <div className="pb-10">
+                    <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                                    <TableHead className="py-4 px-6 font-semibold text-gray-900 w-[200px]">
                                         Warga
-                                        <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                </TableHead>
-                                <TableHead className="py-4 px-6 font-semibold text-gray-900">
-                                    Periode
-                                </TableHead>
-                                <TableHead className="py-4 px-6 font-semibold text-gray-900">
-                                    Meteran
-                                </TableHead>
-                                <TableHead className="py-4 px-6 font-semibold text-gray-900">
-                                    Nominal
-                                </TableHead>
-                                <TableHead className="py-4 px-6 font-semibold text-gray-900">
-                                    Bukti
-                                </TableHead>
-                                <TableHead className="py-4 px-6 font-semibold text-gray-900 text-center">
-                                    Aksi / Status
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
+                                    </TableHead>
+                                    <TableHead className="py-4 px-6 font-semibold text-gray-900">
+                                        Periode
+                                    </TableHead>
+                                    <TableHead className="py-4 px-6 font-semibold text-gray-900">
+                                        Meteran (m³)
+                                    </TableHead>
+                                    <TableHead className="py-4 px-6 font-semibold text-gray-900">
+                                        Nominal
+                                    </TableHead>
+                                    <TableHead className="py-4 px-6 font-semibold text-gray-900 text-center">
+                                        Bukti
+                                    </TableHead>
+                                    <TableHead className="py-4 px-6 font-semibold text-gray-900 text-center">
+                                        Status / Aksi
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
 
-                        <TableBody>
-                            {tagihan.length > 0 ? (
-                                tagihan.map((item) => (
-                                    <TableRow
-                                        key={item.id}
-                                        className="hover:bg-gray-50 transition-colors border-b last:border-0"
-                                    >
-                                        <TableCell className="px-6 py-4 align-middle">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {item.user?.nm_lengkap}
-                                            </div>
-                                            <div className="text-xs text-gray-500 mt-0.5">
-                                                {item.user?.alamat}
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="px-6 py-4 align-middle">
-                                            <span className="text-sm text-gray-600">
-                                                {item.bulan} {item.tahun}
-                                            </span>
-                                        </TableCell>
-
-                                        <TableCell className="px-6 py-4 align-middle">
-                                            <div className="flex flex-col text-sm">
-                                                <span className="text-gray-500 text-xs">
-                                                    Lalu: {item.mtr_bln_lalu}
-                                                </span>
-                                                <span
-                                                    className={
-                                                        item.mtr_skrg
-                                                            ? "font-medium text-gray-900"
-                                                            : "text-gray-400 italic"
-                                                    }
-                                                >
-                                                    Skrg: {item.mtr_skrg || "-"}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="px-6 py-4 align-middle">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {item.nominal
-                                                    ? formatRupiah(item.nominal)
-                                                    : "-"}
-                                            </div>
-                                            {item.harga_sampah > 0 && (
-                                                <div className="text-[10px] text-green-600">
-                                                    +Sampah
+                            <TableBody>
+                                {paginatedData.length > 0 ? (
+                                    paginatedData.map((item) => (
+                                        <TableRow
+                                            key={item.id}
+                                            className="hover:bg-gray-50 transition-colors"
+                                        >
+                                            {/* Kolom Warga */}
+                                            <TableCell className="px-6 py-4 align-middle">
+                                                <div className="text-sm font-bold text-gray-900">
+                                                    {item.user?.nm_lengkap}
                                                 </div>
-                                            )}
-                                        </TableCell>
-
-                                        {/* --- KOLOM BUKTI (POPUP) --- */}
-                                        <TableCell className="px-6 py-4 align-middle">
-                                            {item.bkt_byr ? (
-                                                <button
-                                                    onClick={() =>
-                                                        handleViewProof(
-                                                            `/storage/${item.bkt_byr}`
-                                                        )
-                                                    }
-                                                    className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:underline transition-colors focus:outline-none"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    <span className="text-sm font-medium">
-                                                        Lihat
+                                                <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                                    <span className="bg-gray-100 px-1.5 py-0.5 rounded">
+                                                        {item.user?.alamat ||
+                                                            "Tanpa Alamat"}
                                                     </span>
-                                                </button>
-                                            ) : (
-                                                <span className="text-gray-400 text-sm">
-                                                    -
-                                                </span>
-                                            )}
-                                        </TableCell>
-
-                                        {/* --- KOLOM AKSI / STATUS --- */}
-                                        <TableCell className="px-6 py-4 align-middle text-center">
-                                            {item.status === "pending" ? (
-                                                <div className="flex items-center justify-center gap-3">
-                                                    {/* Tombol Tolak (Merah Muda) */}
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDecline(
-                                                                item.id
-                                                            )
-                                                        }
-                                                        className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                                                        title="Tolak"
-                                                    >
-                                                        <X className="w-5 h-5" />
-                                                    </button>
-
-                                                    {/* Tombol Terima (Hijau Muda) */}
-                                                    <button
-                                                        onClick={() =>
-                                                            handleApprove(
-                                                                item.id
-                                                            )
-                                                        }
-                                                        className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
-                                                        title="Terima"
-                                                    >
-                                                        <Check className="w-5 h-5" />
-                                                    </button>
                                                 </div>
-                                            ) : item.status === "approved" ? (
-                                                <span className="inline-block px-4 py-2 rounded-md bg-green-50 text-green-700 font-medium text-sm">
-                                                    Disetujui
-                                                </span>
-                                            ) : (
-                                                <span className="inline-block px-4 py-2 rounded-md bg-red-50 text-red-700 font-medium text-sm">
-                                                    Ditolak
-                                                </span>
-                                            )}
+                                            </TableCell>
+
+                                            {/* Kolom Periode */}
+                                            <TableCell className="px-6 py-4 align-middle">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        {getNamaBulan(
+                                                            item.bulan
+                                                        )}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        {item.tahun}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+
+                                            {/* Kolom Meteran */}
+                                            <TableCell className="px-6 py-4 align-middle">
+                                                <div className="flex flex-col text-sm gap-1">
+                                                    <div className="flex justify-between w-24 text-gray-500 text-xs">
+                                                        <span>Lalu:</span>
+                                                        <span>
+                                                            {item.mtr_bln_lalu}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        className={`flex justify-between w-24 ${
+                                                            item.mtr_skrg
+                                                                ? "font-semibold text-gray-900"
+                                                                : "text-gray-400 italic"
+                                                        }`}
+                                                    >
+                                                        <span>Skrg:</span>
+                                                        <span>
+                                                            {item.mtr_skrg ||
+                                                                "-"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+
+                                            {/* Kolom Nominal */}
+                                            <TableCell className="px-6 py-4 align-middle">
+                                                <div className="text-sm font-bold text-gray-900">
+                                                    {item.nominal
+                                                        ? formatRupiah(
+                                                              item.nominal
+                                                          )
+                                                        : "-"}
+                                                </div>
+                                                {item.harga_sampah > 0 && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="text-[10px] mt-1 border-green-200 text-green-700 bg-green-50"
+                                                    >
+                                                        +Sampah
+                                                    </Badge>
+                                                )}
+                                            </TableCell>
+
+                                            {/* Kolom Bukti */}
+                                            <TableCell className="px-6 py-4 align-middle text-center">
+                                                {item.bkt_byr ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            handleViewProof(
+                                                                `/storage/${item.bkt_byr}`
+                                                            )
+                                                        }
+                                                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5 mr-1.5" />
+                                                        Lihat
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs italic">
+                                                        Belum upload
+                                                    </span>
+                                                )}
+                                            </TableCell>
+
+                                            {/* Kolom Aksi */}
+                                            <TableCell className="px-6 py-4 align-middle text-center">
+                                                {item.status === "pending" ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="outline"
+                                                            className="h-8 w-8 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                                            onClick={() =>
+                                                                handleDecline(
+                                                                    item.id
+                                                                )
+                                                            }
+                                                            title="Tolak"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button
+                                                            size="icon"
+                                                            className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white border-green-600"
+                                                            onClick={() =>
+                                                                handleApprove(
+                                                                    item.id
+                                                                )
+                                                            }
+                                                            title="Setujui"
+                                                        >
+                                                            <Check className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                ) : item.status ===
+                                                  "approved" ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="bg-green-50 text-green-700 border-green-200 gap-1 pr-3"
+                                                    >
+                                                        <Check className="w-3 h-3" />{" "}
+                                                        Disetujui
+                                                    </Badge>
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="bg-gray-100 text-gray-600 border-gray-200"
+                                                        >
+                                                            {item.status ===
+                                                            "ditagihkan"
+                                                                ? "Belum Bayar"
+                                                                : "Ditolak"}
+                                                        </Badge>
+                                                        {item.status ===
+                                                            "ditagihkan" &&
+                                                            item.bkt_byr && (
+                                                                <span className="text-[10px] text-red-500">
+                                                                    (Bukti
+                                                                    ditolak)
+                                                                </span>
+                                                            )}
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={6}
+                                            className="h-48 text-center"
+                                        >
+                                            <div className="flex flex-col items-center justify-center text-gray-500">
+                                                <Filter className="w-10 h-10 text-gray-300 mb-2" />
+                                                <p className="font-medium">
+                                                    Tidak ada data ditemukan
+                                                </p>
+                                                <p className="text-xs mt-1">
+                                                    Coba ubah filter atau kata
+                                                    kunci pencarian Anda.
+                                                </p>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={6}
-                                        className="h-24 text-center text-gray-500 text-sm"
-                                    >
-                                        Tidak ada data yang ditemukan.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* --- PAGINATION CONTROLS (SHADCN) --- */}
+                    <div className="flex flex-col md:flex-row justify-between items-center mt-4 text-sm text-gray-500">
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-2 mt-2 md:mt-0 ml-auto">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={currentPage === 1}
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            Math.max(p - 1, 1)
+                                        )
+                                    }
+                                    className="h-8 w-8"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+
+                                <span className="text-xs mx-2">
+                                    Hal {currentPage} dari {totalPages}
+                                </span>
+
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={currentPage === totalPages}
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            Math.min(p + 1, totalPages)
+                                        )
+                                    }
+                                    className="h-8 w-8"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -280,18 +594,26 @@ export default function IndexRT({
                     <DialogHeader>
                         <DialogTitle>Bukti Pembayaran</DialogTitle>
                     </DialogHeader>
-                    <div className="flex items-center justify-center p-2">
+                    <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg border border-dashed">
                         {selectedProofUrl ? (
                             <img
                                 src={selectedProofUrl}
                                 alt="Bukti Transfer"
-                                className="rounded-lg max-h-[500px] w-auto object-contain"
+                                className="rounded-md max-h-[500px] w-auto object-contain shadow-sm"
                             />
                         ) : (
-                            <p className="text-gray-500">
+                            <p className="text-gray-500 italic">
                                 Gambar tidak ditemukan.
                             </p>
                         )}
+                    </div>
+                    <div className="flex justify-end mt-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            Tutup
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
