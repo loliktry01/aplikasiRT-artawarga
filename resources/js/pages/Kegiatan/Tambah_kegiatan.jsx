@@ -17,13 +17,12 @@ import axios from "axios";
 import AppLayout from "@/layouts/AppLayout";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
-// Props 'kegiatan' akan null jika Tambah, dan ada isinya jika Edit
 export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
     const { notifySuccess, notifyError } = useNotify();
-    const isEdit = !!kegiatan; // Cek mode Edit
+    const isEdit = !!kegiatan;
+
     const formatDateForInput = (dateString) => {
         if (!dateString) return "";
-
         return dateString.substring(0, 10);
     };
 
@@ -34,17 +33,20 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
         kat_keg_id: kegiatan?.kat_keg_id ? String(kegiatan.kat_keg_id) : "",
         pj_keg: kegiatan?.pj_keg || "",
         panitia: kegiatan?.panitia || "",
-        dok_keg: [], // File baru selalu kosong
+        dok_keg: [],
     });
 
     const [previews, setPreviews] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Jika edit, mungkin kita ingin reset preview jika batal
+    // --- LOGIKA VALIDASI TANGGAL ---
+    const isDateInvalid =
+        data.tgl_mulai && data.tgl_selesai && data.tgl_selesai < data.tgl_mulai;
+
     useEffect(() => {
         if (!isEdit) {
-            // Logic reset biasa
+            // Logic reset jika perlu
         }
     }, [isEdit]);
 
@@ -69,31 +71,41 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
         e.preventDefault();
         setIsLoading(true);
 
-        // --- 1. Validasi Input Text ---
         if (!data.nm_keg.trim()) {
-            notifyError("Error", "Nama kegiatan kosong");
-            setIsLoading(false);
-            return;
-        }
-        if (!data.tgl_mulai) {
-            notifyError("Error", "Tanggal mulai belum diisi");
-            setIsLoading(false);
-            return;
-        }
-        if (!data.kat_keg_id) {
-            notifyError("Error", "Kategori belum dipilih");
+            notifyError("Nama kegiatan tidak boleh kosong.");
             setIsLoading(false);
             return;
         }
 
-        // --- 2. Validasi Dokumen ---
-        // Mode Edit: Boleh kosong (artinya gambar lama dipertahankan)
-        // Mode Tambah: Wajib ada minimal 1 gambar
-        if (!isEdit && data.dok_keg.length === 0) {
+        if (!data.tgl_mulai) {
+            notifyError("Tanggal mulai belum diisi.");
+            setIsLoading(false);
+            return;
+        }
+
+        if (isDateInvalid) {
             notifyError(
-                "Dokumentasi Kosong",
-                "Unggah minimal satu foto kegiatan."
+                "Tanggal Invalid",
+                "Tanggal selesai tidak boleh sebelum tanggal mulai."
             );
+            setIsLoading(false);
+            return;
+        }
+
+        if (!data.kat_keg_id) {
+            notifyError("Kategori belum dipilih.");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!data.pj_keg.trim()) {
+            notifyError("Penanggung Jawab belum diisi.");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!data.panitia.trim()) {
+            notifyError("Panitia belum diisi.");
             setIsLoading(false);
             return;
         }
@@ -106,26 +118,19 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
         formData.append("pj_keg", data.pj_keg);
         formData.append("panitia", data.panitia);
 
-        // --- 3. Handle File Upload (DIPERBAIKI) ---
-        // Baik Edit maupun Tambah, kita kirim sebagai array "dok_keg[]"
-        // agar Backend bisa melakukan looping (foreach).
         if (data.dok_keg.length > 0) {
             data.dok_keg.forEach((file) => {
-                formData.append("dok_keg[]", file); // Gunakan []
+                formData.append("dok_keg[]", file);
             });
         }
 
         try {
             if (isEdit) {
-                // SPOOFING PUT METHOD (Wajib untuk FormData di Laravel)
                 formData.append("_method", "PUT");
-
                 await axios.post(
                     route("kegiatan.update", kegiatan.id),
                     formData,
-                    {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    }
+                    { headers: { "Content-Type": "multipart/form-data" } }
                 );
                 notifySuccess("Berhasil", "Kegiatan berhasil diperbarui!");
             } else {
@@ -135,14 +140,13 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                 notifySuccess("Berhasil", "Kegiatan berhasil disimpan!");
             }
 
-            // Cleanup Form & Redirect
             reset();
             setPreviews([]);
             if (fileInputRef.current) fileInputRef.current.value = null;
-            router.visit(route("kegiatan.index")); // Kembali ke halaman list
+            router.visit(route("kegiatan.index"));
         } catch (error) {
             console.error(error);
-            let pesan = "Terjadi kesalahan.";
+            let pesan = "Terjadi kesalahan saat menyimpan data.";
             if (error.response) {
                 pesan = error.response.data?.message || pesan;
             }
@@ -161,14 +165,12 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
 
                 <Breadcrumbs
                     items={[
-                        { label: "Dashboard", href: route("dashboard") },
                         { label: "Kegiatan", href: route("kegiatan.index") },
                         { label: isEdit ? "Edit Kegiatan" : "Tambah Kegiatan" },
                     ]}
                 />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Form Input sama seperti sebelumnya, value diambil dari data.* */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <Label>
@@ -176,6 +178,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                                 <span className="text-red-500">*</span>
                             </Label>
                             <Input
+                                placeholder="Masukkan nama kegiatan"
                                 value={data.nm_keg}
                                 onChange={(e) =>
                                     setData("nm_keg", e.target.value)
@@ -203,10 +206,22 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                             <Input
                                 type="date"
                                 value={data.tgl_selesai}
+                                min={data.tgl_mulai}
+                                className={
+                                    isDateInvalid
+                                        ? "border-red-500 focus-visible:ring-red-500"
+                                        : ""
+                                }
                                 onChange={(e) =>
                                     setData("tgl_selesai", e.target.value)
                                 }
                             />
+                            {isDateInvalid && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    Tanggal selesai tidak boleh mendahului
+                                    tanggal mulai.
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -216,7 +231,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                         </Label>
                         <Select
                             onValueChange={(val) => setData("kat_keg_id", val)}
-                            value={data.kat_keg_id}
+                            value={data.kat_keg_id || undefined}
                         >
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Pilih kategori" />
@@ -240,6 +255,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                             <span className="text-red-500">*</span>
                         </Label>
                         <Input
+                            placeholder="Nama Penanggung Jawab"
                             value={data.pj_keg}
                             onChange={(e) => setData("pj_keg", e.target.value)}
                         />
@@ -250,22 +266,15 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                             Panitia <span className="text-red-500">*</span>
                         </Label>
                         <Input
+                            placeholder="Nama Panitia"
                             value={data.panitia}
                             onChange={(e) => setData("panitia", e.target.value)}
                         />
                     </div>
 
-                    {/* Dokumentasi */}
                     <div className="space-y-2">
-                        <Label>
-                            Dokumentasi{" "}
-                            {isEdit
-                                ? "(Upload untuk mengganti)"
-                                : "(Bisa banyak foto)"}
-                            {!isEdit && <span className="text-red-500">*</span>}
-                        </Label>
+                        <Label>Dokumentasi (Opsional)</Label>
 
-                        {/* Jika Edit, tampilkan info dokumen lama (opsional) */}
                         {isEdit && kegiatan.dok_keg && (
                             <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
                                 <strong>Info:</strong> Kegiatan ini sudah
@@ -279,13 +288,15 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                             className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg py-10 cursor-pointer hover:bg-gray-50 transition-colors duration-200 min-h-[200px]"
                         >
                             {previews.length > 0 ? (
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 w-full">
+                                /* PERUBAHAN DI SINI: Menggunakan Flexbox & justify-center */
+                                <div className="flex flex-wrap justify-center gap-4 px-4 w-full">
                                     {previews.map((url, index) => (
                                         <img
                                             key={index}
                                             src={url}
                                             alt="Preview"
-                                            className="h-32 w-full object-cover rounded-md shadow-sm"
+                                            /* Gunakan w-40 atau w-48 agar ukuran konsisten & tidak melebar sendiri */
+                                            className="h-32 w-40 md:w-48 object-cover rounded-md shadow-sm"
                                         />
                                     ))}
                                 </div>
@@ -295,7 +306,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                                     <span className="text-sm text-gray-500">
                                         {isEdit
                                             ? "Klik untuk ganti gambar (Opsional)"
-                                            : "Klik atau seret gambar ke sini"}
+                                            : "Klik atau seret gambar ke sini (Opsional)"}
                                     </span>
                                 </>
                             )}
@@ -303,7 +314,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                                 id="dok_keg"
                                 ref={fileInputRef}
                                 type="file"
-                                multiple={true} // Backend update di controller Anda hanya support single file, jadi disable multiple saat edit
+                                multiple={true}
                                 accept="image/*"
                                 className="hidden"
                                 onChange={handleFileChange}
@@ -323,8 +334,12 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isLoading}
-                            className="bg-blue-500 hover:bg-blue-600 text-white"
+                            disabled={isLoading || isDateInvalid}
+                            className={`text-white ${
+                                isDateInvalid
+                                    ? "bg-red-400 cursor-not-allowed hover:bg-red-400"
+                                    : "bg-blue-500 hover:bg-blue-600"
+                            }`}
                         >
                             {isLoading
                                 ? "Menyimpan..."
