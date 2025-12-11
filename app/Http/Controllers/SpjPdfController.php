@@ -6,119 +6,189 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-
 use App\Models\Kegiatan; 
-use App\Models\Pengeluaran; 
+use App\Models\Pengeluaran;
+use App\Models\PemasukanBOP; 
+use App\Models\PemasukanIuran; 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http; 
+use Illuminate\Support\Facades\Storage;
 
 class SpjPdfController extends Controller
 {
-    private function imageToBase64($url) {
-        if (Str::startsWith($url, ['http://', 'https://'])) {
+    /**
+     * Helper: Convert Image to Base64 (Logika Tetap)
+     */
+    private function imageToBase64($urlOrPath) {
+        if (empty($urlOrPath)) return null;
+        if (is_array($urlOrPath)) return null;
+
+        $path = null;
+
+        if (Storage::disk('public')->exists($urlOrPath)) {
+            $path = Storage::disk('public')->path($urlOrPath);
+        } elseif (file_exists($urlOrPath)) {
+            $path = $urlOrPath;
+        } elseif (file_exists(public_path($urlOrPath))) {
+            $path = public_path($urlOrPath);
+        } elseif (Str::startsWith($urlOrPath, ['http://', 'https://'])) {
+            $relativePath = parse_url($urlOrPath, PHP_URL_PATH);
+            $relativePath = ltrim($relativePath, '/'); 
+            $relativePath = str_replace('storage/', '', $relativePath);
+            
+            if (Storage::disk('public')->exists($relativePath)) {
+                $path = Storage::disk('public')->path($relativePath);
+            }
+        }
+
+        if ($path && file_exists($path)) {
             try {
-                $response = Http::timeout(10)->get($url); 
-                if ($response->successful()) {
-                    $mime = $response->header('Content-Type') ?? 'image/jpeg';
-                    if (!Str::startsWith($mime, 'image/')) {
-                        $mime = 'image/jpeg';
-                    }
-                    return 'data:' . $mime . ';base64,' . base64_encode($response->body());
-                }
-            } catch (\Exception $e) { return null; }
-        } 
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $data = file_get_contents($path);
+                if (empty($type)) $type = 'jpg'; 
+                return 'data:image/' . $type . ';base64,' . base64_encode($data);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
         return null;
     }
-    
-    // ✅ KOREKSI TERBILANG: Helper Terbilang Sederhana (Dengan Hardcode untuk 10000)
-    private function formatTerbilangAngka($nominal) {
-        if ($nominal == 10000) {
-            return 'Sepuluh Ribu Rupiah'; // Nilai yang diinginkan
+
+    private function processDokumentasiArray($rawDokumen) {
+        if (empty($rawDokumen)) return [];
+
+        $files = [];
+        if (is_array($rawDokumen)) {
+            $files = $rawDokumen;
+        } elseif (is_string($rawDokumen)) {
+            $decoded = json_decode($rawDokumen, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $files = $decoded;
+            } else {
+                $files = [$rawDokumen];
+            }
         }
-        // Solusi aman jika nominal lain (misalnya Rp 500.000)
-        return Str::ucfirst(number_format($nominal, 0, ',', '.') . ' (Nominal Transaksi)');
+
+        $results = [];
+        foreach ($files as $filePath) {
+            $base64 = $this->imageToBase64($filePath);
+            if ($base64) {
+                $results[] = $base64;
+            }
+        }
+        return $results;
     }
 
-
+    /**
+     * BARU: Helper Fungsi Terbilang
+     * (Dipindahkan dari SpjController lama agar bisa dipakai di PDF gabungan)
+     */
+    private function terbilang($nilai) {
+        $nilai = abs($nilai);
+        $huruf = array("", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas");
+        $temp = "";
+        if ($nilai < 12) {
+            $temp = " ". $huruf[$nilai];
+        } else if ($nilai < 20) {
+            $temp = $this->terbilang($nilai - 10). " belas";
+        } else if ($nilai < 100) {
+            $temp = $this->terbilang($nilai/10)." puluh". $this->terbilang($nilai % 10);
+        } else if ($nilai < 200) {
+            $temp = " seratus" . $this->terbilang($nilai - 100);
+        } else if ($nilai < 1000) {
+            $temp = $this->terbilang($nilai/100) . " ratus" . $this->terbilang($nilai % 100);
+        } else if ($nilai < 2000) {
+            $temp = " seribu" . $this->terbilang($nilai - 1000);
+        } else if ($nilai < 1000000) {
+            $temp = $this->terbilang($nilai/1000) . " ribu" . $this->terbilang($nilai % 1000);
+        } else if ($nilai < 1000000000) {
+            $temp = $this->terbilang($nilai/1000000) . " juta" . $this->terbilang($nilai % 1000000);
+        }
+        return $temp;
+    }
+    
     public function generateSpjPdf(Request $request, $id)
     {
-        // Pengecekan Auth
-        if (!Auth::check()) {
-            abort(403, 'Akses ditolak: Anda harus login untuk mengunduh laporan ini.');
-        }
+        if (!Auth::check()) abort(403);
 
-        // =======================================================
-        // 1. PENGAMBILAN DATA DINAMIS & PERHITUNGAN
-        // =======================================================
-        
-        try {
-            $kegiatanData = Kegiatan::findOrFail($id); 
-            $pengeluaranKoleksi = Pengeluaran::where('keg_id', $kegiatanData->id)
-                                          ->select('id', 'keg_id', 'tgl', 'nominal', 'ket', 'toko', 'bkt_nota', 'created_at')
-                                          ->get();
-                                          
-        } catch (\Exception $e) {
-            abort(404, 'Data Kegiatan tidak ditemukan atau relasi bermasalah.');
-        }
+        // Set Locale ke Indonesia untuk tanggal (Carbon)
+        Carbon::setLocale('id');
 
-        // Total Pengeluaran murni dari kegiatan ini
-        $totalPengeluaran = $pengeluaranKoleksi->sum('nominal'); 
-        
-        // Data Saldo untuk Rekapitulasi
-        $saldoBOPSaatIni = 19500000; 
-        $sisaAkhir = $saldoBOPSaatIni - $totalPengeluaran; 
-        
-        $sumber_dana = $kegiatanData->sumber_dana ?? "Dana BOP"; 
-        $status_sisa_dana = $sisaAkhir >= 0
-            ? "Laporan Penggunaan Dana Sesuai Anggaran."
-            : "Terdapat kelebihan pengeluaran sebesar Rp " . number_format(abs($sisaAkhir), 0, ',', '.') . ",-";
+        $kegiatanData = Kegiatan::findOrFail($id); 
+        $pengeluaranKoleksi = Pengeluaran::where('keg_id', $kegiatanData->id)->get();
 
-        $tglMulai = Carbon::parse($kegiatanData->tgl_mulai)->isoFormat('D MMMM Y');
-        $tglSelesai = Carbon::parse($kegiatanData->tgl_selesai)->isoFormat('D MMMM Y');
-        $tglPengesahan = Carbon::now()->isoFormat('D MMMM Y');
-        
-        $dokumentasiBase64 = $this->imageToBase64($kegiatanData->dokumentasi_url ?? 'https://placehold.co/400x300/f00/fff?text=DOKUMENTASI');
-        
-        // Mapping Data Pengeluaran untuk Blade
-        $pengeluaranFormatted = collect($pengeluaranKoleksi)->map(function ($model) {
-            
-            if (!is_object($model)) { return null; }
-            $item = clone $model;
-            
-            $item->tgl_formatted = Carbon::parse($item->tgl ?? now())->format('d/m/Y');
-            $item->bukti_id = $item->id; 
-            $item->pemberi = $item->pemberi ?? 'Sdr. Bendahara Proyek'; 
-            
-            // ✅ KOREKSI TERBILANG FINAL: Memanggil helper yang sudah dimodifikasi
-            $item->terbilang = $this->formatTerbilangAngka($item->nominal); 
-            $item->nominal = $item->nominal; 
-            
-            return $item;
-        })->filter()->values();
+        // 1. LOGIKA SUMBER DANA
+        $totalPakaiBop = $pengeluaranKoleksi->whereNotNull('masuk_bop_id')->sum('nominal');
+        $totalPakaiIuran = $pengeluaranKoleksi->whereNotNull('masuk_iuran_id')->sum('nominal');
 
-        // =======================================================
-        // 3. KONFIGURASI DOMPDF
-        // =======================================================
+        if ($totalPakaiBop > 0 && $totalPakaiIuran > 0) $sumberDanaLabel = "Campuran (BOP & Kas Iuran)";
+        elseif ($totalPakaiBop > 0) $sumberDanaLabel = "BOP";
+        elseif ($totalPakaiIuran > 0) $sumberDanaLabel = "Kas Iuran";
+        else $sumberDanaLabel = "-";
+
+        // 2. LOGIKA REKAPITULASI
+        $totalMasukGlobal = PemasukanBOP::sum('nominal') + PemasukanIuran::sum('nominal');
+        $totalKeluarGlobal = Pengeluaran::sum('nominal');
+        
+        $saldoKasSaatIni = $totalMasukGlobal - $totalKeluarGlobal;
+        $totalPengeluaranKegiatan = $pengeluaranKoleksi->sum('nominal');
+        $saldoAwalSnapshot = $saldoKasSaatIni + $totalPengeluaranKegiatan;
+        $sisaAkhir = $saldoKasSaatIni; 
+
+        // 3. PROSES GAMBAR
+        $dokumentasiBase64Array = $this->processDokumentasiArray($kegiatanData->dok_keg);
+
+        // 4. MAPPING DATA (TERMASUK KUITANSI SERAGAM)
+        // Kita gunakan 'use ($kegiatanData)' agar bisa akses data kota kegiatan di dalam loop
+        $pengeluaranFormatted = $pengeluaranKoleksi->map(function ($item) use ($kegiatanData) {
+            $row = clone $item;
+            
+            // Format tanggal standar
+            $row->tgl_formatted = Carbon::parse($row->tgl)->format('d/m/Y');
+            
+            // Konversi Gambar ke Base64
+            $row->bkt_nota_base64 = $this->imageToBase64($row->bkt_nota);
+            $row->bkt_kwitansi_lain_base64 = $this->imageToBase64($row->bkt_kwitansi_lain_url ?? null);
+            
+            // Label Sumber Dana Item
+            if ($row->masuk_bop_id) $row->sumber_dana_item = 'BOP';
+            elseif ($row->masuk_iuran_id) $row->sumber_dana_item = 'Iuran';
+            else $row->sumber_dana_item = '-';
+            
+            // --- BAGIAN BARU: SIAPKAN DATA KUITANSI SERAGAM ---
+            // Data ini akan dipanggil oleh @include di Blade
+            $row->kuitansi_data = [
+                'pemberi'   => $row->toko ?? '.....................', // Nama Toko
+                'terbilang' => strtoupper($this->terbilang($row->nominal) . ' RUPIAH'), // Fungsi Terbilang
+                'deskripsi' => $row->ket ?? 'Pengeluaran Kegiatan',
+                'total'     => $row->nominal,
+                'kota'      => $kegiatanData->kota ?? 'Semarang', // Kota dari Kegiatan atau Default
+                'tanggal'   => Carbon::parse($row->tgl)->isoFormat('D MMMM Y') // Tanggal Indonesia (misal: 12 Desember 2025)
+            ];
+
+            return $row;
+        });
 
         $data = [
             'kegiatan' => $kegiatanData,
             'pengeluaran' => $pengeluaranFormatted,
-            'saldoAwalBOP' => $saldoBOPSaatIni, 
-            'totalPengeluaran' => $totalPengeluaran,
-            'sisaAkhir' => $sisaAkhir, 
-            'sumber_dana' => $sumber_dana,
-            'status_sisa_dana' => $status_sisa_dana,
-            'tgl_mulai' => $tglMulai,
-            'tgl_selesai' => $tglSelesai,
-            'tgl_pengesahan' => $tglPengesahan,
-            'dokumentasiBase64' => $dokumentasiBase64,
+            'saldoAwalSnapshot' => $saldoAwalSnapshot,
+            'totalPengeluaran' => $totalPengeluaranKegiatan,
+            'sisaAkhir' => $sisaAkhir,
+            'sumber_dana_rekap' => $sumberDanaLabel,
+            'tgl_mulai' => Carbon::parse($kegiatanData->tgl_mulai)->isoFormat('D MMMM Y'),
+            'tgl_selesai' => Carbon::parse($kegiatanData->tgl_selesai)->isoFormat('D MMMM Y'),
+            'tgl_pengesahan' => Carbon::now()->isoFormat('D MMMM Y'),
+            'dokumentasiBase64Array' => $dokumentasiBase64Array,
         ];
 
         $pdf = Pdf::loadView('spj.report_master', $data);
-        $pdf->setOptions(['defaultFont' => 'times-new-roman']);
+        $pdf->setOptions([
+            'isRemoteEnabled' => true, 
+            'defaultFont' => 'sans-serif',
+            'chroot' => [public_path(), storage_path()],
+        ]);
 
-        $fileName = 'LaporanSPJ-' . Str::slug($kegiatanData->nm_keg) . '-' . $kegiatanData->id . '.pdf';
-
-        return $pdf->download($fileName); 
+        return $pdf->download('SPJ-' . Str::slug($kegiatanData->nm_keg) . '.pdf');
     }
 }

@@ -3,6 +3,7 @@ import { useForm, router } from "@inertiajs/react";
 import { route } from "ziggy-js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -11,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react"; // Import X untuk hapus preview
 import { useNotify } from "@/components/ToastNotification";
 import axios from "axios";
 import AppLayout from "@/layouts/AppLayout";
@@ -19,6 +20,8 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
     const { notifySuccess, notifyError } = useNotify();
+    const isEdit = !!kegiatan;
+
     const isEdit = !!kegiatan;
 
     const formatDateForInput = (dateString) => {
@@ -31,6 +34,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
         tgl_mulai: formatDateForInput(kegiatan?.tgl_mulai),
         tgl_selesai: formatDateForInput(kegiatan?.tgl_selesai),
         kat_keg_id: kegiatan?.kat_keg_id ? String(kegiatan.kat_keg_id) : "",
+        rincian_kegiatan: kegiatan?.rincian_kegiatan || "",
         pj_keg: kegiatan?.pj_keg || "",
         panitia: kegiatan?.panitia || "",
         dok_keg: [],
@@ -54,18 +58,11 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
         const files = Array.from(e.target.files);
         if (files.length > 0) {
             setData("dok_keg", files);
+            // Buat preview URL dari file object
             const newPreviews = files.map((file) => URL.createObjectURL(file));
             setPreviews(newPreviews);
-        } else {
-            setPreviews([]);
         }
     };
-
-    useEffect(() => {
-        return () => {
-            previews.forEach((url) => URL.revokeObjectURL(url));
-        };
-    }, [previews]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -115,11 +112,13 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
         formData.append("tgl_mulai", data.tgl_mulai);
         formData.append("tgl_selesai", data.tgl_selesai);
         formData.append("kat_keg_id", data.kat_keg_id);
+        formData.append("rincian_kegiatan", data.rincian_kegiatan || "");
         formData.append("pj_keg", data.pj_keg);
         formData.append("panitia", data.panitia);
 
         if (data.dok_keg.length > 0) {
             data.dok_keg.forEach((file) => {
+                formData.append("dok_keg[]", file);
                 formData.append("dok_keg[]", file);
             });
         }
@@ -158,15 +157,14 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
 
     return (
         <AppLayout>
-            <div className="w-full min-h-screen bg-white overflow-y-auto overflow-x-hidden pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
+            <div className="w-full min-h-screen bg-white pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
                 <h1 className="text-3xl font-bold mb-10">
                     {isEdit ? "EDIT KEGIATAN" : "TAMBAH KEGIATAN"}
                 </h1>
-
                 <Breadcrumbs
                     items={[
                         { label: "Kegiatan", href: route("kegiatan.index") },
-                        { label: isEdit ? "Edit Kegiatan" : "Tambah Kegiatan" },
+                        { label: isEdit ? "Edit" : "Tambah" },
                     ]}
                 />
 
@@ -225,6 +223,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                         </div>
                     </div>
 
+                    {/* Kategori */}
                     <div className="space-y-2">
                         <Label>
                             Kategori <span className="text-red-500">*</span>
@@ -237,7 +236,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                                 <SelectValue placeholder="Pilih kategori" />
                             </SelectTrigger>
                             <SelectContent>
-                                {kategoris.map((kat) => (
+                                {listKategori.map((kat) => (
                                     <SelectItem
                                         key={kat.id}
                                         value={String(kat.id)}
@@ -249,6 +248,7 @@ export default function TambahKegiatan({ kategoris = [], kegiatan = null }) {
                         </Select>
                     </div>
 
+                    {/* Rincian */}
                     <div className="space-y-2">
                         <Label>
                             Penanggung Jawab{" "}
