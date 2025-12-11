@@ -11,6 +11,8 @@ import {
     Wallet,
     CalendarDays,
     PieChart,
+    List,
+    Droplet,
 } from "lucide-react";
 import {
     Sidebar,
@@ -83,6 +85,16 @@ export default function AppLayout({ children }) {
             url: "/tagihan-bulanan/approval", 
             icon: ClipboardCheck,
         },
+        {
+            title: "Kategori Iuran",
+            url: "/kategori-setting",
+            icon: List,
+        },
+        // {
+        //     title: "Bayar Iuran",  <-- INI DIHAPUS DARI DEFAULT
+        //     url: "/masuk-iuran",
+        //     icon: Wallet,
+        // },
     ];
 
     const adminItems = [
