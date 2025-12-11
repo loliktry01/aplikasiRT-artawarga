@@ -97,7 +97,7 @@ export default function Detail({ kegiatan, totalPengeluaran, listPengeluaran = [
     } else if (usedIuran > 0) {
         totalSisaNow = parseInt(sisaIuran) || 0;
     } else {
-         totalSisaNow = (parseInt(sisaBop) || 0) + (parseInt(sisaIuran) || 0);
+        totalSisaNow = (parseInt(sisaBop) || 0) + (parseInt(sisaIuran) || 0);
     }
 
     return (
@@ -116,9 +116,21 @@ export default function Detail({ kegiatan, totalPengeluaran, listPengeluaran = [
                             ]}
                         />
                     </div>
-                    <Link href={route('kegiatan.index')}>
-                        <Button variant="outline" className="bg-white hover:bg-gray-50 border-gray-300">Kembali</Button>
-                    </Link>
+                    <div className="flex gap-3">
+                        <a
+                            href={route('kegiatan.generateSpjPdf', { id: kegiatan.id })}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Button className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
+                                <ArrowDownCircle className="w-4 h-4 mr-2" /> 
+                                Download Rincian Kegiatan
+                            </Button>
+                        </a>
+                        <Link href={route('kegiatan.index')}>
+                            <Button variant="outline" className="bg-white hover:bg-gray-50 border-gray-300">Kembali</Button>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* --- BAGIAN 1: INFORMASI KEGIATAN --- */}
@@ -205,7 +217,7 @@ export default function Detail({ kegiatan, totalPengeluaran, listPengeluaran = [
                                 <div className="grid grid-cols-1 gap-4 overflow-y-auto max-h-[500px] pr-2">
                                     {kegiatan.dokumentasi_urls.map((url, idx) => (
                                         <div key={idx} className="relative group cursor-pointer" onClick={() => setSelectedNota(url)}>
-                                             <img 
+                                            <img 
                                                 src={url} 
                                                 alt={`Dokumentasi ${idx + 1}`} 
                                                 className="w-full h-auto object-cover rounded-xl shadow-sm border group-hover:scale-[1.02] transition-transform duration-300"
@@ -370,7 +382,7 @@ export default function Detail({ kegiatan, totalPengeluaran, listPengeluaran = [
                                                             alt="Nota" 
                                                             className="rounded-lg border shadow-sm w-full h-32 object-cover hover:opacity-90 transition-opacity"
                                                         />
-                                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                                                             <ZoomIn className="text-white w-6 h-6 drop-shadow-md" />
                                                         </div>
                                                     </div>

@@ -16,6 +16,7 @@ use App\Http\Controllers\KategoriIuranController;
 use App\Http\Controllers\HargaIuranController;
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\TagihanBulananController;
+use App\Http\Controllers\SpjPdfController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -55,7 +56,9 @@ Route::middleware(['role.access'])->group(function () {
     Route::delete('/kat-iuran/{kat_iuran}', [KategoriIuranController::class, 'destroy'])->name('kat_iuran.destroy'); 
 
     // KEGIATAN
-    
+    Route::get('/kegiatan/{id}/download-spj', [SpjPdfController::class, 'generateSpjPdf'])
+        ->name('kegiatan.generateSpjPdf');
+
     Route::get('/dashboard/kegiatan', [KegiatanController::class, 'create'])->name('kegiatan.create');
     Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store');
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index'); 
@@ -63,6 +66,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/kegiatan/{id}/edit', [KegiatanController::class, 'edit'])->name('kegiatan.edit');
     Route::put('/kegiatan/{id}', [KegiatanController::class, 'update'])->name('kegiatan.update');
     Route::delete('/kegiatan/{id}', [KegiatanController::class, 'destroy'])->name('kegiatan.destroy');
+
     // PENGELUARAN & SPJ
     Route::get('/dashboard/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran');
     Route::post('/pengeluaran', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
@@ -107,4 +111,6 @@ Route::middleware(['role.access'])->group(function () {
 // --- Rute yang Memerlukan Autentikasi Saja ---
 Route::middleware(['auth'])->group(function () {
     Route::get('/download/pdf', [DownloaderController::class, 'download'])->name('download.pdf');
+
+
 });

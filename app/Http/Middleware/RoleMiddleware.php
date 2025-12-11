@@ -66,6 +66,7 @@ class RoleMiddleware
                 'profil.updatePhoto',
                 'profil.deletePhoto',
                 'spj.download',
+                'kegiatan.generateSpjPdf',
             ], $kategoriIuranRoutes), // Ketua RT
             
             // ID 3: Bendahara
