@@ -24,7 +24,9 @@ export default function Pemasukan() {
     return (
         <div className="w-full min-h-screen bg-white overflow-y-auto overflow-x-hidden pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
             {/* Judul */}
-            <h1 className="text-3xl font-bold mb-8">TAMBAH PEMASUKAN</h1>
+            <h1 className="text-3xl font-bold mb-8 text-center md:text-left">
+                TAMBAH PEMASUKAN
+            </h1>
 
             {/* Pilihan jenis dan tanggal */}
             <Breadcrumbs
