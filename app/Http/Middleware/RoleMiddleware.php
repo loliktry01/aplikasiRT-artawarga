@@ -47,6 +47,7 @@ class RoleMiddleware
                 'kegiatan.create',
                 'kegiatan.store',
                 'kegiatan.index',
+                'kegiatan.show',
                 'kegiatan.edit',    
                 'kegiatan.update', 
                 'kegiatan.destroy',
