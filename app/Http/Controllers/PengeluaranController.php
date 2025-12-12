@@ -14,6 +14,7 @@ class PengeluaranController extends Controller
 {
     public function index()
     {
+        
         $pengeluarans = Pengeluaran::with(['kegiatan', 'pemasukan_bop', 'pemasukan_iuran'])
             ->latest()
             ->get()

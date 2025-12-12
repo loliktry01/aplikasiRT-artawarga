@@ -9,6 +9,9 @@ import {
     Plus,
     Settings,
     RotateCcw,
+    CircleAlert,
+    CircleCheck,
+    TrendingUp,
 } from "lucide-react";
 import Swal from "sweetalert2";
 // Pastikan path ini sesuai dengan lokasi komponen Button Shadcn Anda
@@ -110,19 +113,13 @@ export default function IndexRT({ auth, tagihan }) {
         setCurrentPage(1);
     }, [selectedMonth, selectedYear]);
 
-    // --- WARNA STATUS ---
     const getStatusBadgeClass = (status) => {
         switch (status) {
-            case "approved":
-                return "bg-emerald-100 text-emerald-800 border border-emerald-200";
-            case "pending":
-                return "bg-yellow-100 text-yellow-800 border border-yellow-200";
-            case "ditagihkan":
-                return "bg-red-100 text-red-800 border border-red-200";
-            case "declined":
-                return "bg-red-200 text-red-900 border border-red-300";
-            default:
-                return "bg-gray-100 text-gray-800 border border-gray-200";
+            case 'approved': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+            case 'pending': return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+            case 'ditagihkan': return 'bg-red-100 text-red-800 border border-red-200'; // Merah soft
+            case 'declined': return 'bg-red-200 text-red-900 border border-red-300';
+            default: return 'bg-gray-100 text-gray-800 border border-gray-200';
         }
     };
 
@@ -165,23 +162,9 @@ export default function IndexRT({ auth, tagihan }) {
                     {/* --- CARDS SECTION --- */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                         {/* Card 1: Saldo Ditagihkan */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div className="bg-yellow-100 border border-yellow-300 rounded-xl p-5 shadow-sm">
                             <div className="flex items-center">
-                                <div className="bg-gray-100 p-3 rounded-lg mr-4">
-                                    <svg
-                                        className="w-6 h-6 text-gray-600"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                        />
-                                    </svg>
-                                </div>
+                                    <CircleAlert className="text-yellow-600 w-10  mr-4" />
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">
                                         Saldo Ditagihkan
@@ -194,23 +177,9 @@ export default function IndexRT({ auth, tagihan }) {
                         </div>
 
                         {/* Card 2: Saldo Lunas */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div className="bg-green-100 border border-green-300 rounded-xl p-5 shadow-sm">
                             <div className="flex items-center">
-                                <div className="bg-gray-100 p-3 rounded-lg mr-4">
-                                    <svg
-                                        className="w-6 h-6 text-gray-600"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                        />
-                                    </svg>
-                                </div>
+                                    <CircleCheck className="text-green-600 w-10 mr-4" />
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">
                                         Saldo Lunas
@@ -223,23 +192,9 @@ export default function IndexRT({ auth, tagihan }) {
                         </div>
 
                         {/* Card 3: Total Jimpitan */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 shadow-sm">
                             <div className="flex items-center">
-                                <div className="bg-gray-100 p-3 rounded-lg mr-4">
-                                    <svg
-                                        className="w-6 h-6 text-gray-600"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                                        />
-                                    </svg>
-                                </div>
+                                <TrendingUp className="text-blue-600 w-10 mr-4" />
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">
                                         Total Jimpitan

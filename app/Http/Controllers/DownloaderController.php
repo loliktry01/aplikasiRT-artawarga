@@ -66,6 +66,7 @@ class DownloaderController extends Controller
         // Kolom: id, tgl, nominal, ket, bkt_nota, created_at
         $bopMasuk = PemasukanBOP::whereBetween('tgl', [$startDate, $endDate])
             ->select('id', 'tgl', 'nominal', 'ket', 'bkt_nota', 'created_at')
+                
             ->get()
             ->map(fn($row) => $this->mapData($row, 'bop', 'masuk', $localFallbackImage));
 
