@@ -55,6 +55,7 @@ class SpjApiController extends Controller
             'terbilang'     => strtoupper($this->terbilang($transaksi->nominal) . ' RUPIAH'),
             'deskripsi'     => $transaksi->ket ?? '-',
             'kota'          => 'Semarang',
+            'penerima_kwitansi'  => $transaksi->penerima ?? null,
         ];
 
         // 5. RETURN JSON
