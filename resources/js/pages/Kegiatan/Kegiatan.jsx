@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { usePage, router } from "@inertiajs/react";
-import { route } from "ziggy-js"; // Pastikan import ziggy route
+import { route } from "ziggy-js";
 import AppLayout from "@/layouts/AppLayout";
+
+// --- SHADCN IMPORTS (Sama seperti Approval.jsx) ---
 import {
     Table,
     TableBody,
@@ -24,6 +26,16 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+
+// --- ICONS ---
+import {
     ChevronsUpDown,
     ChevronLeft,
     ChevronRight,
@@ -32,24 +44,135 @@ import {
     MoreVertical,
     Edit,
     Trash2,
+    Search, // Icon baru
+    RotateCcw, // Icon baru
+    Filter, // Icon baru
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import Swal from "sweetalert2";
 
 export default function Kegiatan() {
     const { kegiatans } = usePage().props;
 
+    // --- STATE FILTER & PAGINATION ---
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterBulan, setFilterBulan] = useState("all");
+    const [filterTahun, setFilterTahun] = useState("all");
+
+    // --- STATE SORTING ---
     const [sortField, setSortField] = useState("tgl_mulai");
     const [sortOrder, setSortOrder] = useState("desc");
     const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
+    // --- STATE MODAL ---
     const [selectedDokuments, setSelectedDokuments] = useState({
         dokumen: null,
         nama: "",
     });
-
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const itemsPerPage = 8;
+
+    // --- HELPER NAMA BULAN ---
+    const getNamaBulan = (bulan) => {
+        const monthNames = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ];
+        // Input bulan bisa string angka "1" s/d "12"
+        const index = parseInt(bulan) - 1;
+        if (index >= 0 && index < 12) return monthNames[index];
+        return bulan;
+    };
+
+    // --- LOGIKA FILTERING & SORTING ---
+    const filteredAndSortedData = useMemo(() => {
+        if (!kegiatans?.data) return [];
+
+        let data = [...kegiatans.data];
+
+        // 1. FILTERING
+        data = data.filter((item) => {
+            const date = new Date(item.tgl_mulai); // Ambil tanggal dari tgl_mulai
+
+            // Filter Search (Nama Kegiatan)
+            const matchSearch = item.nm_keg
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase());
+
+            // Filter Bulan
+            let matchBulan = true;
+            if (filterBulan !== "all") {
+                // getMonth() returns 0-11, jadi +1
+                matchBulan = (date.getMonth() + 1).toString() === filterBulan;
+            }
+
+            // Filter Tahun
+            let matchTahun = true;
+            if (filterTahun !== "all") {
+                matchTahun = date.getFullYear().toString() === filterTahun;
+            }
+
+            return matchSearch && matchBulan && matchTahun;
+        });
+
+        // 2. SORTING (Logika Lama)
+        return data.sort((a, b) => {
+            const valA = a[sortField];
+            const valB = b[sortField];
+            if (sortField === "dok_keg" || sortField === "aksi") return 0;
+            if (!valA || !valB) return 0;
+
+            if (typeof valA === "string") {
+                return sortOrder === "asc"
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            }
+            return sortOrder === "asc" ? valA - valB : valB - valA;
+        });
+    }, [
+        kegiatans,
+        searchQuery,
+        filterBulan,
+        filterTahun,
+        sortField,
+        sortOrder,
+    ]);
+
+    // Ambil Tahun Unik dari Data untuk Dropdown
+    const uniqueYears = useMemo(() => {
+        if (!kegiatans?.data) return [];
+        const years = kegiatans.data.map((item) =>
+            new Date(item.tgl_mulai).getFullYear()
+        );
+        return [...new Set(years)].sort((a, b) => b - a);
+    }, [kegiatans]);
+
+    // --- PAGINATION LOGIC ---
+    const totalPages = Math.ceil(filteredAndSortedData.length / itemsPerPage);
+    const paginatedData = filteredAndSortedData.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Reset halaman ke 1 jika filter berubah
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterBulan, filterTahun]);
+
+    const handleResetFilter = () => {
+        setSearchQuery("");
+        setFilterBulan("all");
+        setFilterTahun("all");
+    };
 
     const toggleSort = (field) => {
         if (field === sortField) {
@@ -60,30 +183,7 @@ export default function Kegiatan() {
         }
     };
 
-    const sortedData = useMemo(() => {
-        if (!kegiatans?.data) return [];
-        const sorted = [...kegiatans.data].sort((a, b) => {
-            const valA = a[sortField];
-            const valB = b[sortField];
-            if (sortField === "dok_keg" || sortField === "aksi") return 0;
-            if (!valA || !valB) return 0;
-            if (typeof valA === "string") {
-                return sortOrder === "asc"
-                    ? valA.localeCompare(valB)
-                    : valB.localeCompare(valA);
-            }
-            return sortOrder === "asc" ? valA - valB : valB - valA;
-        });
-        return sorted;
-    }, [kegiatans, sortField, sortOrder]);
-
-    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-    const paginatedData = sortedData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // ✅ UPDATE: Format Tanggal (Dari Kode Temanmu)
+    // --- FORMAT DATE HELPER ---
     const formatDate = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
@@ -94,34 +194,11 @@ export default function Kegiatan() {
         });
     };
 
-    // ✅ UPDATE: Fungsi Pindah Halaman saat Klik Baris
+    // --- ACTION HANDLERS ---
     const handleRowClick = (id) => {
         router.visit(route("kegiatan.show", id));
     };
 
-    const openDialog = (dokumenArray, namaKegiatan) => {
-        // Pastikan dokumenArray selalu array, jika string ubah jadi array
-        const docs = Array.isArray(dokumenArray) ? dokumenArray : [dokumenArray];
-        setSelectedDokuments({ dokumen: docs, nama: namaKegiatan });
-        setCurrentImageIndex(0);
-    };
-
-    const closeDialog = () => {
-        setSelectedDokuments({ dokumen: null, nama: "" });
-        setCurrentImageIndex(0);
-    };
-
-    const totalDokumen = selectedDokuments.dokumen?.length || 0;
-    const nextImage = () =>
-        setCurrentImageIndex((p) => Math.min(p + 1, totalDokumen - 1));
-    const prevImage = () => setCurrentImageIndex((p) => Math.max(p - 1, 0));
-
-    // Handle jika dokumen disimpan sebagai string path di DB, bukan array
-    const currentImagePath = selectedDokuments.dokumen
-        ? selectedDokuments.dokumen[currentImageIndex]
-        : null;
-
-    // FUNGSI DELETE
     const handleDelete = (id) => {
         Swal.fire({
             title: "Yakin ingin menghapus?",
@@ -152,13 +229,35 @@ export default function Kegiatan() {
         });
     };
 
+    // --- MODAL HANDLERS ---
+    const openDialog = (dokumenArray, namaKegiatan) => {
+        const docs = Array.isArray(dokumenArray)
+            ? dokumenArray
+            : [dokumenArray];
+        setSelectedDokuments({ dokumen: docs, nama: namaKegiatan });
+        setCurrentImageIndex(0);
+    };
+
+    const closeDialog = () => {
+        setSelectedDokuments({ dokumen: null, nama: "" });
+        setCurrentImageIndex(0);
+    };
+
+    const totalDokumen = selectedDokuments.dokumen?.length || 0;
+    const nextImage = () =>
+        setCurrentImageIndex((p) => Math.min(p + 1, totalDokumen - 1));
+    const prevImage = () => setCurrentImageIndex((p) => Math.max(p - 1, 0));
+    const currentImagePath = selectedDokuments.dokumen
+        ? selectedDokuments.dokumen[currentImageIndex]
+        : null;
+
     return (
         <AppLayout>
-            <div className="space-y-10 relative">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full bg-white">
-                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
-                        <span className="font-bold text-gray-900 pr-5">
+            <div className="space-y-6 relative">
+                {/* --- HEADER --- */}
+                <div className="flex flex-col md:flex-row justify-between items-center w-full bg-white gap-4 md:gap-0">
+                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 text-center md:text-left">
+                        <span className="font-bold text-gray-900 md:pr-5">
                             DAFTAR KEGIATAN
                         </span>
                     </h1>
@@ -170,17 +269,106 @@ export default function Kegiatan() {
                     </Button>
                 </div>
 
-                {/* Table */}
+                {/* --- TOOLBAR FILTER & SEARCH --- */}
+                <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+                    {/* Search Bar */}
+                    <div className="relative w-full md:w-1/3">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                            placeholder="Cari nama kegiatan..."
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Filters Group */}
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto items-center">
+                        {/* Filter Bulan */}
+                        <Select
+                            value={filterBulan}
+                            onValueChange={setFilterBulan}
+                        >
+                            <SelectTrigger className="w-full md:w-[140px]">
+                                <SelectValue placeholder="Bulan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Bulan</SelectItem>
+                                {Array.from(
+                                    { length: 12 },
+                                    (_, i) => i + 1
+                                ).map((bln) => (
+                                    <SelectItem
+                                        key={bln}
+                                        value={bln.toString()}
+                                    >
+                                        {getNamaBulan(bln)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {/* Filter Tahun */}
+                        <Select
+                            value={filterTahun}
+                            onValueChange={setFilterTahun}
+                        >
+                            <SelectTrigger className="w-full md:w-[120px]">
+                                <SelectValue placeholder="Tahun" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Tahun</SelectItem>
+                                {uniqueYears.map((thn) => (
+                                    <SelectItem
+                                        key={thn}
+                                        value={thn.toString()}
+                                    >
+                                        {thn}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {/* Reset Button */}
+                        {(searchQuery ||
+                            filterBulan !== "all" ||
+                            filterTahun !== "all") && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleResetFilter}
+                                className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 shrink-0"
+                                title="Reset Filter"
+                            >
+                                <RotateCcw className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {/* --- TABLE --- */}
                 <div className="pb-10">
                     <div className="rounded-xl border overflow-hidden">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-white">
                                     {[
-                                        { key: "nm_keg", label: "Nama Kegiatan" },
-                                        { key: "tgl_mulai", label: "Tanggal Mulai" },
-                                        { key: "tgl_selesai", label: "Tanggal Selesai" },
-                                        { key: "pj_keg", label: "Penanggung Jawab" },
+                                        {
+                                            key: "nm_keg",
+                                            label: "Nama Kegiatan",
+                                        },
+                                        {
+                                            key: "tgl_mulai",
+                                            label: "Tanggal Mulai",
+                                        },
+                                        {
+                                            key: "tgl_selesai",
+                                            label: "Tanggal Selesai",
+                                        },
+                                        {
+                                            key: "pj_keg",
+                                            label: "Penanggung Jawab",
+                                        },
                                         { key: "panitia", label: "Panitia" },
                                         { key: "dok_keg", label: "Dokumen" },
                                         { key: "aksi", label: "" },
@@ -188,10 +376,13 @@ export default function Kegiatan() {
                                         <TableHead
                                             key={col.key}
                                             onClick={() =>
-                                                col.key !== "aksi" && toggleSort(col.key)
+                                                col.key !== "aksi" &&
+                                                toggleSort(col.key)
                                             }
                                             className={`font-semibold select-none ${
-                                                col.key !== "aksi" ? "cursor-pointer" : ""
+                                                col.key !== "aksi"
+                                                    ? "cursor-pointer hover:bg-gray-50"
+                                                    : ""
                                             }`}
                                         >
                                             <div className="flex items-center gap-2">
@@ -206,28 +397,37 @@ export default function Kegiatan() {
                             </TableHeader>
 
                             <TableBody>
-                                {paginatedData.length ? (
+                                {paginatedData.length > 0 ? (
                                     paginatedData.map((keg, i) => (
                                         <TableRow
-                                            key={i}
-                                            // ✅ UPDATE: Klik Row -> Rincian
+                                            key={keg.id || i}
                                             className="hover:bg-gray-50 transition cursor-pointer"
-                                            onClick={() => handleRowClick(keg.id)}
+                                            onClick={() =>
+                                                handleRowClick(keg.id)
+                                            }
                                         >
-                                            <TableCell>{keg.nm_keg}</TableCell>
-                                            {/* ✅ UPDATE: Terapkan Format Tanggal */}
-                                            <TableCell>{formatDate(keg.tgl_mulai)}</TableCell>
-                                            <TableCell>{formatDate(keg.tgl_selesai)}</TableCell>
+                                            <TableCell className="font-medium">
+                                                {keg.nm_keg}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDate(keg.tgl_mulai)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDate(keg.tgl_selesai)}
+                                            </TableCell>
                                             <TableCell>{keg.pj_keg}</TableCell>
                                             <TableCell>{keg.panitia}</TableCell>
-                                            
-                                            {/* Kolom Dokumen (Tombol Lihat) */}
+
+                                            {/* Kolom Dokumen */}
                                             <TableCell>
                                                 {keg.dok_keg ? (
                                                     <button
                                                         onClick={(e) => {
-                                                            e.stopPropagation(); // ⛔ PENTING: Agar tidak trigger klik row
-                                                            openDialog(keg.dok_keg, keg.nm_keg);
+                                                            e.stopPropagation();
+                                                            openDialog(
+                                                                keg.dok_keg,
+                                                                keg.nm_keg
+                                                            );
                                                         }}
                                                         className="text-blue-500 flex items-center gap-1 hover:underline z-10 relative"
                                                     >
@@ -241,38 +441,47 @@ export default function Kegiatan() {
                                                 )}
                                             </TableCell>
 
-                                            {/* Kolom Aksi (Edit/Hapus) */}
+                                            {/* Kolom Aksi */}
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
+                                                    <DropdownMenuTrigger
+                                                        asChild
+                                                    >
                                                         <Button
                                                             variant="ghost"
                                                             className="h-8 w-8 p-0"
-                                                            // ⛔ PENTING: Stop Propagation di Trigger Menu
-                                                            onClick={(e) => e.stopPropagation()}
+                                                            onClick={(e) =>
+                                                                e.stopPropagation()
+                                                            }
                                                         >
-                                                            <span className="sr-only">Open menu</span>
                                                             <MoreVertical className="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem
                                                             onClick={(e) => {
-                                                                e.stopPropagation(); // Stop propagation
-                                                                router.visit(route("kegiatan.edit", keg.id));
+                                                                e.stopPropagation();
+                                                                router.visit(
+                                                                    route(
+                                                                        "kegiatan.edit",
+                                                                        keg.id
+                                                                    )
+                                                                );
                                                             }}
                                                         >
-                                                            <Edit className="mr-2 h-4 w-4" />
+                                                            <Edit className="mr-2 h-4 w-4" />{" "}
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={(e) => {
-                                                                e.stopPropagation(); // Stop propagation
-                                                                handleDelete(keg.id);
+                                                                e.stopPropagation();
+                                                                handleDelete(
+                                                                    keg.id
+                                                                );
                                                             }}
                                                             className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                                         >
-                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            <Trash2 className="mr-2 h-4 w-4" />{" "}
                                                             Hapus
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
@@ -281,12 +490,22 @@ export default function Kegiatan() {
                                         </TableRow>
                                     ))
                                 ) : (
+                                    // --- EMPTY STATE ---
                                     <TableRow>
                                         <TableCell
                                             colSpan={7}
-                                            className="text-center text-gray-500"
+                                            className="h-48 text-center"
                                         >
-                                            Tidak ada data kegiatan
+                                            <div className="flex flex-col items-center justify-center text-gray-500">
+                                                <Filter className="w-10 h-10 text-gray-300 mb-2" />
+                                                <p className="font-medium">
+                                                    Tidak ada kegiatan ditemukan
+                                                </p>
+                                                <p className="text-xs mt-1">
+                                                    Coba ubah filter atau kata
+                                                    kunci pencarian Anda.
+                                                </p>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -294,43 +513,51 @@ export default function Kegiatan() {
                         </Table>
                     </div>
 
-                    {/* Pagination (Tidak Berubah) */}
-                    {sortedData.length > itemsPerPage && (
-                        <div className="flex justify-end items-center gap-2 mt-6 px-2 pb-4">
-                            <Button
-                                variant="outline"
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                                (num) => (
-                                    <Button
-                                        key={num}
-                                        onClick={() => setCurrentPage(num)}
-                                        className={`${
-                                            num === currentPage
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-white border text-blue-500"
-                                        } hover:bg-blue-300 transition`}
-                                    >
-                                        {num}
-                                    </Button>
-                                )
-                            )}
-                            <Button
-                                variant="outline"
-                                disabled={currentPage === totalPages}
-                                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+                    {/* --- PAGINATION (SHADCN STYLE) --- */}
+                    {totalPages > 1 && (
+                        <div className="flex flex-col md:flex-row justify-between items-center mt-4 text-sm text-gray-500">
+                            <div className="hidden md:block">
+                                Menampilkan {paginatedData.length} dari{" "}
+                                {filteredAndSortedData.length} data
+                            </div>
+                            <div className="flex items-center gap-2 mt-2 md:mt-0 ml-auto">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={currentPage === 1}
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            Math.max(p - 1, 1)
+                                        )
+                                    }
+                                    className="h-8 w-8"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+
+                                <span className="text-xs mx-2">
+                                    Hal {currentPage} dari {totalPages}
+                                </span>
+
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    disabled={currentPage === totalPages}
+                                    onClick={() =>
+                                        setCurrentPage((p) =>
+                                            Math.min(p + 1, totalPages)
+                                        )
+                                    }
+                                    className="h-8 w-8"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Dialog Popup Gambar (Sesuai Kodemu) */}
+                {/* --- DIALOG MODAL IMAGE --- */}
                 <Dialog
                     open={!!selectedDokuments.dokumen}
                     onOpenChange={closeDialog}
@@ -340,11 +567,6 @@ export default function Kegiatan() {
                             <DialogTitle>
                                 Dokumen Kegiatan: {selectedDokuments.nama}
                             </DialogTitle>
-                            {totalDokumen > 1 && (
-                                <p className="text-sm text-gray-500">
-                                    {currentImageIndex + 1} dari {totalDokumen}
-                                </p>
-                            )}
                         </DialogHeader>
                         <button
                             onClick={closeDialog}
@@ -352,7 +574,7 @@ export default function Kegiatan() {
                         >
                             <X className="h-5 w-5 text-gray-700" />
                         </button>
-                        <div className="relative flex-grow flex items-center justify-center p-4">
+                        <div className="relative flex-grow flex items-center justify-center p-4 bg-gray-50">
                             {currentImagePath ? (
                                 <>
                                     {totalDokumen > 1 && (
@@ -369,7 +591,7 @@ export default function Kegiatan() {
                                         <img
                                             src={`/storage/${currentImagePath}`}
                                             alt="Dokumen"
-                                            className="max-w-full max-h-full object-contain"
+                                            className="max-w-full max-h-full object-contain rounded-md shadow-sm"
                                             onError={(e) => {
                                                 e.target.onerror = null;
                                                 e.target.src =
@@ -380,7 +602,10 @@ export default function Kegiatan() {
                                     {totalDokumen > 1 && (
                                         <Button
                                             onClick={nextImage}
-                                            disabled={currentImageIndex === totalDokumen - 1}
+                                            disabled={
+                                                currentImageIndex ===
+                                                totalDokumen - 1
+                                            }
                                             className="absolute right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
                                             size="icon"
                                         >

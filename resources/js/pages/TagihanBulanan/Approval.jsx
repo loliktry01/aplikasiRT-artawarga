@@ -221,10 +221,10 @@ export default function IndexRT({
 
             <div className="space-y-6">
                 {/* --- HEADER --- */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full bg-white">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
-                            <span className="font-bold text-gray-900 pr-5">
+                <div className="flex flex-col md:flex-row justify-between items-center w-full bg-white">
+                    <div className="w-full md:w-auto">
+                        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 text-center md:text-left">
+                            <span className="font-bold text-gray-900 md:pr-5">
                                 APPROVAL
                             </span>
                         </h1>
@@ -279,7 +279,7 @@ export default function IndexRT({
                                 <SelectValue placeholder="Bulan" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Semua Bulan</SelectItem>
+                                <SelectItem value="all">Bulan</SelectItem>
                                 {Array.from(
                                     { length: 12 },
                                     (_, i) => i + 1
@@ -303,7 +303,7 @@ export default function IndexRT({
                                 <SelectValue placeholder="Tahun" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Semua Tahun</SelectItem>
+                                <SelectItem value="all">Tahun</SelectItem>
                                 {uniqueYears.map((thn) => (
                                     <SelectItem
                                         key={thn}

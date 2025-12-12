@@ -74,7 +74,9 @@ export default function KategoriIndex({ auth, kategoriList }) {
     return (
         <AppLayout>
             <div className="w-full min-h-screen bg-white overflow-y-auto overflow-x-hidden pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
-                <h1 className="text-3xl font-bold mb-8">KATEGORI IURAN</h1>
+                <h1 className="text-3xl font-bold mb-8 text-center md:text-left">
+                    KATEGORI IURAN
+                </h1>
 
                 <div className="mt-8 space-y-10">
                     {/* BAGIAN 1: FORM TAMBAH */}

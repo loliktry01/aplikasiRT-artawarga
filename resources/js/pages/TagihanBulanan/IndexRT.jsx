@@ -131,7 +131,7 @@ export default function IndexRT({ auth, tagihan }) {
                 <div className="w-full px-1">
                     {/* Header & Buttons */}
                     <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-center">
                             MONITORING TAGIHAN BULANAN
                         </h1>
                         <div className="flex gap-3">

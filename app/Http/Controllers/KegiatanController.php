@@ -38,7 +38,7 @@ class KegiatanController extends Controller
     {
         $kegiatan = Kegiatan::findOrFail($id);
 
-        return Inertia::render('Ringkasan/KegiatanShow', [
+        return Inertia::render('Kegiatan/Detail', [
             'kegiatan' => $kegiatan
         ]);
     }
