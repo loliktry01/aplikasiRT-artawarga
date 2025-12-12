@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { Upload } from "lucide-react";
 
 export default function ShowWarga({ auth, tagihan }) {
     const [preview, setPreview] = useState(null);
@@ -20,32 +21,31 @@ export default function ShowWarga({ auth, tagihan }) {
     //   SUBMIT
     // =============================
     const submit = (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    if (!data.bkt_byr) {
-        alert("Silakan upload bukti transfer dulu.");
-        return;
-    }
-
-    console.log("DATA AKAN DIKIRIM:", data);
-
-    post(route("tagihan.upload"), {
-        forceFormData: true,
-
-        onError: (errors) => {
-            console.error("UPLOAD ERROR:", errors);
-        },
-
-        onSuccess: () => {
-            console.log("UPLOAD BERHASIL");
-        },
-
-        onFinish: () => {
-            console.log("SELESAI MENGIRIM REQUEST");
+        if (!data.bkt_byr) {
+            alert("Silakan upload bukti transfer dulu.");
+            return;
         }
-    });
-};
 
+        console.log("DATA AKAN DIKIRIM:", data);
+
+        post(route("tagihan.upload"), {
+            forceFormData: true,
+
+            onError: (errors) => {
+                console.error("UPLOAD ERROR:", errors);
+            },
+
+            onSuccess: () => {
+                console.log("UPLOAD BERHASIL");
+            },
+
+            onFinish: () => {
+                console.log("SELESAI MENGIRIM REQUEST");
+            },
+        });
+    };
 
     // =============================
     //   DRAG & DROP UPLOAD COMPONENT
@@ -82,7 +82,11 @@ export default function ShowWarga({ auth, tagihan }) {
                 <div
                     className={`border-2 border-dashed rounded-xl p-6
                         flex flex-col items-center justify-center text-center cursor-pointer transition
-                        ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"}
+                        ${
+                            isDragging
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-300"
+                        }
                     `}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -93,24 +97,18 @@ export default function ShowWarga({ auth, tagihan }) {
                     <input
                         ref={inputRef}
                         type="file"
-                        name="bkt_byr"              // <<< PENTING: nama harus ada
+                        name="bkt_byr" // <<< PENTING: nama harus ada
                         accept="image/*,application/pdf"
                         className="hidden"
                         onChange={handleFilePick}
-                        
                     />
 
                     {!preview && (
                         <>
-                            <p className="font-semibold text-gray-700">
-                                Klik untuk upload
-                            </p>
-                            <p className="text-sm text-gray-600">
-                                atau seret file ke sini
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                                Format: JPG, PNG, PDF
-                            </p>
+                            <Upload className="w-6 h-6 mb-2 text-gray-500" />
+                            <span className="text-sm text-gray-500">
+                                Klik atau seret gambar ke sini
+                            </span>
                         </>
                     )}
 
@@ -159,11 +157,16 @@ export default function ShowWarga({ auth, tagihan }) {
             <Head title="Pembayaran Warga" />
 
             <div className="w-full min-h-screen bg-white overflow-y-auto pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
-                <h1 className="text-3xl font-bold mb-8">Pembayaran Tagihan Air</h1>
+                <h1 className="text-3xl font-bold mb-8">
+                    Pembayaran Tagihan Air
+                </h1>
 
                 <Breadcrumbs
                     items={[
-                        { label: "Dashboard", href: route("tagihan.warga.index") },
+                        {
+                            label: "Dashboard",
+                            href: route("tagihan.warga.index"),
+                        },
                         { label: "Detail Pembayaran" },
                     ]}
                 />
@@ -192,7 +195,9 @@ export default function ShowWarga({ auth, tagihan }) {
                             <Label>Pemakaian</Label>
                             <Input
                                 readOnly
-                                value={`${tagihan.mtr_skrg - tagihan.mtr_bln_lalu} m³`}
+                                value={`${
+                                    tagihan.mtr_skrg - tagihan.mtr_bln_lalu
+                                } m³`}
                                 className="mt-1 bg-white text-gray-800 border-gray-300"
                             />
                         </div>

@@ -83,7 +83,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
         }).format(num || 0);
 
     const breadcrumbItems = [
-        { label: "Dashboard", href: "/dashboard" },
+        { label: "Tagihan Bulanan", href: "/tagihan-bulanan/monitoring" },
         { label: "Tambah Tagihan", href: null },
     ];
 
