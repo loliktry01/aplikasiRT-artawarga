@@ -34,9 +34,9 @@ export default function ManajemenData() {
         <AppLayout>
             <div className="space-y-10">
                 {/* HEADER */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full bg-white">
-                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
-                        <span className="font-bold text-gray-900 pr-5">
+                <div className="flex flex-col md:flex-row justify-between items-center w-full bg-white">
+                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 text-center md:text-left">
+                        <span className="font-bold text-gray-900 md:pr-5">
                             MANAJEMEN DATA
                         </span>
                     </h1>
