@@ -11,19 +11,42 @@ use Inertia\Inertia;
 
 class SuperadminController extends Controller
 {
-    public function users()
+    public function users(Request $request)
     {
-        // LOAD: Cukup sampai Kelurahan saja (RW & RT sudah jadi string di tabel user)
-        $users = User::with(['role', 'kota', 'kecamatan', 'kelurahan'])
-                ->where('role_id', '!=', 1)
-                ->latest()
-                ->paginate(10);
+        // Mulai Query
+        $query = User::with(['role', 'kota', 'kecamatan', 'kelurahan'])
+                ->where('role_id', '!=', 1);
+
+        // 1. Logika Pencarian (Search)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('nm_lengkap', 'like', "%{$search}%")
+                  ->orWhere('no_kk', 'like', "%{$search}%");
+            });
+        }
+
+        // 2. Logika Filter Role
+        if ($request->filled('role') && $request->input('role') !== 'all') {
+            $roleName = $request->input('role');
+            $query->whereHas('role', function($q) use ($roleName) {
+                $q->where('nm_role', $roleName);
+            });
+        }
+
+        // Eksekusi Query dengan Pagination
+        // withQueryString() penting agar filter tidak hilang saat pindah halaman
+        $users = $query->latest()
+                ->paginate(10)
+                ->withQueryString();
         
         $roles = Role::all();
 
         return Inertia::render('Manajemen/ManajemenData', [
             'users' => $users,
             'roles' => $roles,
+            // Kirim balik filter agar input tetap terisi setelah refresh
+            'filters' => $request->only(['search', 'role']),
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),

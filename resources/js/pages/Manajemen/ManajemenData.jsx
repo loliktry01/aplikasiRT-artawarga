@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import AppLayout from "@/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -12,31 +12,61 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { route } from "ziggy-js"; // Pastikan import ini ada
 
 export default function ManajemenData() {
     const { props } = usePage();
+    // Ambil data langsung dari props (sudah difilter dari server)
     const users = props.users?.data || [];
     const roles = props.roles || [];
+    const filters = props.filters || {};
 
-    const [search, setSearch] = useState("");
-    const [roleFilter, setRoleFilter] = useState("all");
+    // State inisialisasi dari filter server (agar tidak reset saat refresh)
+    const [search, setSearch] = useState(filters.search || "");
+    const [roleFilter, setRoleFilter] = useState(filters.role || "all");
 
-    const filteredData = users.filter((item) => {
-        const term = search.toLowerCase();
-        const matchName = item.nm_lengkap?.toLowerCase().includes(term);
-        const matchKK = item.no_kk?.includes(term);
-        const matchRole =
-            roleFilter === "all" || item.role?.nm_role === roleFilter;
-        return (matchName || matchKK) && matchRole;
-    });
+    // Fungsi Trigger Filter ke Server
+    const handleFilter = (newSearch, newRole) => {
+        router.get(
+            route("superadmin.users"),
+            {
+                search: newSearch,
+                role: newRole,
+            },
+            {
+                preserveState: true, // Jaga scroll position
+                replace: true, // Ganti history browser agar rapi
+            }
+        );
+    };
+
+    // Handle saat ketik search (Optional: Pakai debounce/timeout biar lebih smooth)
+    const onSearchChange = (e) => {
+        const val = e.target.value;
+        setSearch(val);
+        // Kita trigger filter langsung saat ketik (atau bisa pakai tombol cari)
+        handleFilter(val, roleFilter);
+    };
+
+    // Handle saat ganti Role
+    const onRoleChange = (val) => {
+        setRoleFilter(val);
+        handleFilter(search, val);
+    };
+
+    const resetFilter = () => {
+        setSearch("");
+        setRoleFilter("all");
+        handleFilter("", "all");
+    };
 
     return (
         <AppLayout>
             <div className="space-y-10">
                 {/* HEADER */}
-                <div className="flex flex-col md:flex-row justify-between items-center w-full bg-white">
-                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 text-center md:text-left">
-                        <span className="font-bold text-gray-900 md:pr-5">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full bg-white">
+                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
+                        <span className="font-bold text-gray-900 pr-5">
                             MANAJEMEN DATA
                         </span>
                     </h1>
@@ -61,7 +91,7 @@ export default function ManajemenData() {
                                 type="text"
                                 placeholder="Cari berdasarkan nama atau KK"
                                 value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                onChange={onSearchChange}
                                 className="pl-9"
                             />
                         </div>
@@ -70,7 +100,7 @@ export default function ManajemenData() {
                         <div className="flex items-center gap-3">
                             <Select
                                 value={roleFilter}
-                                onValueChange={setRoleFilter}
+                                onValueChange={onRoleChange}
                             >
                                 <SelectTrigger className="w-[150px] text-gray-700">
                                     <SelectValue placeholder="Filter Role" />
@@ -80,9 +110,10 @@ export default function ManajemenData() {
                                     {roles.map((r) => (
                                         <SelectItem
                                             key={r.id}
-                                            value={r.nama_role}
+                                            // PERBAIKAN: Gunakan r.nm_role, bukan r.nama_role
+                                            value={r.nm_role}
                                         >
-                                            {r.nama_role}
+                                            {r.nm_role}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -91,10 +122,7 @@ export default function ManajemenData() {
                             {(search || roleFilter !== "all") && (
                                 <Button
                                     variant="outline"
-                                    onClick={() => {
-                                        setSearch("");
-                                        setRoleFilter("all");
-                                    }}
+                                    onClick={resetFilter}
                                     className="text-gray-700"
                                 >
                                     Reset
@@ -128,7 +156,8 @@ export default function ManajemenData() {
                         </thead>
 
                         <tbody>
-                            {filteredData.map((item, i) => (
+                            {/* Gunakan users data langsung dari server */}
+                            {users.map((item, i) => (
                                 <tr
                                     key={i}
                                     className="border-b hover:bg-gray-50 transition-colors"
@@ -203,7 +232,7 @@ export default function ManajemenData() {
                                 </tr>
                             ))}
 
-                            {filteredData.length === 0 && (
+                            {users.length === 0 && (
                                 <tr>
                                     <td
                                         className="py-6 text-center text-gray-500"
