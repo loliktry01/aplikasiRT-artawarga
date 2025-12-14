@@ -107,7 +107,7 @@ export default function KategoriIndex({ auth, kategoriList }) {
                                 <Button
                                     type="submit"
                                     disabled={processing}
-                                    className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
+                                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs md:text-sm px-3 md:px-4 py-2 rounded-md"
                                 >
                                     <PlusCircle className="w-4 h-4 mr-2" />
                                     {processing ? "Menyimpan..." : "Tambah"}

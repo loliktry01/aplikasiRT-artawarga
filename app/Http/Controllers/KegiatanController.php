@@ -118,7 +118,7 @@ class KegiatanController extends Controller
     {
         $kategoris = KategoriKegiatan::select('id', 'nm_kat')->get();
         return Inertia::render('Kegiatan/Tambah_kegiatan', [
-            'listKategori' => $kategoris 
+            'kategoris' => $kategoris 
         ]);
     }
 
