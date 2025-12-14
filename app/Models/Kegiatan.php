@@ -40,8 +40,4 @@ class Kegiatan extends Model
         return $this->belongsTo(KategoriKegiatan::class, 'kat_keg_id', 'id');
     }
 
-    public function subkategori_kegiatan()
-    {
-        return $this->hasMany(SubkatKeg::class);
-    }
 }
