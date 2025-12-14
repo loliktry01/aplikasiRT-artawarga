@@ -161,19 +161,25 @@ export default function Dashboard() {
         icon: Icon,
         colorClass = "text-gray-600",
         bgClass = "bg-gray-100", //DEFAULT BG
-        borderColorClass = "border-gray-200" //DEFAULT BORDER
+        borderColorClass = "border-gray-200", //DEFAULT BORDER
     }) => (
-        <div className={`${bgClass} border rounded-lg p-4 shadow-sm ${borderColorClass} h-full`}>
+        <div
+            className={`${bgClass} border rounded-lg p-4 shadow-sm ${borderColorClass} h-full`}
+        >
             <div className="flex items-center gap-4">
                 {/* Icon Container: shrink-0 ensures it doesn't squash */}
-                <div className="p-3 rounded-lg shrink-0 "> 
+                <div className="p-3 rounded-lg shrink-0 ">
                     <Icon className={`w-6 h-6 ${colorClass}`} />
                 </div>
-                
+
                 {/* Text Container: flex-1 ensures it takes remaining space */}
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-600 truncate">{title}</p>
-                    <p className="font-semibold text-gray-800 text-lg truncate">{value}</p>
+                    <p className="text-sm font-medium text-gray-600 truncate">
+                        {title}
+                    </p>
+                    <p className="font-semibold text-gray-800 text-lg truncate">
+                        {value}
+                    </p>
                 </div>
             </div>
         </div>
@@ -242,7 +248,7 @@ export default function Dashboard() {
                                     borderColorClass="border-blue-200"
                                 />
                                 <InfoCard
-                                    title="Dana BOP"
+                                    title="Sisa Dana BOP"
                                     value={formatRupiah(sisaBop)}
                                     icon={Banknote}
                                     colorClass="text-purple-600"
@@ -250,7 +256,7 @@ export default function Dashboard() {
                                     borderColorClass="border-purple-200"
                                 />
                                 <InfoCard
-                                    title="Dana Iuran"
+                                    title="Sisa Dana Iuran"
                                     value={formatRupiah(sisaIuran)}
                                     icon={Banknote}
                                     colorClass="text-yellow-600"
