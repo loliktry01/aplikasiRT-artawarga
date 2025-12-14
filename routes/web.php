@@ -57,7 +57,7 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/kegiatan/{id}/download-spj', [SpjPdfController::class, 'generateSpjPdf'])
         ->name('kegiatan.generateSpjPdf');
 
-    Route::get('/dashboard/kegiatan', [KegiatanController::class, 'create'])->name('kegiatan.create');
+    Route::get('/kegiatan/create', [KegiatanController::class, 'create'])->name('kegiatan.create');
     Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store');
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index'); 
     Route::get('/kegiatan/{id}', [KegiatanController::class, 'show'])->name('kegiatan.show');
