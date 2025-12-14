@@ -99,6 +99,7 @@ export default function AppLayout({ children }) {
                     url: "/dashboard",
                     icon: LayoutTemplate,
                 },
+                { title: "Kegiatan", url: "/kegiatan", icon: CalendarDays },
                 {
                     title: "Approval",
                     url: "/tagihan-bulanan/approval",
