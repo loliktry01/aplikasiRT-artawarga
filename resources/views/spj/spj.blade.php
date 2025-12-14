@@ -194,9 +194,9 @@
                         
                         <p>Penerima,</p>
                         
-                        <div style="margin-top: 80px;"></div> 
+                        <div style="margin-top: 90px;"></div> 
 
-                        <p>(.............................................)</p>
+                        <p style="font-weight: bold;"> {{ $penerima }} </p>
                     </div>
                 </td>
             </tr>

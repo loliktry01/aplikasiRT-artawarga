@@ -4,11 +4,33 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengeluaran;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class PengeluaranApiController extends Controller
 {
+    // ==========================================
+    // 1. ENDPOINT KHUSUS DROPDOWN (BARU)
+    // ==========================================
+    /**
+     * Mengambil daftar nama penerima (Role 2 & 3)
+     * Dipakai frontend untuk mengisi pilihan Dropdown
+     */
+    public function getListPenerima()
+    {
+        // Ambil user dengan role 2 (Pengurus) dan 3 (Anggota)
+        $users = User::whereIn('role_id', [2, 3])
+            ->orderBy('nm_lengkap', 'asc')
+            ->get(['id', 'nm_lengkap']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'List penerima berhasil diambil.',
+            'data' => $users
+        ]);
+    }
+
     // GET: List all pengeluaran
     /**
      * Lihat daftar pengeluaran
@@ -16,7 +38,7 @@ class PengeluaranApiController extends Controller
     public function index()
     {
         $data = Pengeluaran::with('kegiatan')
-            ->select('id','tgl','keg_id','nominal','ket','tipe','bkt_nota')
+            ->select('id','tgl','keg_id','nominal','ket','tipe','bkt_nota','penerima','toko')
             ->latest()
             ->get();
 
@@ -60,6 +82,8 @@ class PengeluaranApiController extends Controller
             'nominal' => 'required|numeric|min:0',
             'ket' => 'required|string',
             'tipe' => 'required|in:bop,iuran',
+            'penerima' => 'required|string|exists:usr,nm_lengkap', 
+            'toko' => 'nullable|string',
             'bkt_nota' => 'required|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -101,6 +125,8 @@ class PengeluaranApiController extends Controller
             'nominal' => 'sometimes|numeric|min:0',
             'ket' => 'sometimes|string',
             'tipe' => 'sometimes|in:bop,iuran',
+            'penerima' => 'sometimes|required|string|exists:usr,nm_lengkap',
+            'toko' => 'nullable|string',
             'bkt_nota' => 'sometimes|required|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
