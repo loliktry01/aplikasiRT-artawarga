@@ -66,14 +66,12 @@ class DownloaderController extends Controller
         // Kolom: id, tgl, nominal, ket, bkt_nota, created_at
         $bopMasuk = PemasukanBOP::whereBetween('tgl', [$startDate, $endDate])
             ->select('id', 'tgl', 'nominal', 'ket', 'bkt_nota', 'created_at')
-                
             ->get()
             ->map(fn($row) => $this->mapData($row, 'bop', 'masuk', $localFallbackImage));
 
         // B. Iuran Masuk (Tabel: masuk_iuran)
         // Kolom: id, kat_iuran_id, tgl, nominal, ket (TIDAK ADA bkt_nota)
         $iuranMasuk = PemasukanIuran::whereBetween('tgl', [$startDate, $endDate])
-            ->where('kat_iuran_id', '!=', 1) 
             ->select('id', 'tgl', 'nominal', 'ket', 'created_at') 
             ->get()
             ->map(fn($row) => $this->mapData($row, 'iuran', 'masuk', $localFallbackImage));

@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\SuperadminApiController;
 use App\Http\Controllers\Api\SpjApiController;
 use App\Http\Controllers\Api\HargaIuranApiController;
 use App\Http\Controllers\Api\TagihanBulananApiController;
-
+use App\Http\Controllers\Api\LaporanController;
 // --- PUBLIC (Tanpa Login) ---
 
 Route::get('/check', function () {
