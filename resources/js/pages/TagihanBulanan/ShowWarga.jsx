@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { Upload } from "lucide-react";
+import { useNotify } from "@/components/ToastNotification"; // 🟢 1. IMPORT TOAST
 
 export default function ShowWarga({ auth, tagihan }) {
+    const { notifySuccess, notifyError } = useNotify(); // 🟢 2. INISIALISASI TOAST
     const [preview, setPreview] = useState(null);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -23,26 +25,36 @@ export default function ShowWarga({ auth, tagihan }) {
     const submit = (e) => {
         e.preventDefault();
 
+        // 🟢 3. VALIDASI MANUAL DENGAN TOAST
         if (!data.bkt_byr) {
-            alert("Silakan upload bukti transfer dulu.");
+            notifyError(
+                "Bukti Belum Diunggah",
+                "Silakan upload foto bukti transfer terlebih dahulu."
+            );
             return;
         }
-
-        console.log("DATA AKAN DIKIRIM:", data);
 
         post(route("tagihan.upload"), {
             forceFormData: true,
 
             onError: (errors) => {
-                console.error("UPLOAD ERROR:", errors);
+                // 🟢 4. HANDLE ERROR DARI SERVER
+                const msg =
+                    Object.values(errors)[0] ||
+                    "Terjadi kesalahan saat mengupload.";
+                notifyError("Gagal Upload", msg);
             },
 
             onSuccess: () => {
-                console.log("UPLOAD BERHASIL");
+                // 🟢 5. HANDLE SUKSES
+                notifySuccess(
+                    "Berhasil",
+                    "Bukti pembayaran berhasil dikirim untuk diverifikasi."
+                );
             },
 
             onFinish: () => {
-                console.log("SELESAI MENGIRIM REQUEST");
+                // Optional: Reset form atau logic lain jika perlu
             },
         });
     };
@@ -97,7 +109,7 @@ export default function ShowWarga({ auth, tagihan }) {
                     <input
                         ref={inputRef}
                         type="file"
-                        name="bkt_byr" // <<< PENTING: nama harus ada
+                        name="bkt_byr"
                         accept="image/*"
                         className="hidden"
                         onChange={handleFilePick}
@@ -115,7 +127,8 @@ export default function ShowWarga({ auth, tagihan }) {
                     {preview && (
                         <img
                             src={preview}
-                            className="max-h-72 mt-3 rounded-lg border shadow"
+                            alt="Preview Bukti"
+                            className="max-h-72 mt-3 rounded-lg border shadow object-contain"
                         />
                     )}
                 </div>
@@ -158,7 +171,7 @@ export default function ShowWarga({ auth, tagihan }) {
 
             <div className="w-full min-h-screen bg-white overflow-y-auto pl-0 pr-8 pb-10 md:pr-12 md:pb-12">
                 <h1 className="text-3xl font-bold mb-8">
-                    Pembayaran Tagihan Air
+                    PEMBAYARAN TAGIHAN AIR
                 </h1>
 
                 <Breadcrumbs
