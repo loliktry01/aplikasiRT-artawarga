@@ -17,7 +17,6 @@ import {
     ChevronsUpDown,
     Banknote,
     Calculator,
-    Clock,
     Database,
     RotateCcw,
     Plus,
