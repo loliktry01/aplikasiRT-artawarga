@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PemasukanBOP;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 /**
  * @OA\Tag(
@@ -37,7 +38,7 @@ class BopApiController extends Controller
             ->get();
 
         return response()->json([
-            'status'    => true,
+            'status'  => true,
             'message' => 'Data berhasil diambil.',
             'data'    => $data
         ]);
@@ -55,7 +56,7 @@ class BopApiController extends Controller
      * @OA\MediaType(
      * mediaType="multipart/form-data",
      * @OA\Schema(
-     * required={"tgl", "nominal", "ket", "bkt_nota"}, // PASTIKAN bkt_nota ADA DI SINI JUGA
+     * required={"tgl", "nominal", "ket", "bkt_nota"},
      *
      * @OA\Property(
      * property="tgl",
@@ -79,7 +80,7 @@ class BopApiController extends Controller
      * description="Upload file nota (jpg, jpeg, png, pdf) - WAJIB",
      * type="string",
      * format="binary",
-     * nullable=false // Ubah ini
+     * nullable=false
      * )
      * )
      * )
@@ -94,20 +95,22 @@ class BopApiController extends Controller
     public function bop_create(Request $request)
     {
         $validated = $request->validate([
-            'tgl'       => 'required|date',
-            'nominal'   => 'required|numeric|min:0',
-            'ket'       => 'required|string',
-            'bkt_nota'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', 
+            'tgl'      => 'required|date',
+            'nominal'  => 'required|numeric|min:0',
+            'ket'      => 'required|string',
+            'bkt_nota' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', 
         ]);
 
         
         if ($request->hasFile('bkt_nota')) { 
-            $file       = $request->file('bkt_nota');
-            $extension  = $file->getClientOriginalExtension();
-            $filename   = now()->format('Ymd_His') . '_nota.' . $extension;
+            $file      = $request->file('bkt_nota');
+            $extension = $file->getClientOriginalExtension();
+            // FIX: Menggunakan Carbon::now() untuk memastikan fungsi format() ditemukan editor
+            $filename  = Carbon::now()->format('Ymd_His') . '_nota.' . $extension; 
 
             $path = $file->storeAs('nota_bop', $filename, 'public');
-            $validated['bkt_nota'] = $path; // Path file akan disimpan
+            // FIX: Simpan path dengan forward slash
+            $validated['bkt_nota'] = str_replace('\\', '/', $path); 
         } else {
             return response()->json([
                 'status' => false,
@@ -115,161 +118,12 @@ class BopApiController extends Controller
             ], 422);
         }
 
-
         $data = PemasukanBOP::create($validated);
 
         return response()->json([
-            'status'    => true,
+            'status'  => true,
             'message' => 'Data berhasil disimpan!',
             'data'    => $data
         ], 201);
-    }
-
-    
-    /**
-     * @OA\Delete(
-     * path="/api/bop/delete/{id}",
-     * summary="Hapus pemasukan BOP",
-     * tags={"BOP"},
-     * security={{"bearerAuth":{}}},
-     *
-     * @OA\Parameter(
-     * name="id",
-     * in="path",
-     * required=true,
-     * description="ID data BOP",
-     * @OA\Schema(type="integer")
-     * ),
-     *
-     * @OA\Response(
-     * response=200,
-     * description="Data berhasil dihapus"
-     * ),
-     * @OA\Response(
-     * response=404,
-     * description="Data tidak ditemukan"
-     * )
-     * )
-     */
-    public function destroy($id)
-    {
-        $data = PemasukanBOP::find($id);
-
-        if (!$data) {
-            return response()->json([
-                'status'    => false,
-                'message' => 'Data tidak ditemukan.'
-            ], 404);
-        }
-
-        if ($data->bkt_nota && Storage::disk('public')->exists($data->bkt_nota)) {
-            Storage::disk('public')->delete($data->bkt_nota);
-        }
-
-        $data->delete();
-
-        return response()->json([
-            'status'    => true,
-            'message' => 'Data berhasil dihapus.'
-        ]);
-    }
-
-    /**
-     * @OA\Post(
-     * path="/api/bop/update/{id}",
-     * summary="Perbarui pemasukan BOP",
-     * tags={"BOP"},
-     * security={{"bearerAuth":{}}},
-     *
-     * @OA\Parameter(
-     * name="id",
-     * in="path",
-     * required=true,
-     * description="ID data BOP",
-     * @OA\Schema(type="integer")
-     * ),
-     *
-     * @OA\RequestBody(
-     * required=false,
-     * @OA\MediaType(
-     * mediaType="multipart/form-data",
-     * @OA\Schema(
-     * @OA\Property(
-     * property="tgl",
-     * type="string",
-     * format="date",
-     * example="2025-02-01"
-     * ),
-     * @OA\Property(
-     * property="nominal",
-     * type="number",
-     * format="float",
-     * example=300000
-     * ),
-     * @OA\Property(
-     * property="ket",
-     * type="string",
-     * example="Perbaikan printer"
-     * ),
-     * @OA\Property(
-     * property="bkt_nota",
-     * description="Upload nota baru (opsional)",
-     * type="string",
-     * format="binary",
-     * nullable=true
-     * )
-     * )
-     * )
-     * ),
-     *
-     * @OA\Response(
-     * response=200,
-     * description="Data berhasil diperbarui"
-     * ),
-     * @OA\Response(
-     * response=404,
-     * description="Data tidak ditemukan"
-     * )
-     * )
-     */
-    public function update(Request $request, $id)
-    {
-        $data = PemasukanBOP::find($id);
-
-        if (!$data) {
-            return response()->json([
-                'status'    => false,
-                'message' => 'Data tidak ditemukan.'
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            // Saat update, tgl, nominal, ket bisa diabaikan (nullable)
-            'tgl'       => 'nullable|date',
-            'nominal'   => 'nullable|numeric|min:0',
-            'ket'       => 'nullable|string',
-            'bkt_nota'  => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
-
-        if ($request->hasFile('bkt_nota')) {
-            if ($data->bkt_nota && Storage::disk('public')->exists($data->bkt_nota)) {
-                Storage::disk('public')->delete($data->bkt_nota);
-            }
-
-            $file       = $request->file('bkt_nota');
-            $extension  = $file->getClientOriginalExtension();
-            $filename   = now()->format('Ymd_His') . '_nota.' . $extension;
-
-            $path = $file->storeAs('nota_bop', $filename, 'public');
-            $validated['bkt_nota'] = $path;
-        } 
-        
-        $data->update($validated);
-
-        return response()->json([
-            'status'    => true,
-            'message' => 'Data berhasil diperbarui.',
-            'data'    => $data
-        ]);
     }
 }
