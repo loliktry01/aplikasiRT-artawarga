@@ -20,7 +20,7 @@ class TagihanBulananApiController extends Controller
     // Pastikan Anda mendaftarkan middleware role/auth di file routes/api.php
     
     /**
-     * Lihat daftar tagihan dan ringkasna keuangan (RT)
+     * Lihat daftar tagihan dan ringkasan keuangan 
      */
     public function indexRt(Request $request)
     {
@@ -113,7 +113,7 @@ class TagihanBulananApiController extends Controller
     // =========================================================================
 
     /**
-     * Create tagihan (RT)
+     * Create tagihan
      */
     public function store(Request $request)
     {
@@ -179,7 +179,7 @@ class TagihanBulananApiController extends Controller
     }
 
     /**
-     * Update tagihan (RT)
+     * Update tagihan
      */
     public function update(Request $request, $id)
     {
@@ -255,7 +255,7 @@ class TagihanBulananApiController extends Controller
     }
     
     /**
-     * Hapus tagihan (RT)
+     * Hapus tagihan
      */
     public function destroy($id)
     {
@@ -275,7 +275,7 @@ class TagihanBulananApiController extends Controller
     }
     
     /**
-     * Approve tagihan (RT)
+     * Approve tagihan
      */
     public function approve($id)
     {
@@ -320,7 +320,7 @@ class TagihanBulananApiController extends Controller
     }
 
     /**
-     * Decline tagihan (RT)
+     * Decline tagihan
      */
     public function decline($id)
     {

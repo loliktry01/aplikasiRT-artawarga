@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class IuranApiController extends Controller
 {
     /**
-     * Lihat daftar data iuran
+     * Lihat daftar iuran
      */
     public function index()
     {
@@ -89,7 +89,7 @@ class IuranApiController extends Controller
     }
 
     /**
-     * Tambah data iuran
+     * Tambah iuran
      */
     public function iuran_create(Request $request)
     {
@@ -117,7 +117,7 @@ class IuranApiController extends Controller
     }
 
     /**
-     * Update data iuran
+     * Update iuran
      */
     public function iuran_update(Request $request, $id)
     {
@@ -147,7 +147,7 @@ class IuranApiController extends Controller
     }
 
     /**
-     * Hapus data iuran
+     * Hapus iuran
      */
     public function iuran_delete($id)
     {

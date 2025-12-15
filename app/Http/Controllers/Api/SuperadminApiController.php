@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 class SuperadminApiController extends Controller
 {
     /**
-     * GET – daftar user + role
+     * Lihat daftar user + role
      */
     public function index()
     {
@@ -26,7 +26,7 @@ class SuperadminApiController extends Controller
     }
 
     /**
-     * GET – detail user
+     * Lihat detail user
      */
     public function show($id)
     {
@@ -46,7 +46,7 @@ class SuperadminApiController extends Controller
     }
 
     /**
-     * POST – tambah user baru
+     * Tambah user baru
      */
     public function store(Request $request)
     {
@@ -86,7 +86,7 @@ class SuperadminApiController extends Controller
     }
 
     /**
-     * PUT/PATCH – update user
+     * Update user
      */
     public function update(Request $request, $id)
     {
@@ -140,7 +140,7 @@ class SuperadminApiController extends Controller
     }
 
     /**
-     * DELETE – hapus user
+     * Hapus user
      */
     public function destroy($id)
     {

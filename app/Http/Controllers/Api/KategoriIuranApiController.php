@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 class KategoriIuranApiController extends Controller
 {
     /**
-     * GET /api/kategori-iuran: Menampilkan daftar NAMA kategori (index).
+     * Lihat daftar data kategori iuran
      */
     public function index()
     {
@@ -25,7 +25,7 @@ class KategoriIuranApiController extends Controller
     }
     
     /**
-     * POST /api/kategori-iuran: Menyimpan NAMA kategori baru dan membuat entri harga default (store).
+     * Tambah data kategori iuran
      */
     public function store(Request $request)
     {
@@ -52,7 +52,7 @@ class KategoriIuranApiController extends Controller
     }
 
     /**
-     * GET /api/kategori-iuran/{id}: Menampilkan detail satu kategori iuran (show).
+     * Lihat daftar kategori iuran (Id)
      */
     public function show(string $id)
     {
@@ -72,7 +72,7 @@ class KategoriIuranApiController extends Controller
     }
     
     /**
-     * DELETE /api/kategori-iuran/{id}: Menghapus kategori iuran (destroy).
+     * Hapus kategori kegiatan
      */
     public function destroy(string $id)
     {

@@ -13,9 +13,11 @@ class PengeluaranApiController extends Controller
     // ==========================================
     // 1. ENDPOINT KHUSUS DROPDOWN (BARU)
     // ==========================================
+    //  Mengambil daftar nama penerima (Role 2 & 3)
+    // Dipakai frontend untuk mengisi pilihan Dropdown
+    
     /**
-     * Mengambil daftar nama penerima (Role 2 & 3)
-     * Dipakai frontend untuk mengisi pilihan Dropdown
+     * Lihat daftar nama penerima (Role 2 & 3)
      */
     public function getListPenerima()
     {
@@ -51,7 +53,7 @@ class PengeluaranApiController extends Controller
 
     // GET: Detail pengeluaran by ID
     /**
-     * Lihat detail pengeluaran by ID
+     * Lihat detail pengeluaran (Id))
      */
     public function show($id)
     {
@@ -72,7 +74,7 @@ class PengeluaranApiController extends Controller
 
     // POST: Create pengeluaran
     /**
-     * Menambah pengeluaran
+     * Tambah pengeluaran
      */
     public function store(Request $request)
     {
@@ -155,7 +157,7 @@ class PengeluaranApiController extends Controller
 
     // DELETE: Delete pengeluaran
     /**
-     * Menghapus pengeluaran
+     * Hapus pengeluaran
      */
     public function destroy($id)
     {

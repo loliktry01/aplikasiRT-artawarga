@@ -24,7 +24,7 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * GET semua kegiatan
+     * Lihat daftar semua kegiatan
      */
     public function index()
     {
@@ -40,7 +40,7 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * GET detail kegiatan
+     * Lihat detail kegiatan (Id)
      */
     public function show($id)
     {
@@ -63,7 +63,7 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * POST tambah kegiatan
+     * Tambah kegiatan
      */
     public function store(Request $request)
     {
@@ -125,7 +125,7 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * UPDATE kegiatan
+     * Update kegiatan
      */
     public function update(Request $request, $id)
     {
@@ -216,7 +216,7 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * DELETE kegiatan
+     * Hapus kegiatan
      */
     public function destroy($id)
     {

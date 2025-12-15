@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class HargaIuranApiController extends Controller
 {
     /**
-     * GET /api/kategori-iuran/harga: Menampilkan daftar semua konfigurasi harga.
+     * Lihat daftar semua konfigurasi harga
      */
     public function index()
     {
@@ -23,8 +23,9 @@ class HargaIuranApiController extends Controller
     }
 
     /**
-     * PATCH /api/kategori-iuran/harga/{id}: Mengubah (Update) kolom harga/persentase di tabel harga_iuran.
+     * Update kolom harga/persentase
      */
+    // di tabel harga_iuran
     public function update(Request $request, string $id)
     {
         $hargaIuran = HargaIuran::with('kategori')->findOrFail($id);
