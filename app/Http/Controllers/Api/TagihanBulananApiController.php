@@ -20,7 +20,7 @@ class TagihanBulananApiController extends Controller
     // Pastikan Anda mendaftarkan middleware role/auth di file routes/api.php
     
     /**
-     * Lihat daftar tagihan dan ringkasan keuangan 
+     * Lihat daftar tagihan dan ringkasna keuangan
      */
     public function indexRt(Request $request)
     {
@@ -113,7 +113,7 @@ class TagihanBulananApiController extends Controller
     // =========================================================================
 
     /**
-     * Create tagihan
+     * Tambah tagihan 
      */
     public function store(Request $request)
     {
@@ -179,7 +179,7 @@ class TagihanBulananApiController extends Controller
     }
 
     /**
-     * Update tagihan
+     * Update tagihan 
      */
     public function update(Request $request, $id)
     {
