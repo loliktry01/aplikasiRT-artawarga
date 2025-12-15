@@ -7,9 +7,17 @@ use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class KegiatanApiController extends Controller
 {
+    /**
+     * Helper untuk mempersiapkan data kegiatan sebelum dikirim dalam response.
+     * Mengubah string JSON menjadi array jika perlu.
+     *
+     * @param \App\Models\Kegiatan $kegiatan
+     * @return \App\Models\Kegiatan
+     */
     protected function prepareKegiatanForResponse($kegiatan)
     {
         if (is_string($kegiatan->dok_keg)) {
@@ -17,22 +25,18 @@ class KegiatanApiController extends Controller
         } elseif (is_null($kegiatan->dok_keg)) {
             $kegiatan->dok_keg = [];
         }
-        
-        if (is_array($kegiatan->dok_keg)) {
-            $kegiatan->dok_keg = array_map(function ($path) {
-                return str_replace('\\', '/', $path);
-            }, $kegiatan->dok_keg);
-        }
-        
         return $kegiatan;
     }
 
     /**
-     * Lihat daftar semua kegiatan
+     * Lihat all daftar kegiatan.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
         $data = Kegiatan::orderBy('tgl_mulai', 'desc')->get();
+
         $data->transform(fn ($item) => $this->prepareKegiatanForResponse($item));
 
         return response()->json([
@@ -42,12 +46,15 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * Lihat detail kegiatan (Id)
+     * Lihat detail kegiatan by ID.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
         try {
-            $kegiatan = Kegiatan::with(['kategori_relasi', 'pengeluaran']) 
+            $kegiatan = Kegiatan::with(['kategori_relasi', 'pengeluaran'])
                                 ->findOrFail($id);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -66,19 +73,21 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * Tambah kegiatan
+     * Tambah kegiatan baru.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nm_keg'      => 'required|string|max:255',
-            'kat_keg_id'  => 'required|integer|exists:kat_keg,id', 
-            'tgl_mulai'   => 'nullable|date',
-            'tgl_selesai' => 'nullable|date|after_or_equal:tgl_mulai',
-            'pj_keg'      => 'nullable|string|max:255',
-            'panitia'     => 'nullable|string|max:255',
-            'dok_keg.*'   => 'sometimes|file|mimes:jpg,jpeg,png,pdf|max:5120', 
-            'rincian_kegiatan' => 'nullable|string'
+            'nm_keg'           => 'required|string|max:255',
+            'kat_keg_id'       => 'required|integer|exists:kat_keg,id',
+            'tgl_mulai'        => 'nullable|date',
+            'tgl_selesai'      => 'nullable|date|after_or_equal:tgl_mulai',
+            'pj_keg'           => 'nullable|string|max:255',
+            'panitia'          => 'nullable|string|max:255',
+            'dok_keg'          => 'sometimes|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         if ($validator->fails()) {
@@ -91,26 +100,23 @@ class KegiatanApiController extends Controller
 
         $validatedData = $validator->validated();
         $uploadedPaths = [];
-        
+
         if ($request->hasFile('dok_keg')) {
             $files = is_array($request->file('dok_keg')) ? $request->file('dok_keg') : [$request->file('dok_keg')];
 
             foreach ($files as $file) {
                 if ($file && $file->isValid()) {
                     $extension = $file->getClientOriginalExtension();
-                    $filename = now()->format('Ymd_His') . '_' . uniqid() . '_keg.' . $extension;
-                    
+                    $filename = Carbon::now()->format('Ymd_His') . '_' . uniqid() . '_keg.' . $extension;
+
                     $path = $file->storeAs('keg', $filename, 'public');
-                    
-                    $path = str_replace('\\', '/', $path); 
-                    
                     $uploadedPaths[] = $path;
                 }
             }
         }
-         
+
         $validatedData['dok_keg'] = !empty($uploadedPaths) ? $uploadedPaths : null;
- 
+
         $kegiatan = Kegiatan::create($validatedData);
         $kegiatan = $this->prepareKegiatanForResponse($kegiatan);
 
@@ -122,7 +128,11 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * Update kegiatan
+     * Update data kegiatan.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -136,17 +146,17 @@ class KegiatanApiController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'nm_keg'            => 'sometimes|required|string|max:255',
-            'kat_keg_id'        => 'sometimes|required|integer|exists:kat_keg,id',
-            'tgl_mulai'         => 'sometimes|nullable|date',
-            'tgl_selesai'       => 'sometimes|nullable|date|after_or_equal:tgl_mulai',
-            'pj_keg'            => 'sometimes|nullable|string|max:255',
-            'panitia'           => 'sometimes|nullable|string|max:255',
-            'existing_dok_keg'  => 'sometimes|nullable|array', 
-            'dok_keg.*'         => 'sometimes|file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'rincian_kegiatan'  => 'nullable|string'
+            'nm_keg'           => 'sometimes|required|string|max:255',
+            'kat_keg_id'       => 'sometimes|required|integer|exists:kat_keg,id',
+            'tgl_mulai'        => 'sometimes|nullable|date',
+            'tgl_selesai'      => 'sometimes|nullable|date|after_or_equal:tgl_mulai',
+            'pj_keg'           => 'sometimes|nullable|string|max:255',
+            'panitia'          => 'sometimes|nullable|string|max:255',
+            'existing_dok_keg' => 'sometimes|nullable|array',
+            'dok_keg.*'        => 'sometimes|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'rincian_kegiatan' => 'nullable|string'
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -162,37 +172,34 @@ class KegiatanApiController extends Controller
         if (!is_array($existingPaths)) {
             $existingPaths = [];
         }
-        
+
         if ($request->hasFile('dok_keg')) {
-            $files = is_array($request->file('dok_keg')) ? $request->file('dok_keg') : [$request->file('dok_keg')];
-            
+             $files = is_array($request->file('dok_keg')) ? $request->file('dok_keg') : [$request->file('dok_keg')];
+
             foreach ($files as $file) {
                 if ($file && $file->isValid()) {
                     $extension = $file->getClientOriginalExtension();
-                    $filename = now()->format('Ymd_His') . '_' . uniqid() . '_keg.' . $extension;
+                    $filename = Carbon::now()->format('Ymd_His') . '_' . uniqid() . '_keg.' . $extension;
+
                     $path = $file->storeAs('keg', $filename, 'public');
-                    $path = str_replace('\\', '/', $path); 
-                    
                     $newlyUploadedPaths[] = $path;
                 }
             }
         }
-        
+
         $finalPaths = array_merge($existingPaths, $newlyUploadedPaths);
-        
+
         $currentPaths = $this->prepareKegiatanForResponse($kegiatan)->dok_keg ?? [];
         $filesToDelete = array_diff($currentPaths, $finalPaths);
-        
+
         foreach ($filesToDelete as $path) {
-            $cleanPath = str_replace('\\', '/', $path);
-            if ($cleanPath && Storage::disk('public')->exists($cleanPath)) {
-                Storage::disk('public')->delete($cleanPath);
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
             }
         }
-        
-        // 4. Update data
+
         $validatedData['dok_keg'] = !empty($finalPaths) ? $finalPaths : null;
-        unset($validatedData['existing_dok_keg']);
+        unset($validatedData['existing_dok_keg']); // Hapus field temporary ini sebelum update
 
         $kegiatan->update($validatedData);
         $kegiatan = $this->prepareKegiatanForResponse($kegiatan);
@@ -205,7 +212,10 @@ class KegiatanApiController extends Controller
     }
 
     /**
-     * Hapus kegiatan
+     * Hapus kegiatan.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
@@ -222,9 +232,8 @@ class KegiatanApiController extends Controller
 
         if (is_array($filePaths)) {
             foreach ($filePaths as $path) {
-                $cleanPath = str_replace('\\', '/', $path);
-                if ($cleanPath && Storage::disk('public')->exists($cleanPath)) {
-                    Storage::disk('public')->delete($cleanPath);
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
                 }
             }
         }
