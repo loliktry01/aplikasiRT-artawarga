@@ -41,7 +41,6 @@ class KategoriIuranApiController extends Controller
             'kat_iuran_id' => $kategori->id,
         ]);
         
-        // Muat relasi harga untuk respons, agar data yang dikembalikan lengkap
         $kategori->load('hargaKonfigurasi');
 
         return response()->json([

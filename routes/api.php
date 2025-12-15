@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\SpjApiController;
 use App\Http\Controllers\Api\SpjPdfApiController;
 use App\Http\Controllers\Api\HargaIuranApiController;
 use App\Http\Controllers\Api\TagihanBulananApiController;
-
+use App\Http\Controllers\Api\LaporanController;
 // --- PUBLIC (Tanpa Login) ---
 
 Route::get('/check', function () {
@@ -104,4 +104,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/approve', [TagihanBulananApiController::class, 'approve'])->name('tagihan.approve.api'); 
         Route::post('/{id}/decline', [TagihanBulananApiController::class, 'decline'])->name('tagihan.decline.api'); 
     });
+    Route::get('/laporan/header', [LaporanController::class, 'header']);
 });

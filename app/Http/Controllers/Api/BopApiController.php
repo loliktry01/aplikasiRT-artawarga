@@ -93,7 +93,6 @@ class BopApiController extends Controller
      */
     public function bop_create(Request $request)
     {
-        // 1. Ubah aturan validasi bkt_nota dari 'nullable' menjadi 'required'
         $validated = $request->validate([
             'tgl'       => 'required|date',
             'nominal'   => 'required|numeric|min:0',
@@ -101,11 +100,7 @@ class BopApiController extends Controller
             'bkt_nota'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', 
         ]);
 
-        // 2. Karena bkt_nota sudah diatur required, kita TIDAK perlu lagi 
-        //    memeriksa hasFile() atau mengatur nilai default null.
-        //    Kita hanya perlu memastikan proses upload berjalan.
         
-        // Cek ini hanya untuk berjaga-jaga (walaupun seharusnya sudah terjamin oleh validasi 'required')
         if ($request->hasFile('bkt_nota')) { 
             $file       = $request->file('bkt_nota');
             $extension  = $file->getClientOriginalExtension();
@@ -114,19 +109,13 @@ class BopApiController extends Controller
             $path = $file->storeAs('nota_bop', $filename, 'public');
             $validated['bkt_nota'] = $path; // Path file akan disimpan
         } else {
-            // Ini tidak akan tercapai jika validasi 'required' berfungsi, 
-            // tetapi jika tercapai, itu berarti validasi gagal.
-            // Anda bisa melempar exception kustom di sini jika diperlukan,
-            // namun Laravel akan melakukannya secara otomatis.
-            // Untuk keamanan, kita tambahkan ini.
             return response()->json([
                 'status' => false,
                 'message' => 'File bukti nota wajib diunggah.'
             ], 422);
         }
 
-        // 3. Buat Data di Database
-        // Ini akan berhasil karena $validated sekarang DIJAMIN memiliki 'bkt_nota'
+
         $data = PemasukanBOP::create($validated);
 
         return response()->json([
@@ -136,7 +125,6 @@ class BopApiController extends Controller
         ], 201);
     }
 
-    // ... (method destroy, update, dll. tetap sama)
     
     /**
      * @OA\Delete(
@@ -260,12 +248,10 @@ class BopApiController extends Controller
             'tgl'       => 'nullable|date',
             'nominal'   => 'nullable|numeric|min:0',
             'ket'       => 'nullable|string',
-            // File bkt_nota saat update tetap nullable (opsional)
             'bkt_nota'  => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         if ($request->hasFile('bkt_nota')) {
-            // Hapus file lama jika ada
             if ($data->bkt_nota && Storage::disk('public')->exists($data->bkt_nota)) {
                 Storage::disk('public')->delete($data->bkt_nota);
             }
