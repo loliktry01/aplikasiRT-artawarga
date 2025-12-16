@@ -37,9 +37,9 @@ export default function Profil() {
         rw: user.rw || "",
         kode_pos: user.kode_pos || "",
         role_id: user.role_id || "",
-        kelurahan_id: user.kelurahan_id || "",
-        kecamatan_id: user.kecamatan_id || "",
-        kota_id: user.kota_id || "",
+        kelurahan_id: user.kelurahan_id ? String(user.kelurahan_id) : "",
+        kecamatan_id: user.kecamatan_id ? String(user.kecamatan_id) : "",
+        kota_id: user.kota_id ? String(user.kota_id) : "",
     });
 
     const [isEditing, setIsEditing] = useState(false);
@@ -122,13 +122,26 @@ export default function Profil() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        // Cek apakah state berubah saat mengetik
+        console.log(`[DEBUG] Mengetik di field: ${name}, Value baru: ${value}`);
+
         setFormData({ ...formData, [name]: value });
     };
 
     const handleEditToggle = () => {
+        console.log(
+            "[DEBUG] Tombol ditekan. Status isEditing SEBELUMNYA:",
+            isEditing
+        );
+
         if (isEditing) {
+            // Mode Simpan (Submit)
+            console.log("[DEBUG] Melakukan Submit Data ke Server...", formData);
+
             router.put(route("profil.update", user.id), formData, {
                 onSuccess: () => {
+                    console.log("[DEBUG] ✅ Sukses Update dari Server!");
                     setIsEditing(false);
                     notifySuccess(
                         "Disimpan",
@@ -136,13 +149,28 @@ export default function Profil() {
                     );
                 },
                 onError: (errors) => {
+                    console.error(
+                        "[DEBUG] ❌ Gagal Update! Error dari Server:",
+                        errors
+                    );
+
+                    // Tampilkan error spesifik di console biar tau validasi mana yang gagal
+                    Object.keys(errors).forEach((key) => {
+                        console.error(`Field '${key}': ${errors[key]}`);
+                    });
+
                     notifyError(
                         "Gagal Menyimpan",
-                        "Periksa kembali inputan Anda."
+                        "Periksa kembali inputan Anda. Cek Console untuk detail."
                     );
+                },
+                onFinish: () => {
+                    console.log("[DEBUG] Request Selesai.");
                 },
             });
         } else {
+            // Mode Ubah (Enable Edit)
+            console.log("[DEBUG] Mengaktifkan Mode Edit");
             setIsEditing(true);
         }
     };
@@ -161,9 +189,9 @@ export default function Profil() {
             rw: user.rw || "",
             kode_pos: user.kode_pos || "",
             role_id: user.role_id || "",
-            kelurahan_id: user.kelurahan_id || "",
-            kecamatan_id: user.kecamatan_id || "",
-            kota_id: user.kota_id || "",
+            kelurahan_id: user.kelurahan_id ? String(user.kelurahan_id) : "",
+            kecamatan_id: user.kecamatan_id ? String(user.kecamatan_id) : "",
+            kota_id: user.kota_id ? String(user.kota_id) : "",
         });
     };
 
@@ -183,23 +211,35 @@ export default function Profil() {
     return (
         <AppLayout>
             <div className="min-h-screen bg-gradient-to-r from-blue-100 via-white to-yellow-100 p-10">
-                
                 {/* ====== MODAL KONFIRMASI HAPUS (BARU & MODERN) ====== */}
                 {isDeleteModalOpen && (
                     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                         <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-200">
                             {/* Icon Peringatan */}
                             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-8 w-8 text-red-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
                                 </svg>
                             </div>
-                            
+
                             <h3 className="text-xl font-bold text-gray-900 mb-2">
                                 Hapus Foto Profil?
                             </h3>
                             <p className="text-gray-500 text-sm mb-6">
-                                Apakah Anda yakin ingin menghapus foto profil ini? Foto akan kembali ke tampilan default (inisial/avatar).
+                                Apakah Anda yakin ingin menghapus foto profil
+                                ini? Foto akan kembali ke tampilan default
+                                (inisial/avatar).
                             </p>
 
                             <div className="flex gap-3 justify-center">
@@ -348,7 +388,7 @@ export default function Profil() {
                                 onClick={() => fileInputRef.current.click()}
                                 className="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-white cursor-pointer hover:brightness-90 transition bg-white"
                             />
-                            
+
                             {/* Overlay Hover Icon Kamera */}
                             <div
                                 className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition cursor-pointer"
@@ -370,7 +410,7 @@ export default function Profil() {
                         {/* === UPDATE: MENGGUNAKAN MODAL CUSTOM === */}
                         {user.foto_profil && (
                             <button
-                                onClick={handleDeleteClick} 
+                                onClick={handleDeleteClick}
                                 className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1.5 px-3 py-1 rounded-full hover:bg-red-50 transition-colors font-medium"
                             >
                                 <svg
@@ -509,7 +549,7 @@ export default function Profil() {
                                 onChange={handleChange}
                                 disabled={true}
                             />
-                           <InputField
+                            <InputField
                                 label="Kecamatan"
                                 name="kecamatan_nama"
                                 value={user.kecamatan_nama}

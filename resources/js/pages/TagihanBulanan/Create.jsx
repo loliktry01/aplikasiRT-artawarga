@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import AppLayout from "../../Layouts/AppLayout";
 import { Head, useForm, Link } from "@inertiajs/react";
 import Breadcrumbs from "@/Components/Breadcrumbs";
+import { useNotify } from "@/components/ToastNotification"; // 🟢 IMPORT TOAST
 
 // --- SHADCN IMPORTS ---
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Create({ auth, wargaList, masterHarga }) {
+    // 🟢 Inisialisasi Toast
+    const { notifySuccess, notifyError } = useNotify();
+
     // --- 1. LOGIC TANGGAL: Default Bulan Lalu ---
     const today = new Date();
     today.setMonth(today.getMonth() - 1);
@@ -70,9 +74,57 @@ export default function Create({ auth, wargaList, masterHarga }) {
         setEstimasi(biayaAir + h_abonemen + h_jimpitan + biayaSampahTotal);
     }, [data.mtr_bln_lalu, data.mtr_skrg, data.pakai_sampah, masterHarga]);
 
+    // 🟢 REVISI FUNGSI SUBMIT DENGAN VALIDASI & TOAST
     const submit = (e) => {
         e.preventDefault();
-        post(route("tagihan.store"));
+
+        // 1. Validasi Warga
+        if (!data.usr_id) {
+            notifyError(
+                "Warga Belum Dipilih",
+                "Silakan pilih nama warga terlebih dahulu."
+            );
+            return;
+        }
+
+        // 2. Validasi Meteran Kosong
+        if (data.mtr_skrg === "" || data.mtr_skrg === null) {
+            notifyError("Meteran Kosong", "Masukkan angka meteran saat ini.");
+            return;
+        }
+
+        // 3. Validasi Logika Meteran (Sekarang < Lalu)
+        if (parseInt(data.mtr_skrg) < parseInt(data.mtr_bln_lalu)) {
+            notifyError(
+                "Meteran Tidak Valid",
+                `Meteran sekarang (${data.mtr_skrg}) tidak boleh lebih kecil dari bulan lalu (${data.mtr_bln_lalu}).`
+            );
+            return;
+        }
+
+        // 4. Validasi Bulan/Tahun
+        if (!data.bulan || !data.tahun) {
+            notifyError(
+                "Periode Kosong",
+                "Bulan dan Tahun tagihan harus diisi."
+            );
+            return;
+        }
+
+        // Kirim Data
+        post(route("tagihan.store"), {
+            onSuccess: () => {
+                notifySuccess("Berhasil", "Data tagihan berhasil disimpan!");
+            },
+            onError: (err) => {
+                // Ambil pesan error pertama dari server jika ada
+                const firstError = Object.values(err)[0];
+                notifyError(
+                    "Gagal Menyimpan",
+                    firstError || "Periksa kembali data inputan."
+                );
+            },
+        });
     };
 
     const formatRupiah = (num) =>
@@ -93,7 +145,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
                 <h1 className="text-3xl font-bold mb-10">TAMBAH TAGIHAN</h1>
                 <Breadcrumbs items={breadcrumbItems} />
 
-                {/* Menggunakan Card sebagai wrapper form agar lebih rapi (opsional, sesuai style Shadcn) */}
+                {/* Menggunakan Card sebagai wrapper form agar lebih rapi */}
                 <Card className="border-0 shadow-none p-0">
                     <CardContent className="p-0">
                         <form onSubmit={submit} className="space-y-6">
@@ -148,7 +200,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                         onChange={(e) =>
                                             setData("bulan", e.target.value)
                                         }
-                                        required
+                                        // required dihapus agar validasi manual handle errornya
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -164,7 +216,6 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                         onChange={(e) =>
                                             setData("tahun", e.target.value)
                                         }
-                                        required
                                     />
                                 </div>
                             </div>
@@ -178,7 +229,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                     </Label>
                                     <Input
                                         type="number"
-                                        className="h-11 bg-white border-gray-300 bg-gray-50"
+                                        className="h-11 bg-white border-gray-300 "
                                         value={data.mtr_bln_lalu}
                                         onChange={(e) =>
                                             setData(
@@ -187,7 +238,6 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                             )
                                         }
                                         min="0"
-                                        required
                                         readOnly
                                     />
                                     <span className="text-xs text-gray-400 mt-1 block">
@@ -208,7 +258,6 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                             setData("mtr_skrg", e.target.value)
                                         }
                                         min={data.mtr_bln_lalu}
-                                        required
                                     />
                                     {errors.mtr_skrg && (
                                         <p className="text-red-500 text-xs mt-1">
@@ -277,7 +326,7 @@ export default function Create({ auth, wargaList, masterHarga }) {
                                     <Button
                                         type="submit"
                                         className="w-full md:w-auto px-6 h-11 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20"
-                                        disabled={processing || !data.usr_id}
+                                        disabled={processing} // logic tombol disabled tetap ada
                                     >
                                         {processing
                                             ? "Menyimpan..."

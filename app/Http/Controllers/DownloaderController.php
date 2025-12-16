@@ -62,6 +62,7 @@ class DownloaderController extends Controller
 
         // --- QUERY DATA ---
 
+
         // A. BOP Masuk (Tabel: masuk_bop)
         // Kolom: id, tgl, nominal, ket, bkt_nota, created_at
         $bopMasuk = PemasukanBOP::whereBetween('tgl', [$startDate, $endDate])
@@ -112,7 +113,7 @@ class DownloaderController extends Controller
         
         foreach ($timeline as $row) {
             // Label Kategori
-            $kategori = ($row['tipe_dana'] === 'bop') ? 'BOP' : 'Kas/Iuran';
+            $kategori = ($row['tipe_dana'] === 'bop') ? 'BOP' : 'Iuran';
             
             // Tentukan saldo mana yang dipakai/diupdate
             $currentSaldo = ($row['tipe_dana'] === 'bop') ? $saldoBop : $saldoIuran;
