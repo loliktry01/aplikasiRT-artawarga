@@ -28,6 +28,7 @@ export default function TambahData({ roles, wilayah = [] }) {
         no_hp: "",
         role_id: "",
         status: "",
+        is_active: true,
         // Field Wilayah (ID Database)
         kota_id: "",
         kecamatan_id: "",
@@ -390,8 +391,8 @@ export default function TambahData({ roles, wilayah = [] }) {
                                     <SelectValue placeholder="Pilih Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="tetap">Tetap</SelectItem>
-                                    <SelectItem value="kontrak">
+                                    <SelectItem value="Tetap">Tetap</SelectItem>
+                                    <SelectItem value="Kontrak">
                                         Kontrak
                                     </SelectItem>
                                 </SelectContent>
@@ -401,6 +402,26 @@ export default function TambahData({ roles, wilayah = [] }) {
                                     {errors.status}
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    {/* Active Status */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={data.is_active}
+                                    onChange={(e) => setData("is_active", e.target.checked)}
+                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Warga Aktif
+                                </span>
+                            </label>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Centang jika warga masih aktif tinggal di RT ini
+                            </p>
                         </div>
                     </div>
 

@@ -156,15 +156,15 @@ export default function Dashboard() {
             });
     }, [filteredData]);
 
-    // --- COMPONENT: CARD ITEM (FIXED ALIGNMENT) ---
+    // --- COMPONENT: CARD ITEM with Islamic/Property Theme ---
     const InfoCard = ({
         title,
         value,
         subtitle,
         icon: Icon,
-        variant = "blue", // default variant
+        variant = "blue", // default variant changed to blue for professional theme
     }) => {
-        // Konfigurasi warna berdasarkan variant
+        // Konfigurasi warna berdasarkan variant with Professional theme
         const themes = {
             blue: {
                 bar: "bg-blue-600",
@@ -177,15 +177,15 @@ export default function Dashboard() {
                 iconColor: "text-purple-600",
             },
             orange: {
-                // Mirip gambar referensi
+                // Professional orange
                 bar: "bg-orange-500",
                 iconBg: "bg-orange-50",
-                iconColor: "text-orange-500",
+                iconColor: "text-orange-600",
             },
             green: {
-                bar: "bg-emerald-600",
-                iconBg: "bg-emerald-50",
-                iconColor: "text-emerald-600",
+                bar: "bg-green-600",
+                iconBg: "bg-green-50",
+                iconColor: "text-green-600",
             },
             red: {
                 bar: "bg-red-600",
@@ -193,25 +193,25 @@ export default function Dashboard() {
                 iconColor: "text-red-600",
             },
             indigo: {
-                bar: "bg-indigo-600",
-                iconBg: "bg-indigo-50",
-                iconColor: "text-indigo-600",
+                bar: "bg-indigo-700",
+                iconBg: "bg-indigo-100",
+                iconColor: "text-indigo-800",
             },
         };
 
         const theme = themes[variant] || themes.blue;
 
         return (
-            <div className="relative bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 p-5 h-full overflow-hidden hover:shadow-md transition-shadow duration-200">
-                {/* Vertical Bar (Accent) */}
+            <div className="relative bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg border border-blue-100 p-5 h-full overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                {/* Vertical Bar (Accent) with Professional theme */}
                 <div
-                    className={`absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl ${theme.bar}`}
+                    className={`absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl ${theme.bar} bg-gradient-to-b`}
                 />
 
                 <div className="flex flex-col h-full pl-3">
-                    {/* Icon Container */}
+                    {/* Icon Container with Professional theme */}
                     <div
-                        className={`w-12 h-12 rounded-2xl ${theme.iconBg} flex items-center justify-center mb-4`}
+                        className={`w-12 h-12 rounded-2xl ${theme.iconBg} bg-gradient-to-br from-blue-100 to-gray-100 flex items-center justify-center mb-4 border border-blue-200`}
                     >
                         <Icon
                             className={`w-6 h-6 ${theme.iconColor}`}
@@ -221,14 +221,14 @@ export default function Dashboard() {
 
                     {/* Text Content */}
                     <div className="mt-auto">
-                        <p className="text-gray-500 text-sm font-medium mb-1 tracking-wide">
+                        <p className="text-blue-700 text-sm font-medium mb-1 tracking-wide">
                             {title}
                         </p>
                         <h3 className="text-2xl font-bold text-gray-800 tracking-tight">
                             {value}
                         </h3>
                         {subtitle && (
-                            <p className="text-xs text-gray-400 mt-2 font-medium">
+                            <p className="text-xs text-blue-600 mt-2 font-medium italic">
                                 {subtitle}
                             </p>
                         )}
@@ -242,15 +242,15 @@ export default function Dashboard() {
         <AppLayout user={auth.user}>
             <Head title="Dashboard" />
 
-            <div className="py-1">
+            <div className="py-1 bg-gradient-to-b from-blue-50 to-gray-50 min-h-screen">
                 <div className="w-full px-1">
-                    {/* --- HEADER & BUTTONS --- */}
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                            DASHBOARD
+                    {/* --- HEADER & BUTTONS with Professional Theme --- */}
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 p-4 rounded-xl bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-lg">
+                        <h1 className="text-2xl md:text-3xl font-bold">
+                            DASHBOARD KEUANGAN RT
                         </h1>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons with Professional Theme */}
                         {userRole !== 5 && (
                             <div className="flex gap-3">
                                 {(userRole === 2 ||
@@ -258,7 +258,7 @@ export default function Dashboard() {
                                     userRole === 4) && (
                                     <>
                                         <Button
-                                            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                            className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white shadow-md"
                                             onClick={() =>
                                                 router.visit(
                                                     "/dashboard/pemasukan"
@@ -269,7 +269,7 @@ export default function Dashboard() {
                                             Tambah Pemasukan
                                         </Button>
                                         <Button
-                                            className="bg-red-600 hover:bg-red-700 text-white shadow-sm"
+                                            className="bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800 text-white shadow-md"
                                             onClick={() =>
                                                 router.visit(
                                                     "/dashboard/pengeluaran"
@@ -285,13 +285,13 @@ export default function Dashboard() {
                         )}
                     </div>
 
-                    {/* --- CARDS GRID --- */}
+                    {/* --- CARDS GRID with Professional Theme --- */}
                     <div
                         className={`grid grid-cols-1 md:grid-cols-2 ${
                             userRole === 1 ? "lg:grid-cols-4" : "lg:grid-cols-3"
-                        } gap-5 mb-8 w-full`}
+                        } gap-6 mb-8 w-full px-4`}
                     >
-                        {/* BAGIAN ADMIN (4 KARTU) */}
+                        {/* BAGIAN ADMIN (4 KARTU) with Professional Theme */}
                         {userRole === 1 && (
                             <>
                                 <InfoCard
@@ -305,14 +305,14 @@ export default function Dashboard() {
                                     title="Sisa Dana BOP"
                                     value={formatRupiah(sisaBop)}
                                     icon={Wallet}
-                                    variant="purple"
-                                    subtitle={`BOP: ${formatRupiah(sisaBop)}`} // Style mirip gambar
+                                    variant="blue"
+                                    subtitle={`BOP: ${formatRupiah(sisaBop)}`} // Style with Professional theme
                                 />
                                 <InfoCard
                                     title="Sisa Dana Iuran"
                                     value={formatRupiah(sisaIuran)}
                                     icon={Banknote}
-                                    variant="orange" // Sesuai warna gambar referensi
+                                    variant="orange" // Changed to orange for Professional theme
                                     subtitle={`Iuran: ${formatRupiah(
                                         sisaIuran
                                     )}`}
@@ -321,13 +321,13 @@ export default function Dashboard() {
                                     title="Total Saldo Aktif"
                                     value={formatRupiah(sisaSaldo)}
                                     icon={Calculator}
-                                    variant="green"
+                                    variant="blue"
                                     subtitle="Akumulasi seluruh dana"
                                 />
                             </>
                         )}
 
-                        {/* BAGIAN USER LAIN (3 KARTU) */}
+                        {/* BAGIAN USER LAIN (3 KARTU) with Professional Theme */}
                         {(userRole === 2 ||
                             userRole === 3 ||
                             userRole === 4 ||
@@ -337,7 +337,7 @@ export default function Dashboard() {
                                     title="Total Pemasukan"
                                     value={formatRupiah(saldoAwal)}
                                     icon={TrendingUp}
-                                    variant="green"
+                                    variant="blue"
                                 />
                                 <InfoCard
                                     title="Total Pengeluaran"
@@ -355,16 +355,19 @@ export default function Dashboard() {
                         )}
                     </div>
 
-                    {/* --- CHART SECTION --- */}
-                    <div>
-                        <FinancialLineChart data={chartData} />
+                    {/* --- CHART SECTION with Professional Theme --- */}
+                    <div className="px-4">
+                        <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-100">
+                            <h2 className="text-xl font-bold text-blue-800 mb-4">Grafik Keuangan</h2>
+                            <FinancialLineChart data={chartData} />
+                        </div>
                     </div>
 
-                    {/* --- TABLE CONTAINER (IndexRT Style) --- */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 mt-8">
-                        {/* Filter Bar */}
-                        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-2 items-center justify-end bg-gray-50/50">
-                            <span className="text-sm text-gray-600 font-medium mr-1">
+                    {/* --- TABLE CONTAINER with Professional Theme --- */}
+                    <div className="bg-gradient-to-br from-white to-blue-50 overflow-hidden shadow-lg sm:rounded-xl border border-blue-100 mt-8 mx-4">
+                        {/* Filter Bar with Professional Theme */}
+                        <div className="p-4 border-b border-blue-100 flex flex-wrap gap-2 items-center justify-end bg-gradient-to-r from-blue-50 to-gray-50">
+                            <span className="text-sm text-blue-800 font-medium mr-1">
                                 Filter:
                             </span>
 
@@ -377,7 +380,7 @@ export default function Dashboard() {
                                         selectedYear
                                     )
                                 }
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500 h-9"
+                                className="border border-blue-300 rounded-md px-3 py-1.5 text-sm text-blue-800 focus:ring-blue-500 focus:border-blue-500 h-9 bg-white"
                             >
                                 <option value="">Semua Bulan</option>
                                 {[...Array(12)].map((_, i) => (
@@ -402,7 +405,7 @@ export default function Dashboard() {
                                         e.target.value
                                     )
                                 }
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500 h-9"
+                                className="border border-blue-300 rounded-md px-3 py-1.5 text-sm text-blue-800 focus:ring-blue-500 focus:border-blue-500 h-9 bg-white"
                             >
                                 <option value="">Semua Tahun</option>
                                 {[...Array(6)].map((_, i) => {
@@ -432,7 +435,7 @@ export default function Dashboard() {
                                             }
                                         );
                                     }}
-                                    className="text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700 h-9"
+                                    className="text-red-700 border-red-300 bg-red-50 hover:bg-red-100 hover:text-red-800 h-9"
                                 >
                                     <RotateCcw className="w-3 h-3" />
                                 </Button>
@@ -449,7 +452,7 @@ export default function Dashboard() {
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
+                                    <TableRow className="bg-blue-50 hover:bg-blue-100 border-b border-blue-200">
                                         {[
                                             { key: "tgl", label: "Tanggal" },
                                             {
@@ -479,17 +482,17 @@ export default function Dashboard() {
                                                 onClick={() =>
                                                     toggleSort(col.key)
                                                 }
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none h-auto"
+                                                className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider cursor-pointer select-none h-auto bg-blue-100"
                                             >
                                                 <div className="flex items-center gap-1">
                                                     {col.label}
-                                                    <ChevronsUpDown className="h-3 w-3 text-gray-400" />
+                                                    <ChevronsUpDown className="h-3 w-3 text-blue-600" />
                                                 </div>
                                             </TableHead>
                                         ))}
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody className="bg-white divide-y divide-gray-200">
+                                <TableBody className="bg-white divide-y divide-blue-100">
                                     {paginatedData.length ? (
                                         paginatedData.map((t, i) => {
                                             const nominal =
@@ -506,20 +509,20 @@ export default function Dashboard() {
                                                             `/rincian/${t.id}`
                                                         )
                                                     }
-                                                    className="hover:bg-gray-50 transition duration-150 cursor-pointer border-0"
+                                                    className="hover:bg-blue-50 transition duration-150 cursor-pointer border-0"
                                                 >
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-blue-800">
                                                         {t.tgl}
                                                     </TableCell>
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 font-medium">
                                                         {t.kategori}
                                                     </TableCell>
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-blue-700">
                                                         {formatRupiah(
                                                             t.jumlah_awal
                                                         )}
                                                     </TableCell>
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-emerald-600">
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-700">
                                                         {t.status ===
                                                         "Pemasukan"
                                                             ? formatRupiah(
@@ -535,7 +538,7 @@ export default function Dashboard() {
                                                               )
                                                             : "–"}
                                                     </TableCell>
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-900">
                                                         {formatRupiah(
                                                             t.jumlah_sisa
                                                         )}
@@ -547,9 +550,9 @@ export default function Dashboard() {
                                                                 ${
                                                                     t.status ===
                                                                     "Pemasukan"
-                                                                        ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                                                        : "bg-red-100 text-red-800 border-red-200"
-                                                                } border
+                                                                        ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300"
+                                                                        : "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-300"
+                                                                } border rounded-full px-3 py-1
                                                             `}
                                                         >
                                                             {t.status}
@@ -562,7 +565,7 @@ export default function Dashboard() {
                                         <TableRow>
                                             <TableCell
                                                 colSpan={7}
-                                                className="px-6 py-8 text-center text-gray-500"
+                                                className="px-6 py-8 text-center text-blue-600"
                                             >
                                                 Tidak ada data transaksi.
                                             </TableCell>
@@ -572,9 +575,9 @@ export default function Dashboard() {
                             </Table>
                         </div>
 
-                        {/* Pagination Controls (IndexRT Style) */}
+                        {/* Pagination Controls with Professional Theme */}
                         {filteredData.length > 0 && (
-                            <div className="flex justify-end items-center gap-2 px-6 py-4 bg-white border-t border-gray-200">
+                            <div className="flex justify-end items-center gap-2 px-6 py-4 bg-blue-50 border-t border-blue-100">
                                 <Button
                                     variant="outline"
                                     size="icon"
@@ -584,12 +587,12 @@ export default function Dashboard() {
                                         )
                                     }
                                     disabled={currentPage === 1}
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 border-blue-300"
                                 >
-                                    <ChevronLeft className="w-4 h-4" />
+                                    <ChevronLeft className="w-4 h-4 text-blue-700" />
                                 </Button>
 
-                                <span className="text-sm text-gray-600">
+                                <span className="text-sm text-blue-700">
                                     Halaman {currentPage} dari {totalPages}
                                 </span>
 
@@ -602,9 +605,9 @@ export default function Dashboard() {
                                         )
                                     }
                                     disabled={currentPage === totalPages}
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 border-blue-300"
                                 >
-                                    <ChevronRight className="w-4 h-4" />
+                                    <ChevronRight className="w-4 h-4 text-blue-700" />
                                 </Button>
                             </div>
                         )}
