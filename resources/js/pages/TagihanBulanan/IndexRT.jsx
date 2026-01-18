@@ -422,7 +422,8 @@ export default function IndexRT({ auth, tagihan }) {
                                                 <TableCell>
                                                     <div className="flex justify-center items-center gap-1">
                                                         {/* --- TOMBOL EDIT --- */}
-                                                        {item.status === "approved" ? (
+                                                        {item.status ===
+                                                        "approved" ? (
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"

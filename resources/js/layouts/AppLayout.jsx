@@ -52,7 +52,7 @@ export default function AppLayout({ children }) {
 
     // 🔹 LOGIKA MENU BERDASARKAN ROLE ID
     const getMenuItems = (roleId) => {
-        // 1. Admin: /dashboard, /manajemen-data
+        // 1. Admin: /dashboard, /manajemen-data, /manajemen-pengurus
         if (roleId === 1) {
             return [
                 { title: "Dashboard", url: "/dashboard", icon: Grid2x2Plus },
@@ -60,6 +60,11 @@ export default function AppLayout({ children }) {
                     title: "Manajemen Data",
                     url: "/manajemen-data",
                     icon: Inbox,
+                },
+                {
+                    title: "Manajemen Pengurus",
+                    url: "/manajemen-pengurus",
+                    icon: Database,
                 },
             ];
         }

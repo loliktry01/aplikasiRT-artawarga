@@ -95,6 +95,12 @@ class RoleMiddleware
                 'superadmin.updateUser',
                 'superadmin.deleteUser',
 
+                // MANAJEMEN PENGURUS
+                'pengurus.index',
+                'pengurus.store',
+                'pengurus.update',
+                'pengurus.destroy',
+
                 'kegiatan.show',
             ], $kategoriIuranRoutes),
 

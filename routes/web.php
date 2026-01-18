@@ -15,6 +15,7 @@ use App\Http\Controllers\HargaIuranController;
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\TagihanBulananController;
 use App\Http\Controllers\SpjPdfController;
+use App\Http\Controllers\PengurusController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -86,6 +87,12 @@ Route::middleware(['role.access'])->group(function () {
     Route::get('/manajemen-data/{id}/edit', [SuperadminController::class, 'editUser'])->name('superadmin.editUser');
     Route::put('/manajemen-data/{id}', [SuperadminController::class, 'update'])->name('superadmin.updateUser');
     Route::delete('/manajemen-data/{id}', [SuperadminController::class, 'deleteUser'])->name('superadmin.deleteUser');
+
+    // MANAJEMEN PENGURUS (Superadmin)
+    Route::get('/manajemen-pengurus', [PengurusController::class, 'index'])->name('pengurus.index');
+    Route::post('/pengurus', [PengurusController::class, 'store'])->name('pengurus.store');
+    Route::put('/pengurus/{id}', [PengurusController::class, 'update'])->name('pengurus.update');
+    Route::delete('/pengurus/{id}', [PengurusController::class, 'destroy'])->name('pengurus.destroy');
 
     Route::get('/tagihan-bulanan/create', [TagihanBulananController::class, 'create'])->name('tagihan.create');
     Route::post('/tagihan-bulanan/store', [TagihanBulananController::class, 'store'])->name('tagihan.store');
