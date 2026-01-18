@@ -39,6 +39,7 @@ export default function EditData({ user, roles, wilayah = [] }) {
 
         role_id: user.role_id ? user.role_id.toString() : "",
         status: user.status || "",
+        is_active: user.is_active || true,
     });
 
     // --- USE EFFECT: Isi Dropdown Wilayah saat halaman dimuat ---
@@ -391,12 +392,32 @@ export default function EditData({ user, roles, wilayah = [] }) {
                                     <SelectValue placeholder="Pilih Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="tetap">Tetap</SelectItem>
-                                    <SelectItem value="kontrak">
+                                    <SelectItem value="Tetap">Tetap</SelectItem>
+                                    <SelectItem value="Kontrak">
                                         Kontrak
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+                    </div>
+
+                    {/* Active Status */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={data.is_active}
+                                    onChange={(e) => setData("is_active", e.target.checked)}
+                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Warga Aktif
+                                </span>
+                            </label>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Centang jika warga masih aktif tinggal di RT ini
+                            </p>
                         </div>
                     </div>
 

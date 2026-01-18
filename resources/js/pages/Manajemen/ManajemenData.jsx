@@ -193,6 +193,7 @@ export default function ManajemenData() {
                                 <th className="py-3 px-4 text-left font-medium">No. KK</th>
                                 <th className="py-3 px-4 text-left font-medium">Nama Lengkap</th>
                                 <th className="py-3 px-4 text-left font-medium">Domisili</th>
+                                <th className="py-3 px-4 text-left font-medium">Status Aktif</th>
                                 <th className="py-3 px-4 text-left font-medium">Role</th>
                                 <th className="py-3 px-4 text-left font-medium">Aksi</th>
                             </tr>
@@ -213,6 +214,17 @@ export default function ManajemenData() {
                                                 {item.kecamatan?.nama_kecamatan}, {item.kota?.nama_kota}
                                             </span>
                                         </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        {item.is_active ? (
+                                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                                                Aktif
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                                                Tidak Aktif
+                                            </Badge>
+                                        )}
                                     </td>
                                     <td className="py-3 px-4">
                                         <Badge variant="outline">{item.role?.nm_role}</Badge>
@@ -236,7 +248,7 @@ export default function ManajemenData() {
                             ))}
                             {users.length === 0 && (
                                 <tr>
-                                    <td className="py-6 text-center text-gray-500" colSpan={5}>
+                                    <td className="py-6 text-center text-gray-500" colSpan={6}>
                                         Tidak ada data ditemukan.
                                     </td>
                                 </tr>

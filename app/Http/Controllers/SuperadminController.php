@@ -39,7 +39,7 @@ class SuperadminController extends Controller
         $users = $query->latest()
                 ->paginate(10)
                 ->withQueryString();
-        
+
         $roles = Role::all();
 
         return Inertia::render('Manajemen/ManajemenData', [
@@ -75,9 +75,10 @@ class SuperadminController extends Controller
             'password' => 'required|min:6',
             'no_hp' => 'nullable',
             'role_id' => 'required',
-            'status' => 'required',
+            'status' => 'required|in:Tetap,Kontrak',
+            'is_active' => 'required|boolean',
             'alamat' => 'required|string',
-            
+
             // Validasi String Manual
             'kode_pos' => 'required',
             'rw' => 'required',
@@ -97,8 +98,9 @@ class SuperadminController extends Controller
             'no_hp' => $request->no_hp,
             'role_id' => $request->role_id,
             'status' => $request->status,
+            'is_active' => $request->is_active,
             'alamat' => $request->alamat,
-            
+
             // Simpan String Manual
             'kode_pos' => $request->kode_pos,
             'rw' => $request->rw,
@@ -117,14 +119,14 @@ class SuperadminController extends Controller
     {
         // LOAD: Cukup sampai Kelurahan
         $user = User::with(['role', 'kota', 'kecamatan', 'kelurahan'])->findOrFail($id);
-        
+
         $roles = Role::where('id', '!=', 1)->get();
         $kotas = Kota::with('kecamatans.kelurahans')->get();
 
         return Inertia::render('Manajemen/EditData', [
             'user' => $user,
             'roles' => $roles,
-            'wilayah' => $kotas 
+            'wilayah' => $kotas
         ]);
     }
 
@@ -138,9 +140,10 @@ class SuperadminController extends Controller
             'no_kk' => 'required|digits:16|unique:usr,no_kk,' . $id . ',id',
             'no_hp' => 'required',
             'role_id' => 'required',
-            'status' => 'required',
+            'status' => 'required|in:Tetap,Kontrak',
+            'is_active' => 'required|boolean',
             'alamat' => 'required|string',
-            
+
             'kode_pos' => 'required',
             'rw' => 'required',
             'rt' => 'required',
@@ -156,8 +159,9 @@ class SuperadminController extends Controller
             'no_hp' => $request->no_hp,
             'role_id' => $request->role_id,
             'status' => $request->status,
+            'is_active' => $request->is_active,
             'alamat' => $request->alamat,
-            
+
             // Update String Manual
             'kode_pos' => $request->kode_pos,
             'rw' => $request->rw,

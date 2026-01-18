@@ -10,14 +10,15 @@ class User extends Authenticatable
     use HasApiTokens;
         protected $table = 'usr';
     protected $fillable = [
-        'nm_lengkap', 
-        'no_kk', 
-        'email', 
-        'password', 
-        'no_hp', 
-        'role_id', 
-        'status', 
-        'alamat', 
+        'nm_lengkap',
+        'no_kk',
+        'email',
+        'password',
+        'no_hp',
+        'role_id',
+        'status',
+        'is_active',
+        'alamat',
         'foto_profil',
         'kode_pos',
         'rw',
